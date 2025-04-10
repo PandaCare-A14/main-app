@@ -1,7 +1,0 @@
-organization=noqils
-projectKey=noQils_eshop
-serverUrl=https://sonarcloud.io
-serverVersion=8.0.0.61804
-dashboardUrl=https://sonarcloud.io/dashboard?id=noQils_eshop
-ceTaskId=AZYgdx2XMkckTxtgNxOO
-ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZYgdx2XMkckTxtgNxOO
