@@ -51,20 +51,26 @@ class DoctorProfileRepositoryTest {
         doctorProfileList.add(doctorProfile2);
     }
 
+    // Utility method
+    private void assertDoctorProfilesEqual(DoctorProfile expected, DoctorProfile actual) {
+        assertEquals(expected.getId(), actual.getId());
+        assertEquals(expected.getName(), actual.getName());
+        assertEquals(expected.getEmail(), actual.getEmail());
+        assertEquals(expected.getPhoneNumber(), actual.getPhoneNumber());
+        assertEquals(expected.getWorkAddress(), actual.getWorkAddress());
+        assertEquals(expected.getWorkSchedule(), actual.getWorkSchedule());
+        assertEquals(expected.getSpeciality(), actual.getSpeciality());
+        assertEquals(expected.getRating(), actual.getRating());
+    }
+
+
     @Test
     void testSaveDoctorProfile() {
         DoctorProfile doctorProfile = doctorProfileList.getFirst();
         DoctorProfile result = doctorProfileRepository.save(doctorProfile);
 
         DoctorProfile expected = doctorProfileRepository.findById(doctorProfile.getId());
-        assertEquals(expected.getId(), result.getId());
-        assertEquals(expected.getName(), result.getName());
-        assertEquals(expected.getEmail(), result.getEmail());
-        assertEquals(expected.getPhoneNumber(), result.getPhoneNumber());
-        assertEquals(expected.getWorkAddress(), result.getWorkAddress());
-        assertEquals(expected.getWorkSchedule(), result.getWorkSchedule());
-        assertEquals(expected.getSpeciality(), result.getSpeciality());
-        assertEquals(expected.getRating(), result.getRating());
+        assertDoctorProfilesEqual(expected, result);
     }
 
     @Test
@@ -73,14 +79,7 @@ class DoctorProfileRepositoryTest {
         DoctorProfile expected = doctorProfileRepository.save(doctorProfileList.getFirst());
         DoctorProfile result = doctorProfileRepository.delete(doctorProfile);
 
-        assertEquals(expected.getId(), result.getId());
-        assertEquals(expected.getName(), result.getName());
-        assertEquals(expected.getEmail(), result.getEmail());
-        assertEquals(expected.getPhoneNumber(), result.getPhoneNumber());
-        assertEquals(expected.getWorkAddress(), result.getWorkAddress());
-        assertEquals(expected.getWorkSchedule(), result.getWorkSchedule());
-        assertEquals(expected.getSpeciality(), result.getSpeciality());
-        assertEquals(expected.getRating(), result.getRating());
+        assertDoctorProfilesEqual(expected, result);
     }
 
     @Test
@@ -99,17 +98,10 @@ class DoctorProfileRepositoryTest {
             doctorProfileRepository.save(doctorProfile);
         }
 
-        DoctorProfile doctorProfile = doctorProfileList.get(1);
-        DoctorProfile result = doctorProfileRepository.findById(doctorProfile.getId());
+        DoctorProfile expected = doctorProfileList.get(1);
+        DoctorProfile result = doctorProfileRepository.findById(expected.getId());
 
-        assertEquals(doctorProfile.getId(), result.getId());
-        assertEquals(doctorProfile.getName(), result.getName());
-        assertEquals(doctorProfile.getEmail(), result.getEmail());
-        assertEquals(doctorProfile.getPhoneNumber(), result.getPhoneNumber());
-        assertEquals(doctorProfile.getWorkAddress(), result.getWorkAddress());
-        assertEquals(doctorProfile.getWorkSchedule(), result.getWorkSchedule());
-        assertEquals(doctorProfile.getSpeciality(), result.getSpeciality());
-        assertEquals(doctorProfile.getRating(), result.getRating());
+        assertDoctorProfilesEqual(expected, result);
     }
 
     @Test
@@ -129,18 +121,11 @@ class DoctorProfileRepositoryTest {
             doctorProfileRepository.save(doctorProfile);
         }
 
-        DoctorProfile doctorProfile = doctorProfileList.get(1);
-        List<DoctorProfile> result = doctorProfileRepository.findByName(doctorProfile.getName());
+        DoctorProfile expected = doctorProfileList.get(1);
+        List<DoctorProfile> result = doctorProfileRepository.findByName(expected.getName());
 
         assertEquals(1, result.size());
-        assertEquals(doctorProfile.getId(), result.getFirst().getId());
-        assertEquals(doctorProfile.getName(), result.getFirst().getName());
-        assertEquals(doctorProfile.getEmail(), result.getFirst().getEmail());
-        assertEquals(doctorProfile.getPhoneNumber(), result.getFirst().getPhoneNumber());
-        assertEquals(doctorProfile.getWorkAddress(), result.getFirst().getWorkAddress());
-        assertEquals(doctorProfile.getWorkSchedule(), result.getFirst().getWorkSchedule());
-        assertEquals(doctorProfile.getSpeciality(), result.getFirst().getSpeciality());
-        assertEquals(doctorProfile.getRating(), result.getFirst().getRating());
+        assertDoctorProfilesEqual(expected, result.getFirst());
     }
 
     @Test
@@ -149,18 +134,11 @@ class DoctorProfileRepositoryTest {
             doctorProfileRepository.save(doctorProfile);
         }
 
-        DoctorProfile doctorProfile = doctorProfileList.get(1);
-        List<DoctorProfile> result = doctorProfileRepository.findBySpeciality(doctorProfile.getSpeciality());
+        DoctorProfile expected = doctorProfileList.get(1);
+        List<DoctorProfile> result = doctorProfileRepository.findBySpeciality(expected.getSpeciality());
 
         assertEquals(1, result.size());
-        assertEquals(doctorProfile.getId(), result.getFirst().getId());
-        assertEquals(doctorProfile.getName(), result.getFirst().getName());
-        assertEquals(doctorProfile.getEmail(), result.getFirst().getEmail());
-        assertEquals(doctorProfile.getPhoneNumber(), result.getFirst().getPhoneNumber());
-        assertEquals(doctorProfile.getWorkAddress(), result.getFirst().getWorkAddress());
-        assertEquals(doctorProfile.getWorkSchedule(), result.getFirst().getWorkSchedule());
-        assertEquals(doctorProfile.getSpeciality(), result.getFirst().getSpeciality());
-        assertEquals(doctorProfile.getRating(), result.getFirst().getRating());
+        assertDoctorProfilesEqual(expected, result.getFirst());
     }
 
     @Test
@@ -169,17 +147,10 @@ class DoctorProfileRepositoryTest {
             doctorProfileRepository.save(doctorProfile);
         }
 
-        DoctorProfile doctorProfile = doctorProfileList.get(1);
+        DoctorProfile expected = doctorProfileList.get(1);
         List<DoctorProfile> result = doctorProfileRepository.findByWorkSchedule("Selasa", "12:00-15:00");
 
         assertEquals(1, result.size());
-        assertEquals(doctorProfile.getId(), result.getFirst().getId());
-        assertEquals(doctorProfile.getName(), result.getFirst().getName());
-        assertEquals(doctorProfile.getEmail(), result.getFirst().getEmail());
-        assertEquals(doctorProfile.getPhoneNumber(), result.getFirst().getPhoneNumber());
-        assertEquals(doctorProfile.getWorkAddress(), result.getFirst().getWorkAddress());
-        assertEquals(doctorProfile.getWorkSchedule(), result.getFirst().getWorkSchedule());
-        assertEquals(doctorProfile.getSpeciality(), result.getFirst().getSpeciality());
-        assertEquals(doctorProfile.getRating(), result.getFirst().getRating());
+        assertDoctorProfilesEqual(expected, result.getFirst());
     }
 }
