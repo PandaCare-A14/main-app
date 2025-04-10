@@ -22,6 +22,7 @@ class DoctorProfileRepositoryTest {
 
         Map<String, String> workSchedule1 = new HashMap<>();
         workSchedule1.put("Senin", "09:00-12:00");
+        workSchedule1.put("Rabu", "10:00-13:00");
 
         DoctorProfile doctorProfile1 = new DoctorProfile();
         doctorProfile1.setId("eb558e9f-1c39-460e-8860-71af6af63bd6");
@@ -36,22 +37,23 @@ class DoctorProfileRepositoryTest {
 
         Map<String, String> workSchedule2 = new HashMap<>();
         workSchedule2.put("Selasa", "14:00-18:00");
+        workSchedule2.put("Kamis", "09:00-12:00");
 
         DoctorProfile doctorProfile2 = new DoctorProfile();
-        doctorProfile1.setId("eb558e9f-1c39-460e-8860-71af6af63ds2");
-        doctorProfile1.setName("Dr. Jonah");
-        doctorProfile1.setEmail("jonah@pandacare.com");
-        doctorProfile1.setPhoneNumber("08192836789");
-        doctorProfile1.setWorkAddress("RS Pondok Indah");
-        doctorProfile1.setWorkSchedule(workSchedule2);
-        doctorProfile1.setSpeciality("Orthopedic");
-        doctorProfile1.setRating(4.8);
+        doctorProfile2.setId("eb558e9f-1c39-460e-8860-71af6af63ds2");
+        doctorProfile2.setName("Dr. Jonah");
+        doctorProfile2.setEmail("jonah@pandacare.com");
+        doctorProfile2.setPhoneNumber("08192836789");
+        doctorProfile2.setWorkAddress("RS Pondok Indah");
+        doctorProfile2.setWorkSchedule(workSchedule2);
+        doctorProfile2.setSpeciality("Orthopedic");
+        doctorProfile2.setRating(4.8);
         doctorProfileList.add(doctorProfile2);
     }
 
     @Test
     void testSaveDoctorProfile() {
-        DoctorProfile doctorProfile = doctorProfileList.get(0);
+        DoctorProfile doctorProfile = doctorProfileList.getFirst();
         DoctorProfile result = doctorProfileRepository.save(doctorProfile);
 
         DoctorProfile expected = doctorProfileRepository.findById(doctorProfile.getId());
@@ -67,8 +69,38 @@ class DoctorProfileRepositoryTest {
 
     @Test
     void testDeleteDoctorProfile() {
-        DoctorProfile doctorProfile = doctorProfileList.get(0);
+        DoctorProfile doctorProfile = doctorProfileList.getFirst();
+        DoctorProfile expected = doctorProfileRepository.save(doctorProfileList.getFirst());
         DoctorProfile result = doctorProfileRepository.delete(doctorProfile);
+
+        assertEquals(expected.getId(), result.getId());
+        assertEquals(expected.getName(), result.getName());
+        assertEquals(expected.getEmail(), result.getEmail());
+        assertEquals(expected.getPhoneNumber(), result.getPhoneNumber());
+        assertEquals(expected.getWorkAddress(), result.getWorkAddress());
+        assertEquals(expected.getWorkSchedule(), result.getWorkSchedule());
+        assertEquals(expected.getSpeciality(), result.getSpeciality());
+        assertEquals(expected.getRating(), result.getRating());
+    }
+
+    @Test
+    void testFindAllDoctorProfile() {
+        for (DoctorProfile doctorProfile : doctorProfileList) {
+            doctorProfileRepository.save(doctorProfile);
+        }
+
+        List<DoctorProfile> result= doctorProfileRepository.findAll();
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void testFindDoctorProfileByIdIfIdExists() {
+        for (DoctorProfile doctorProfile : doctorProfileList) {
+            doctorProfileRepository.save(doctorProfile);
+        }
+
+        DoctorProfile doctorProfile = doctorProfileList.get(1);
+        DoctorProfile result = doctorProfileRepository.findById(doctorProfile.getId());
 
         assertEquals(doctorProfile.getId(), result.getId());
         assertEquals(doctorProfile.getName(), result.getName());
@@ -81,13 +113,14 @@ class DoctorProfileRepositoryTest {
     }
 
     @Test
-    void testFindAllDoctorProfile() {
+    void testFindDoctorProfileByIdIfIdNotExist() {
         for (DoctorProfile doctorProfile : doctorProfileList) {
             doctorProfileRepository.save(doctorProfile);
         }
 
-        List<DoctorProfile> result= doctorProfileRepository.findAll();
-        assertEquals(2, result.size());
+        DoctorProfile result = doctorProfileRepository.findById("NonExistentId");
+
+        assertNull(result);
     }
 
     @Test
@@ -117,7 +150,7 @@ class DoctorProfileRepositoryTest {
         }
 
         DoctorProfile doctorProfile = doctorProfileList.get(1);
-        List<DoctorProfile> result = doctorProfileRepository.findByName(doctorProfile.getSpeciality());
+        List<DoctorProfile> result = doctorProfileRepository.findBySpeciality(doctorProfile.getSpeciality());
 
         assertEquals(1, result.size());
         assertEquals(doctorProfile.getId(), result.getFirst().getId());
@@ -137,7 +170,7 @@ class DoctorProfileRepositoryTest {
         }
 
         DoctorProfile doctorProfile = doctorProfileList.get(1);
-        List<DoctorProfile> result = doctorProfileRepository.findByWorkSchedule("12:00-15:00");
+        List<DoctorProfile> result = doctorProfileRepository.findByWorkSchedule("Selasa", "12:00-15:00");
 
         assertEquals(1, result.size());
         assertEquals(doctorProfile.getId(), result.getFirst().getId());
