@@ -36,4 +36,4 @@ jobs:
       - name: Build and analyze with Gradle
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew build sonarqube -Dsonar.projectKey=<your_project_key> -Dsonar.organization=<your_org>
+        run: ./gradlew build sonarqube -Dsonar.projectKey=f98e88015a3a0c445a6d8f06bc280195fc3bfdc1 -Dsonar.organization=pandacare-a14
