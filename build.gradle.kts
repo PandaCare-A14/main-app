@@ -6,7 +6,7 @@ plugins {
 	id("org.sonarqube") version "4.3.1.3277"
 }
 
-group = "id.ac.ui.cs.advprog"
+group = "com.pandacare"
 version = "0.0.1-SNAPSHOT"
 
 val seleniumJavaVersion = "4.14.1"
