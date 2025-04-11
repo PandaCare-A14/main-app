@@ -52,11 +52,12 @@ public class SearchByWorkScheduleTest {
         DoctorProfile doctorProfile = doctorProfileList.get(1);
         List<DoctorProfile> expected = new ArrayList<>();
         expected.add(doctorProfile);
-        doReturn(expected).when(doctorProfileRepository).findByWorkSchedule("Kamis 10:00-11:30");
+        String workSchedule = "Kamis 10:00-11:30";
+        doReturn(expected).when(doctorProfileRepository).findByWorkSchedule(workSchedule);
 
-        List<DoctorProfile> result = searchByWorkSchedule.search("Kamis 10:00-11:30");
+        List<DoctorProfile> result = searchByWorkSchedule.search(workSchedule);
 
         assertEquals(expected, result);
-        verify(doctorProfileRepository, times(1)).findByWorkSchedule("Kamis 10:00-11:30");
+        verify(doctorProfileRepository, times(1)).findByWorkSchedule(workSchedule);
     }
 }
