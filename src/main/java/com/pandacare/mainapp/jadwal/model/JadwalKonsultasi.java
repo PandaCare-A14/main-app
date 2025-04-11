@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class JadwalKonsultasi {
+    private String id;
     private String idDokter;
     private String day;
     private String startTime;

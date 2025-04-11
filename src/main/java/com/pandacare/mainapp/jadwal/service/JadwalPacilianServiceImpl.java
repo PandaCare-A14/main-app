@@ -19,4 +19,30 @@ public class JadwalPacilianServiceImpl {
         jadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
         return jadwal;
     }
+
+    public JadwalKonsultasi editSchedule(String id, String day, String startTime, String endTime) {
+        JadwalKonsultasi jadwal = findById(id);
+
+        if (jadwal == null) {
+            throw new IllegalArgumentException("Schedule not found");
+        }
+
+        if (jadwal.getStatusPacilian() != StatusJadwalPacilian.WAITING) {
+            throw new IllegalStateException("Only schedules with status WAITING can be edited");
+        }
+
+        if (startTime.compareTo(endTime) >= 0) {
+            throw new IllegalArgumentException("Start time must be before end time");
+        }
+
+        jadwal.setDay(day);
+        jadwal.setStartTime(startTime);
+        jadwal.setEndTime(endTime);
+
+        return jadwal;
+    }
+
+    public JadwalKonsultasi findById(String id) {
+        return null; // Sementara: akan di-mock di test
+    }
 }
