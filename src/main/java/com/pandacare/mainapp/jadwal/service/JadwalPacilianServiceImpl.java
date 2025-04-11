@@ -3,6 +3,8 @@ package com.pandacare.mainapp.jadwal.service;
 import com.pandacare.mainapp.jadwal.enums.StatusJadwalPacilian;
 import com.pandacare.mainapp.jadwal.model.JadwalKonsultasi;
 import com.pandacare.mainapp.jadwal.repository.JadwalPacilianRepository;
+import com.pandacare.mainapp.jadwal.service.template.RequestJadwalHandler;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,17 +15,8 @@ public class JadwalPacilianServiceImpl {
     private JadwalPacilianRepository repository;
 
     public JadwalKonsultasi requestJadwal(String idDokter, String day, String startTime, String endTime) {
-        if (startTime.compareTo(endTime) >= 0) {
-            throw new IllegalArgumentException("Start time must be before end time");
-        }
-
-        JadwalKonsultasi jadwal = new JadwalKonsultasi();
-        jadwal.setIdDokter(idDokter);
-        jadwal.setDay(day);
-        jadwal.setStartTime(startTime);
-        jadwal.setEndTime(endTime);
-        jadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
-        return jadwal;
+        RequestJadwalHandler handler = new RequestJadwalHandler(idDokter, day, startTime, endTime, repository);
+        return handler.handle();
     }
 
     public JadwalKonsultasi editSchedule(String id, String day, String startTime, String endTime) {
