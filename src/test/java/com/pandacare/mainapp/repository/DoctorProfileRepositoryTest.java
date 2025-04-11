@@ -182,8 +182,8 @@ class DoctorProfileRepositoryTest {
 
         DoctorProfile expected1 = doctorProfileList.get(0);
         DoctorProfile expected2 = doctorProfileList.get(1);
-        List<DoctorProfile> result1 = doctorProfileRepository.findByWorkSchedule("Senin", "11:00-13:00");
-        List<DoctorProfile> result2 = doctorProfileRepository.findByWorkSchedule("Selasa", "12:00-15:00");
+        List<DoctorProfile> result1 = doctorProfileRepository.findByWorkSchedule("Senin 11:00-13:00");
+        List<DoctorProfile> result2 = doctorProfileRepository.findByWorkSchedule("Selasa 12:00-15:00");
 
 
         assertEquals(1, result1.size());
@@ -198,10 +198,10 @@ class DoctorProfileRepositoryTest {
             doctorProfileRepository.save(doctorProfile);
         }
 
-        List<DoctorProfile> result1 = doctorProfileRepository.findByWorkSchedule("Senin", "11:45-13:00");
-        List<DoctorProfile> result2 = doctorProfileRepository.findByWorkSchedule("Selasa", "12:00-14:05");
-        List<DoctorProfile> result3 = doctorProfileRepository.findByWorkSchedule("Selasa", "12:00-13:00");
-        List<DoctorProfile> result4 = doctorProfileRepository.findByWorkSchedule("Senin", "12:30-13:00");
+        List<DoctorProfile> result1 = doctorProfileRepository.findByWorkSchedule("Senin 11:45-13:00");
+        List<DoctorProfile> result2 = doctorProfileRepository.findByWorkSchedule("Selasa 12:00-14:05");
+        List<DoctorProfile> result3 = doctorProfileRepository.findByWorkSchedule("Selasa 12:00-13:00");
+        List<DoctorProfile> result4 = doctorProfileRepository.findByWorkSchedule("Senin 12:30-13:00");
 
         assertTrue(result1.isEmpty());
         assertTrue(result2.isEmpty());
