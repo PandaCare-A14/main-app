@@ -60,6 +60,13 @@ public class JadwalPacilianServiceImpl {
             throw new IllegalStateException("No change request exists for this schedule");
         }
 
+        jadwal.setDay(jadwal.getNewDay()); // Update time values to requested changeSchedule
+        jadwal.setStartTime(jadwal.getNewStartTime());
+        jadwal.setEndTime(jadwal.getNewEndTime());
+
+        jadwal.setNewDay(null); // Set back to default values
+        jadwal.setNewStartTime(null);
+        jadwal.setNewEndTime(null);
         jadwal.setChangeSchedule(false);
 
         return jadwal;

@@ -12,4 +12,7 @@ public class JadwalKonsultasi {
     private String endTime;
     private StatusJadwalPacilian statusPacilian;
     private boolean changeSchedule;
+    private String newDay;
+    private String newStartTime;
+    private String newEndTime;
 }
