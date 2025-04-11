@@ -28,4 +28,48 @@ public class JadwalPacilianServiceTest {
         );
         assertEquals("Start time must be before end time", exception.getMessage());
     }
+
+    @Test
+    void editSchedule_shouldUpdateSchedule_whenStatusIsWaiting() {
+        JadwalKonsultasi existing = new JadwalKonsultasi();
+        existing.setId("jadwal123");
+        existing.setDay("Senin");
+        existing.setStartTime("09:00");
+        existing.setEndTime("10:00");
+        existing.setStatusPacilian(StatusJadwalPacilian.WAITING);
+
+        JadwalPacilianServiceImpl service = new JadwalPacilianServiceImpl() {
+            @Override
+            public JadwalKonsultasi findById(String id) {
+                return existing;
+            }
+        };
+
+        JadwalKonsultasi updated = service.editSchedule("jadwal123", "Selasa", "10:00", "11:00");
+
+        assertEquals("Selasa", updated.getDay());
+        assertEquals("10:00", updated.getStartTime());
+        assertEquals("11:00", updated.getEndTime());
+        assertEquals(StatusJadwalPacilian.WAITING, updated.getStatusPacilian());
+    }
+
+    @Test
+    void editSchedule_shouldThrowException_whenStatusIsNotWaiting() {
+        JadwalKonsultasi jadwal = new JadwalKonsultasi();
+        jadwal.setId("jadwal124");
+        jadwal.setStatusPacilian(StatusJadwalPacilian.APPROVED);
+
+        JadwalPacilianServiceImpl service = new JadwalPacilianServiceImpl() {
+            @Override
+            public JadwalKonsultasi findById(String id) {
+                return jadwal;
+            }
+        };
+
+        Exception ex = assertThrows(IllegalStateException.class, () ->
+                service.editSchedule("jadwal124", "Senin", "09:00", "10:00")
+        );
+
+        assertEquals("Only schedules with status WAITING can be edited", ex.getMessage());
+    }
 }
