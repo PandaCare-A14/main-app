@@ -45,6 +45,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	runtimeOnly("org.postgresql:postgresql:42.6.0")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	testImplementation("com.h2database:h2")
 
 	compileOnly("org.projectlombok:lombok")
 
