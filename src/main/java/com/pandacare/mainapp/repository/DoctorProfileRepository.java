@@ -89,7 +89,6 @@ public class DoctorProfileRepository {
 
         for (DoctorProfile savedDoctorProfile : doctorProfiles) {
             Map<String, String> doctorSchedule = savedDoctorProfile.getWorkSchedule();
-            if (doctorSchedule == null) continue;
             if (doctorSchedule.containsKey(day)) {
                 String doctorWorkHour = doctorSchedule.get(day);
 
@@ -97,12 +96,16 @@ public class DoctorProfileRepository {
                 LocalTime doctorStart = LocalTime.parse(doctorTimeRange[0].trim(), formatter);
                 LocalTime doctorEnd = LocalTime.parse(doctorTimeRange[1].trim(), formatter);
 
-                if (searchStart.isAfter(doctorStart) && searchStart.isBefore(doctorEnd) && Duration.between(searchStart, doctorEnd).toMinutes() >= 30) {
-                    matchedDoctors.add(savedDoctorProfile);
-                    continue;
+                if (searchStart.isAfter(doctorStart) && searchStart.isBefore(doctorEnd)) {
+                    if (Duration.between(searchStart, doctorEnd).toMinutes() >= 30) {
+                        matchedDoctors.add(savedDoctorProfile);
+                        continue;
+                    }
                 }
-                if (searchEnd.isAfter(doctorStart) && searchEnd.isBefore(doctorEnd) && Duration.between(doctorStart, searchEnd).toMinutes() >= 30) {
-                    matchedDoctors.add(savedDoctorProfile);
+                if (searchEnd.isAfter(doctorStart) && searchEnd.isBefore(doctorEnd)) {
+                    if (Duration.between(doctorStart, searchEnd).toMinutes() >= 30) {
+                        matchedDoctors.add(savedDoctorProfile);
+                    }
                 }
             }
         }
