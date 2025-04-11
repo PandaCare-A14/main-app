@@ -51,6 +51,18 @@ class DoctorProfileServiceImplTest {
         doctorProfileList.add(doctorProfile2);
     }
 
+    // Utility method
+    private void assertDoctorProfilesEqual(DoctorProfile expected, DoctorProfile actual) {
+        assertEquals(expected.getId(), actual.getId());
+        assertEquals(expected.getName(), actual.getName());
+        assertEquals(expected.getEmail(), actual.getEmail());
+        assertEquals(expected.getPhoneNumber(), actual.getPhoneNumber());
+        assertEquals(expected.getWorkAddress(), actual.getWorkAddress());
+        assertEquals(expected.getWorkSchedule(), actual.getWorkSchedule());
+        assertEquals(expected.getSpeciality(), actual.getSpeciality());
+        assertEquals(expected.getRating(), actual.getRating());
+    }
+
     @Test
     void createDoctorProfile() {
         DoctorProfile expected = doctorProfileList.getFirst();
@@ -58,14 +70,7 @@ class DoctorProfileServiceImplTest {
 
         DoctorProfile result = doctorProfileService.createProfile(expected);
 
-        assertEquals(expected.getId(), result.getId());
-        assertEquals(expected.getName(), result.getName());
-        assertEquals(expected.getSpeciality(), result.getSpeciality());
-        assertEquals(expected.getEmail(), result.getEmail());
-        assertEquals(expected.getPhoneNumber(), result.getPhoneNumber());
-        assertEquals(expected.getWorkAddress(), result.getWorkAddress());
-        assertEquals(expected.getWorkSchedule(), result.getWorkSchedule());
-        assertEquals(expected.getRating(), result.getRating());
+        assertDoctorProfilesEqual(expected, result);
         verify(doctorProfileRepository, times(1)).save(expected);
     }
 
@@ -122,14 +127,7 @@ class DoctorProfileServiceImplTest {
 
         DoctorProfile result = doctorProfileService.deleteProfile(expected);
 
-        assertEquals(expected.getId(), result.getId());
-        assertEquals(expected.getName(), result.getName());
-        assertEquals(expected.getSpeciality(), result.getSpeciality());
-        assertEquals(expected.getEmail(), result.getEmail());
-        assertEquals(expected.getPhoneNumber(), result.getPhoneNumber());
-        assertEquals(expected.getWorkAddress(), result.getWorkAddress());
-        assertEquals(expected.getWorkSchedule(), result.getWorkSchedule());
-        assertEquals(expected.getRating(), result.getRating());
+        assertDoctorProfilesEqual(expected, result);
         verify(doctorProfileRepository, times(1)).delete(expected);
     }
 
@@ -156,14 +154,7 @@ class DoctorProfileServiceImplTest {
         doReturn(expected).when(doctorProfileRepository).findById(expected.getId());
 
         DoctorProfile result = doctorProfileService.findById(expected.getId());
-        assertEquals(expected.getId(), result.getId());
-        assertEquals(expected.getName(), result.getName());
-        assertEquals(expected.getEmail(), result.getEmail());
-        assertEquals(expected.getPhoneNumber(), result.getPhoneNumber());
-        assertEquals(expected.getWorkAddress(), result.getWorkAddress());
-        assertEquals(expected.getWorkSchedule(), result.getWorkSchedule());
-        assertEquals(expected.getSpeciality(), result.getSpeciality());
-        assertEquals(expected.getRating(), result.getRating());
+        assertDoctorProfilesEqual(expected, result);
     }
 
     @Test
@@ -182,14 +173,7 @@ class DoctorProfileServiceImplTest {
 
         List<DoctorProfile> result = doctorProfileService.findByName(expected.getName());
         assertEquals(matchingNames.size(), result.size());
-        assertEquals(expected.getId(), result.getFirst().getId());
-        assertEquals(expected.getName(), result.getFirst().getName());
-        assertEquals(expected.getEmail(), result.getFirst().getEmail());
-        assertEquals(expected.getPhoneNumber(), result.getFirst().getPhoneNumber());
-        assertEquals(expected.getWorkAddress(), result.getFirst().getWorkAddress());
-        assertEquals(expected.getWorkSchedule(), result.getFirst().getWorkSchedule());
-        assertEquals(expected.getSpeciality(), result.getFirst().getSpeciality());
-        assertEquals(expected.getRating(), result.getFirst().getRating());
+        assertDoctorProfilesEqual(expected, result.getFirst());
     }
 
     @Test
@@ -210,14 +194,7 @@ class DoctorProfileServiceImplTest {
 
         List<DoctorProfile> result = doctorProfileService.findBySpeciality(expected.getSpeciality());
         assertEquals(matchingNames.size(), result.size());
-        assertEquals(expected.getId(), result.getFirst().getId());
-        assertEquals(expected.getName(), result.getFirst().getName());
-        assertEquals(expected.getEmail(), result.getFirst().getEmail());
-        assertEquals(expected.getPhoneNumber(), result.getFirst().getPhoneNumber());
-        assertEquals(expected.getWorkAddress(), result.getFirst().getWorkAddress());
-        assertEquals(expected.getWorkSchedule(), result.getFirst().getWorkSchedule());
-        assertEquals(expected.getSpeciality(), result.getFirst().getSpeciality());
-        assertEquals(expected.getRating(), result.getFirst().getRating());
+        assertDoctorProfilesEqual(expected, result.getFirst());
     }
 
     @Test
@@ -238,14 +215,7 @@ class DoctorProfileServiceImplTest {
 
         List<DoctorProfile> result = doctorProfileService.findByWorkSchedule("Senin", "10:30-12:30");
         assertEquals(matchingNames.size(), result.size());
-        assertEquals(expected.getId(), result.getFirst().getId());
-        assertEquals(expected.getName(), result.getFirst().getName());
-        assertEquals(expected.getEmail(), result.getFirst().getEmail());
-        assertEquals(expected.getPhoneNumber(), result.getFirst().getPhoneNumber());
-        assertEquals(expected.getWorkAddress(), result.getFirst().getWorkAddress());
-        assertEquals(expected.getWorkSchedule(), result.getFirst().getWorkSchedule());
-        assertEquals(expected.getSpeciality(), result.getFirst().getSpeciality());
-        assertEquals(expected.getRating(), result.getFirst().getRating());
+        assertDoctorProfilesEqual(expected, result.getFirst());
     }
 
     @Test
