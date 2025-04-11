@@ -2,12 +2,36 @@ package com.pandacare.mainapp.jadwal.service;
 
 import com.pandacare.mainapp.jadwal.enums.StatusJadwalPacilian;
 import com.pandacare.mainapp.jadwal.model.JadwalKonsultasi;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class JadwalPacilianServiceTest {
 
-    private JadwalPacilianServiceImpl service = new JadwalPacilianServiceImpl();
+    private JadwalPacilianServiceImpl service;
+    private JadwalKonsultasi waitingJadwal;
+    private JadwalKonsultasi approvedJadwal;
+
+    @BeforeEach
+    void setUp() {
+        service = new JadwalPacilianServiceImpl();
+
+        waitingJadwal = new JadwalKonsultasi();
+        waitingJadwal.setId("jadwal123");
+        waitingJadwal.setIdDokter("dok123");
+        waitingJadwal.setDay("Senin");
+        waitingJadwal.setStartTime("09:00");
+        waitingJadwal.setEndTime("10:00");
+        waitingJadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
+
+        approvedJadwal = new JadwalKonsultasi();
+        approvedJadwal.setId("jadwal124");
+        approvedJadwal.setIdDokter("dok123");
+        approvedJadwal.setDay("Rabu");
+        approvedJadwal.setStartTime("13:00");
+        approvedJadwal.setEndTime("14:00");
+        approvedJadwal.setStatusPacilian(StatusJadwalPacilian.APPROVED);
+    }
 
     @Test
     void requestJadwal_shouldReturnWaitingStatus() {
@@ -31,21 +55,14 @@ public class JadwalPacilianServiceTest {
 
     @Test
     void editSchedule_shouldUpdateSchedule_whenStatusIsWaiting() {
-        JadwalKonsultasi existing = new JadwalKonsultasi();
-        existing.setId("jadwal123");
-        existing.setDay("Senin");
-        existing.setStartTime("09:00");
-        existing.setEndTime("10:00");
-        existing.setStatusPacilian(StatusJadwalPacilian.WAITING);
-
-        JadwalPacilianServiceImpl service = new JadwalPacilianServiceImpl() {
+        JadwalPacilianServiceImpl mockService = new JadwalPacilianServiceImpl() {
             @Override
             public JadwalKonsultasi findById(String id) {
-                return existing;
+                return waitingJadwal;
             }
         };
 
-        JadwalKonsultasi updated = service.editSchedule("jadwal123", "Selasa", "10:00", "11:00");
+        JadwalKonsultasi updated = mockService.editSchedule("jadwal123", "Selasa", "10:00", "11:00");
 
         assertEquals("Selasa", updated.getDay());
         assertEquals("10:00", updated.getStartTime());
@@ -55,19 +72,15 @@ public class JadwalPacilianServiceTest {
 
     @Test
     void editSchedule_shouldThrowException_whenStatusIsNotWaiting() {
-        JadwalKonsultasi jadwal = new JadwalKonsultasi();
-        jadwal.setId("jadwal124");
-        jadwal.setStatusPacilian(StatusJadwalPacilian.APPROVED);
-
-        JadwalPacilianServiceImpl service = new JadwalPacilianServiceImpl() {
+        JadwalPacilianServiceImpl mockService = new JadwalPacilianServiceImpl() {
             @Override
             public JadwalKonsultasi findById(String id) {
-                return jadwal;
+                return approvedJadwal;
             }
         };
 
         Exception ex = assertThrows(IllegalStateException.class, () ->
-                service.editSchedule("jadwal124", "Senin", "09:00", "10:00")
+                mockService.editSchedule("jadwal124", "Senin", "09:00", "10:00")
         );
 
         assertEquals("Only schedules with status WAITING can be edited", ex.getMessage());
