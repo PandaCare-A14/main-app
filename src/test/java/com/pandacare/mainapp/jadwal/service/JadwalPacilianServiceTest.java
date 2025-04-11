@@ -107,5 +107,30 @@ public class JadwalPacilianServiceTest {
 
         assertNotNull(result);
         assertFalse(result.isChangeSchedule(), "State changeSchedule set to false if accepted");
+        assertEquals(StatusJadwalPacilian.WAITING, result.getStatusPacilian(), "Status should remain WAITING");
+    }
+
+    @Test
+    void acceptChangeSchedule_shouldThrowException_whenChangeScheduleIsFalse() {
+        JadwalKonsultasi noChangeRequestJadwal = new JadwalKonsultasi();
+        noChangeRequestJadwal.setId("jadwal125");
+        noChangeRequestJadwal.setDay("Rabu");
+        noChangeRequestJadwal.setStartTime("13:00");
+        noChangeRequestJadwal.setEndTime("14:00");
+        noChangeRequestJadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
+        noChangeRequestJadwal.setChangeSchedule(false);
+
+        JadwalPacilianServiceImpl mockService = new JadwalPacilianServiceImpl() {
+            @Override
+            public JadwalKonsultasi findById(String id) {
+                return noChangeRequestJadwal;
+            }
+        };
+
+        Exception ex = assertThrows(IllegalStateException.class, () ->
+                mockService.acceptChangeSchedule("jadwal125")
+        );
+
+        assertEquals("No change request exists for this schedule", ex.getMessage());
     }
 }
