@@ -53,6 +53,10 @@ public class JadwalPacilianServiceImpl {
                 .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
     }
 
+    public void deleteById(String id) {
+        repository.deleteById(id);
+    }
+
     public JadwalKonsultasi acceptChangeSchedule(String id) {
         JadwalKonsultasi jadwal = findById(id);
 
@@ -70,5 +74,17 @@ public class JadwalPacilianServiceImpl {
         jadwal.setChangeSchedule(false);
 
         return jadwal;
+    }
+
+
+
+    public void rejectChangeSchedule(String id) {
+        JadwalKonsultasi jadwal = findById(id);
+
+        if (!jadwal.isChangeSchedule()) {
+            throw new IllegalStateException("No change request exists for this schedule");
+        }
+
+        deleteById(id);
     }
 }
