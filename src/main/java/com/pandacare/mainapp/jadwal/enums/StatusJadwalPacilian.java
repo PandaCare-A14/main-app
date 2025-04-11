@@ -4,5 +4,4 @@ public enum StatusJadwalPacilian {
     WAITING,
     APPROVED,
     REJECTED,
-    CHANGE_SCHEDULE
 }
