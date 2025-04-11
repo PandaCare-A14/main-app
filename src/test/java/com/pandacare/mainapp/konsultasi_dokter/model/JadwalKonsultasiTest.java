@@ -4,34 +4,32 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-class JadwalKonsultasiTest {
+import java.util.List;
+import java.util.ArrayList;
 
+class JadwalKonsultasiTest {
     private JadwalKonsultasi jadwal;
 
     @BeforeEach
     void setUp() {
         jadwal = new JadwalKonsultasi();
-        jadwal.setId("JDW001");
+        jadwal.setId("JADWAL001");
         jadwal.setIdDokter(1L);
-        jadwal.setDay("Senin");
-        jadwal.setStartTime("10:00");
-        jadwal.setEndTime("11:00");
-        jadwal.setNote("Konsultasi umum");
+        jadwal.setDay("Rabu");
+        jadwal.setStartTime("11:30");
+        jadwal.setEndTime("12:15");
 
-        assertEquals("JDW001", jadwal.getId());
+        assertEquals("JADWAL001", jadwal.getId());
         assertEquals(1L, jadwal.getIdDokter());
-        assertEquals("Senin", jadwal.getDay());
-        assertEquals("10:00", jadwal.getStartTime());
-        assertEquals("11:00", jadwal.getEndTime());
-        assertEquals("Konsultasi umum", jadwal.getNote());
+        assertEquals("Rabu", jadwal.getDay());
+        assertEquals("11:30", jadwal.getStartTime());
+        assertEquals("12:15", jadwal.getEndTime());
         assertEquals(StatusJadwalDokter.AVAILABLE, jadwal.getStatusDokter());
     }
 
     @Test
-    // Test pasien request konsultasi
     void testRequestByPatient() {
         jadwal.setIdDokter(1L);
-
         jadwal.requestByPatient(2L, "Konsultasi sakit kepala");
 
         assertEquals(StatusJadwalDokter.REQUESTED, jadwal.getStatusDokter());
@@ -40,7 +38,6 @@ class JadwalKonsultasiTest {
     }
 
     @Test
-    // Test dokter menyetujui konsultasi
     void testApproveConsultation() {
         jadwal.setIdDokter(1L);
         jadwal.requestByPatient(2L, "Konsultasi sakit kepala");
@@ -50,12 +47,11 @@ class JadwalKonsultasiTest {
     }
 
     @Test
-    // Test dokter menolak konsultasi
     void testRejectConsultation() {
         jadwal.setIdDokter(1L);
-        jadwal.requestByPatient(2L, "Konsultasi sakit kepala");
+        jadwal.requestByPatient(2L, null);
 
-        String alasan = "Jadwal penuh";
+        String alasan = "Jadwal saat ini penuh, waktu reschedule belum bisa saya tentukan.";
         jadwal.rejectConsultation(alasan);
 
         assertEquals(StatusJadwalDokter.REJECTED, jadwal.getStatusDokter());
@@ -64,21 +60,62 @@ class JadwalKonsultasiTest {
 
     @Test
     void testProposeScheduleChange() {
-        // Setup jadwal dengan dokter dan permintaan dari pasien
         jadwal.setIdDokter(1L);
         jadwal.setDay("Senin");
         jadwal.setStartTime("10:00");
         jadwal.setEndTime("11:00");
         jadwal.requestByPatient(2L, "Konsultasi sakit kepala");
 
-        // Memasukkan ajuan jadwal baru
-        jadwal.proposeScheduleChange("Selasa", "14:00", "15:00", "Ada operasi mendadak");
+        jadwal.proposeScheduleChange("Selasa", "14:15", "15:00", "Ada operasi mendadak");
 
         assertEquals(StatusJadwalDokter.CHANGE_SCHEDULE, jadwal.getStatusDokter());
         assertEquals("Selasa", jadwal.getDay());
-        assertEquals("14:00", jadwal.getStartTime());
+        assertEquals("14:15", jadwal.getStartTime());
         assertEquals("15:00", jadwal.getEndTime());
         assertEquals("Ada operasi mendadak", jadwal.getMessage());
         assertTrue(jadwal.isChangeSchedule());
+    }
+
+    @Test
+    void testObserversAreNotifiedOnStatusChange() {
+        TestObserver observer = new TestObserver();
+        jadwal.addObserver(observer);
+        jadwal.requestByPatient(2L, "Konsultasi sakit kepala");
+
+        assertEquals(1, observer.getNotificationCount());
+        assertEquals(StatusJadwalDokter.REQUESTED, observer.getLastNotification());
+
+        jadwal.approveConsultation();
+        assertEquals(2, observer.getNotificationCount());
+        assertEquals(StatusJadwalDokter.APPROVED, observer.getLastNotification());
+    }
+
+    @Test
+    void testRemovedObserversDoNotReceiveNotifications() {
+        TestObserver observer = new TestObserver();
+        jadwal.addObserver(observer);
+        jadwal.removeObserver(observer);
+        jadwal.setStatusDokter(StatusJadwalDokter.REQUESTED);
+        assertEquals(0, observer.getNotificationCount());
+    }
+
+    static class TestObserver implements JadwalObserver {
+        private List<StatusJadwalDokter> notifications = new ArrayList<>();
+
+        @Override
+        public void update(JadwalKonsultasi jadwal) {
+            notifications.add(jadwal.getStatusDokter());
+        }
+
+        public int getNotificationCount() {
+            return notifications.size();
+        }
+
+        public StatusJadwalDokter getLastNotification() {
+            if (notifications.isEmpty()) {
+                return null;
+            }
+            return notifications.get(notifications.size() - 1);
+        }
     }
 }
