@@ -95,6 +95,9 @@ public class JadwalPacilianServiceTest {
         jadwal.setEndTime("11:00");
         jadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
         jadwal.setChangeSchedule(true);
+        jadwal.setNewDay("Kamis");
+        jadwal.setNewStartTime("15:00");
+        jadwal.setNewEndTime("16:00");
 
         JadwalPacilianServiceImpl mockService = new JadwalPacilianServiceImpl() {
             @Override
@@ -104,6 +107,10 @@ public class JadwalPacilianServiceTest {
         };
 
         JadwalKonsultasi result = mockService.acceptChangeSchedule("jadwal123");
+
+        assertEquals("Kamis", result.getDay());
+        assertEquals("15:00", result.getStartTime());
+        assertEquals("16:00", result.getEndTime());
 
         assertNotNull(result);
         assertFalse(result.isChangeSchedule(), "State changeSchedule set to false if accepted");
