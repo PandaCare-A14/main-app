@@ -11,4 +11,5 @@ public class JadwalKonsultasi {
     private String startTime;
     private String endTime;
     private StatusJadwalPacilian statusPacilian;
+    private boolean changeSchedule;
 }

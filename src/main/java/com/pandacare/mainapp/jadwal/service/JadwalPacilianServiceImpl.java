@@ -52,4 +52,16 @@ public class JadwalPacilianServiceImpl {
         return repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
     }
+
+    public JadwalKonsultasi acceptChangeSchedule(String id) {
+        JadwalKonsultasi jadwal = findById(id);
+
+        if (!jadwal.isChangeSchedule()) {
+            throw new IllegalStateException("No change request exists for this schedule");
+        }
+
+        jadwal.setChangeSchedule(false);
+
+        return jadwal;
+    }
 }
