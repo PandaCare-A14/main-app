@@ -1,16 +1,18 @@
 name: Deploy to Railway (Staging)
 
 on:
-  push:
-    branches: [staging]
+  workflow_run:
+    workflows: ["Continuous Integration (CI)"]
+    types:
+      - completed
 
 jobs:
   deploy:
-    name: Deploy to Railway
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install Railway CLI
