@@ -85,4 +85,27 @@ public class JadwalPacilianServiceTest {
 
         assertEquals("Only schedules with status WAITING can be edited", ex.getMessage());
     }
+
+    @Test
+    void acceptChangeSchedule_shouldApplyRequestedChange() {
+        JadwalKonsultasi jadwal = new JadwalKonsultasi();
+        jadwal.setId("jadwal123");
+        jadwal.setDay("Selasa");
+        jadwal.setStartTime("10:00");
+        jadwal.setEndTime("11:00");
+        jadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
+        jadwal.setChangeSchedule(true);
+
+        JadwalPacilianServiceImpl mockService = new JadwalPacilianServiceImpl() {
+            @Override
+            public JadwalKonsultasi findById(String id) {
+                return jadwal;
+            }
+        };
+
+        JadwalKonsultasi result = mockService.acceptChangeSchedule("jadwal123");
+
+        assertNotNull(result);
+        assertFalse(result.isChangeSchedule(), "State changeSchedule set to false if accepted");
+    }
 }
