@@ -79,11 +79,13 @@ public class DoctorProfileRepository {
         return matchedDoctors;
     }
 
-    public List<DoctorProfile> findByWorkSchedule(String day, String workHour) {
+    public List<DoctorProfile> findByWorkSchedule(String workSchedule) {
         List<DoctorProfile> matchedDoctors = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        String[] timeRange = workHour.split("-");
+        String[] schedule = workSchedule.split(" ");
+        String day = schedule[0];
+        String[] timeRange = schedule[1].split("-");
         LocalTime searchStart = LocalTime.parse(timeRange[0], formatter);
         LocalTime searchEnd = LocalTime.parse(timeRange[1], formatter);
 
