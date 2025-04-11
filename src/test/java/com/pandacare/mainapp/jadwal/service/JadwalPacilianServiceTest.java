@@ -140,4 +140,33 @@ public class JadwalPacilianServiceTest {
 
         assertEquals("No change request exists for this schedule", ex.getMessage());
     }
+
+    @Test
+    void rejectChangeSchedule_shouldDeleteSchedule() {
+        JadwalKonsultasi jadwal = new JadwalKonsultasi();
+        jadwal.setId("jadwal127");
+        jadwal.setDay("Selasa");
+        jadwal.setStartTime("10:00");
+        jadwal.setEndTime("11:00");
+        jadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
+        jadwal.setChangeSchedule(true);
+
+        final boolean[] deleted = {false}; // Fake repository dengan flag
+
+        JadwalPacilianServiceImpl mockService = new JadwalPacilianServiceImpl() {
+            @Override
+            public JadwalKonsultasi findById(String id) {
+                return jadwal;
+            }
+
+            @Override
+            public void deleteById(String id) {
+                deleted[0] = true;
+            }
+        };
+
+        mockService.rejectChangeSchedule("jadwal127");
+
+        assertTrue(deleted[0], "Schedule should be deleted if change is rejected");
+    }
 }
