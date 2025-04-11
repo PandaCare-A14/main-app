@@ -15,41 +15,51 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
 
     @Override
     public DoctorProfile createProfile(DoctorProfile doctorProfile) {
-
+        if (doctorProfileRepository.findById(doctorProfile.getId()) == null) {
+            doctorProfileRepository.save(doctorProfile);
+            return doctorProfile;
+        }
+        return null;
     }
 
     @Override
     public DoctorProfile updateProfile(DoctorProfile newDoctorProfile) {
-
+        DoctorProfile doctorProfile = doctorProfileRepository.findById(newDoctorProfile.getId());
+        if (doctorProfile != null) {
+            doctorProfileRepository.save(newDoctorProfile);
+            return newDoctorProfile;
+        } else {
+            return null;
+        }
     }
 
     @Override
     public DoctorProfile deleteProfile(DoctorProfile doctorProfile) {
-
+        return doctorProfileRepository.delete(doctorProfile);
     }
 
     @Override
     public List<DoctorProfile> findAll() {
-
+        return doctorProfileRepository.findAll();
     }
 
     @Override
     public DoctorProfile findById(String id) {
-
+        return doctorProfileRepository.findById(id);
     }
 
     @Override
     public List<DoctorProfile> findByName(String name) {
-
+        return doctorProfileRepository.findByName(name);
     }
 
     @Override
     public List<DoctorProfile> findBySpeciality(String speciality) {
-
+        return doctorProfileRepository.findBySpeciality(speciality);
     }
 
     @Override
     public List<DoctorProfile> findByWorkSchedule(String day, String workHour) {
-
+        return doctorProfileRepository.findByWorkSchedule(day, workHour);
     }
 }
