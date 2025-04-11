@@ -2,10 +2,16 @@ package com.pandacare.mainapp.jadwal.service;
 
 import com.pandacare.mainapp.jadwal.enums.StatusJadwalPacilian;
 import com.pandacare.mainapp.jadwal.model.JadwalKonsultasi;
+import com.pandacare.mainapp.jadwal.repository.JadwalPacilianRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class JadwalPacilianServiceImpl {
+
+    @Autowired
+    private JadwalPacilianRepository repository;
+
     public JadwalKonsultasi requestJadwal(String idDokter, String day, String startTime, String endTime) {
         if (startTime.compareTo(endTime) >= 0) {
             throw new IllegalArgumentException("Start time must be before end time");
@@ -43,6 +49,7 @@ public class JadwalPacilianServiceImpl {
     }
 
     public JadwalKonsultasi findById(String id) {
-        return null; // Sementara: akan di-mock di test
+        return repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
     }
 }
