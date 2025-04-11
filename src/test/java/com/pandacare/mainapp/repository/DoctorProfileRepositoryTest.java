@@ -24,30 +24,18 @@ class DoctorProfileRepositoryTest {
         workSchedule1.put("Senin", "09:00-12:00");
         workSchedule1.put("Rabu", "10:00-13:00");
 
-        DoctorProfile doctorProfile1 = new DoctorProfile();
+        DoctorProfile doctorProfile1 = new DoctorProfile("Dr. Hafiz", "hafiz@pandacare.com", "08123456789", "RS Pandacare",
+                workSchedule1, "Cardiologist", 4.9);
         doctorProfile1.setId("eb558e9f-1c39-460e-8860-71af6af63bd6");
-        doctorProfile1.setName("Dr. Hafiz");
-        doctorProfile1.setEmail("hafiz@pandacare.com");
-        doctorProfile1.setPhoneNumber("08123456789");
-        doctorProfile1.setWorkAddress("RS Pandacare");
-        doctorProfile1.setWorkSchedule(workSchedule1);
-        doctorProfile1.setSpeciality("Cardiologist");
-        doctorProfile1.setRating(4.9);
         doctorProfileList.add(doctorProfile1);
 
         Map<String, String> workSchedule2 = new HashMap<>();
         workSchedule2.put("Selasa", "14:00-18:00");
         workSchedule2.put("Kamis", "09:00-12:00");
 
-        DoctorProfile doctorProfile2 = new DoctorProfile();
+        DoctorProfile doctorProfile2 = new DoctorProfile("Dr. Jonah", "jonah@pandacare.com", "08192836789", "RS Pondok Indah",
+                workSchedule2, "Orthopedic", 4.8);
         doctorProfile2.setId("eb558e9f-1c39-460e-8860-71af6af63ds2");
-        doctorProfile2.setName("Dr. Jonah");
-        doctorProfile2.setEmail("jonah@pandacare.com");
-        doctorProfile2.setPhoneNumber("08192836789");
-        doctorProfile2.setWorkAddress("RS Pondok Indah");
-        doctorProfile2.setWorkSchedule(workSchedule2);
-        doctorProfile2.setSpeciality("Orthopedic");
-        doctorProfile2.setRating(4.8);
         doctorProfileList.add(doctorProfile2);
     }
 
@@ -82,15 +70,9 @@ class DoctorProfileRepositoryTest {
         workSchedule.put("Selasa", "15:00-18:00");
         workSchedule.put("Jumat", "19:00-21:00");
 
-        DoctorProfile newDoctorProfile = new DoctorProfile();
+        DoctorProfile newDoctorProfile = new DoctorProfile(doctorProfile.getName(), "hafiz@premierebintaro.com", "082723726789", "RS Premiere Bintaro",
+                workSchedule, doctorProfile.getSpeciality(), 4.95);
         newDoctorProfile.setId(doctorProfile.getId());
-        newDoctorProfile.setName(doctorProfile.getName());
-        newDoctorProfile.setEmail("hafiz@premierebintaro.com");
-        newDoctorProfile.setPhoneNumber("082723726789");
-        newDoctorProfile.setWorkAddress("RS Premiere Bintaro");
-        newDoctorProfile.setWorkSchedule(workSchedule);
-        newDoctorProfile.setSpeciality(doctorProfile.getSpeciality());
-        newDoctorProfile.setRating(4.95);
 
         DoctorProfile result = doctorProfileRepository.save(newDoctorProfile);
         DoctorProfile findResult = doctorProfileRepository.findById(doctorProfile.getId());
@@ -111,7 +93,7 @@ class DoctorProfileRepositoryTest {
 
     @Test
     void testDeleteDoctorProfileIfNotExist() {
-        DoctorProfile unsavedDoctorProfile = new DoctorProfile();
+        DoctorProfile unsavedDoctorProfile = doctorProfileList.getFirst();
         DoctorProfile result = doctorProfileRepository.delete(unsavedDoctorProfile);
 
         assertNull(result);
