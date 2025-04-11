@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 class DoctorProfileRepositoryTest {
     DoctorProfileRepository doctorProfileRepository;
@@ -74,12 +75,47 @@ class DoctorProfileRepositoryTest {
     }
 
     @Test
-    void testDeleteDoctorProfile() {
+    void testSaveUpdateDoctorProfile() {
+        DoctorProfile doctorProfile = doctorProfileList.getFirst();
+        doctorProfileRepository.save(doctorProfile);
+
+        Map<String, String> workSchedule = new HashMap<>();
+        workSchedule.put("Selasa", "15:00-18:00");
+        workSchedule.put("Jumat", "19:00-21:00");
+
+        DoctorProfile newDoctorProfile = new DoctorProfile();
+        newDoctorProfile.setId(doctorProfile.getId());
+        newDoctorProfile.setName(doctorProfile.getName());
+        newDoctorProfile.setEmail("hafiz@premierebintaro.com");
+        newDoctorProfile.setPhoneNumber("082723726789");
+        newDoctorProfile.setWorkAddress("RS Premiere Bintaro");
+        newDoctorProfile.setWorkSchedule(workSchedule);
+        newDoctorProfile.setSpeciality(doctorProfile.getSpeciality());
+        newDoctorProfile.setRating(4.95);
+
+        DoctorProfile result = doctorProfileRepository.save(newDoctorProfile);
+        DoctorProfile findResult = doctorProfileRepository.findById(doctorProfile.getId());
+
+        assertEquals(doctorProfile.getId(), result.getId());
+        assertEquals(doctorProfile.getId(), findResult.getId());
+        assertDoctorProfilesEqual(newDoctorProfile, findResult);
+    }
+
+    @Test
+    void testDeleteDoctorProfileIfExists() {
         DoctorProfile doctorProfile = doctorProfileList.getFirst();
         DoctorProfile expected = doctorProfileRepository.save(doctorProfileList.getFirst());
         DoctorProfile result = doctorProfileRepository.delete(doctorProfile);
 
         assertDoctorProfilesEqual(expected, result);
+    }
+
+    @Test
+    void testDeleteDoctorProfileIfNotExist() {
+        DoctorProfile unsavedDoctorProfile = new DoctorProfile();
+        DoctorProfile result = doctorProfileRepository.delete(unsavedDoctorProfile);
+
+        assertNull(result);
     }
 
     @Test
@@ -147,10 +183,34 @@ class DoctorProfileRepositoryTest {
             doctorProfileRepository.save(doctorProfile);
         }
 
-        DoctorProfile expected = doctorProfileList.get(1);
-        List<DoctorProfile> result = doctorProfileRepository.findByWorkSchedule("Selasa", "12:00-15:00");
+        DoctorProfile expected1 = doctorProfileList.get(0);
+        DoctorProfile expected2 = doctorProfileList.get(1);
+        List<DoctorProfile> result1 = doctorProfileRepository.findByWorkSchedule("Senin", "11:00-13:00");
+        List<DoctorProfile> result2 = doctorProfileRepository.findByWorkSchedule("Selasa", "12:00-15:00");
 
-        assertEquals(1, result.size());
-        assertDoctorProfilesEqual(expected, result.getFirst());
+
+        assertEquals(1, result1.size());
+        assertEquals(1, result2.size());
+        assertDoctorProfilesEqual(expected1, result1.getFirst());
+        assertDoctorProfilesEqual(expected2, result2.getFirst());
+
     }
+
+    @Test
+    void testFindByWorkScheduleSkipDoctorTooShortOverlap() {
+        for (DoctorProfile doctorProfile : doctorProfileList) {
+            doctorProfileRepository.save(doctorProfile);
+        }
+
+        List<DoctorProfile> result1 = doctorProfileRepository.findByWorkSchedule("Senin", "11:45-13:00");
+        List<DoctorProfile> result2 = doctorProfileRepository.findByWorkSchedule("Selasa", "12:00-14:05");
+        List<DoctorProfile> result3 = doctorProfileRepository.findByWorkSchedule("Selasa", "12:00-13:00");
+        List<DoctorProfile> result4 = doctorProfileRepository.findByWorkSchedule("Senin", "12:30-13:00");
+
+        assertTrue(result1.isEmpty());
+        assertTrue(result2.isEmpty());
+        assertTrue(result3.isEmpty());
+        assertTrue(result4.isEmpty());
+    }
+
 }
