@@ -133,7 +133,7 @@ class DoctorProfileRepositoryTest {
     }
 
     @Test
-    void testFindDoctorProfileByName() {
+    void testFindDoctorProfileByNameIfFound() {
         for (DoctorProfile doctorProfile : doctorProfileList) {
             doctorProfileRepository.save(doctorProfile);
         }
@@ -146,7 +146,15 @@ class DoctorProfileRepositoryTest {
     }
 
     @Test
-    void testFindDoctorProfileBySpeciality() {
+    void testFindDoctorProfileByNameIfNotFound() {
+        DoctorProfile expected = doctorProfileList.get(1);
+        List<DoctorProfile> result = doctorProfileRepository.findByName(expected.getName());
+
+        assertEquals(0, result.size());
+    }
+
+    @Test
+    void testFindDoctorProfileBySpecialityIfFound() {
         for (DoctorProfile doctorProfile : doctorProfileList) {
             doctorProfileRepository.save(doctorProfile);
         }
@@ -156,6 +164,14 @@ class DoctorProfileRepositoryTest {
 
         assertEquals(1, result.size());
         assertDoctorProfilesEqual(expected, result.getFirst());
+    }
+
+    @Test
+    void testFindDoctorProfileBySpecialityIfNotFound() {
+        DoctorProfile expected = doctorProfileList.get(1);
+        List<DoctorProfile> result = doctorProfileRepository.findBySpeciality(expected.getSpeciality());
+
+        assertEquals(0, result.size());
     }
 
     @Test
@@ -174,7 +190,6 @@ class DoctorProfileRepositoryTest {
         assertEquals(1, result2.size());
         assertDoctorProfilesEqual(expected1, result1.getFirst());
         assertDoctorProfilesEqual(expected2, result2.getFirst());
-
     }
 
     @Test
