@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Repository
-public class JadwalKonsultasiRepository {
+public class JadwalDokterRepository {
     private final List<JadwalKonsultasi> data = new ArrayList<>();
 
     public void save(JadwalKonsultasi jadwal) {

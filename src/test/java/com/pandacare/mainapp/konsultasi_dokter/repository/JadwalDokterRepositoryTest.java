@@ -9,7 +9,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class JadwalKonsultasiRepositoryTest {
+class JadwalDokterRepositoryTest {
     private JadwalKonsultasiRepository repository;
     private JadwalKonsultasi jadwal1;
     private JadwalKonsultasi jadwal2;
