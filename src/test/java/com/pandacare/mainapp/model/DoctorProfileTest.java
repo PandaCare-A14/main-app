@@ -37,15 +37,8 @@ class DoctorProfileTest {
     }
 
     private DoctorProfile createDoctorProfile(String id, String name, String email, String phoneNumber, String workAddress, Map<String, String> workSchedule, String speciality, double rating) {
-        DoctorProfile doctorProfile = new DoctorProfile();
+        DoctorProfile doctorProfile = new DoctorProfile(name, email, phoneNumber, workAddress, workSchedule, speciality, rating);
         doctorProfile.setId(id);
-        doctorProfile.setName(name);
-        doctorProfile.setEmail(email);
-        doctorProfile.setPhoneNumber(phoneNumber);
-        doctorProfile.setWorkAddress(workAddress);
-        doctorProfile.setWorkSchedule(workSchedule);
-        doctorProfile.setSpeciality(speciality);
-        doctorProfile.setRating(rating);
         return doctorProfile;
     }
 
