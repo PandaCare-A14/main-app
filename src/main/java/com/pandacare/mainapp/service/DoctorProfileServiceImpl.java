@@ -2,6 +2,10 @@ package com.pandacare.mainapp.service;
 
 import com.pandacare.mainapp.model.DoctorProfile;
 import com.pandacare.mainapp.repository.DoctorProfileRepository;
+import com.pandacare.mainapp.strategy.DoctorSearchContext;
+import com.pandacare.mainapp.strategy.SearchByName;
+import com.pandacare.mainapp.strategy.SearchBySpeciality;
+import com.pandacare.mainapp.strategy.SearchByWorkSchedule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,17 +53,23 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
     }
 
     @Override
-    public List<DoctorProfile> findByName(String name) {
-        return doctorProfileRepository.findByName(name);
-    }
+    public List<DoctorProfile> searchDoctorProfile(String searchType, String keyword) {
+        DoctorSearchContext context = new DoctorSearchContext();
 
-    @Override
-    public List<DoctorProfile> findBySpeciality(String speciality) {
-        return doctorProfileRepository.findBySpeciality(speciality);
-    }
+        switch (searchType) {
+            case "NAME":
+                context.setStrategy(new SearchByName(doctorProfileRepository));
+                break;
+            case "SPECIALITY":
+                context.setStrategy(new SearchBySpeciality(doctorProfileRepository));
+                break;
+            case "WORK_SCHEDULE":
+                context.setStrategy(new SearchByWorkSchedule(doctorProfileRepository));
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid search type");
+        }
 
-    @Override
-    public List<DoctorProfile> findByWorkSchedule(String workSchedule) {
-        return doctorProfileRepository.findByWorkSchedule(workSchedule);
+        return context.executeSearch(keyword);
     }
 }

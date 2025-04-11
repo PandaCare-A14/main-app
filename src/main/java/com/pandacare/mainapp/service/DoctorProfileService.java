@@ -10,7 +10,5 @@ public interface DoctorProfileService {
     public DoctorProfile deleteProfile(DoctorProfile profile);
     public List<DoctorProfile> findAll();
     public DoctorProfile findById(String id);
-    public List<DoctorProfile> findByName(String name);
-    public List<DoctorProfile> findBySpeciality(String speciality);
-    public List<DoctorProfile> findByWorkSchedule(String workSchedule);
+    public List<DoctorProfile> searchDoctorProfile(String searchType, String keyword);
 }
