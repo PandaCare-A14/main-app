@@ -1,5 +1,6 @@
 package com.pandacare.mainapp.jadwal.model;
 
+import com.pandacare.mainapp.jadwal.enums.StatusJadwalPacilian;
 import lombok.Data;
 
 @Data
@@ -8,5 +9,5 @@ public class JadwalKonsultasi {
     private String day;
     private String startTime;
     private String endTime;
-    private String statusPacilian;
+    private StatusJadwalPacilian statusPacilian;
 }

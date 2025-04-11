@@ -1,5 +1,6 @@
 package com.pandacare.mainapp.jadwal.service;
 
+import com.pandacare.mainapp.jadwal.enums.StatusJadwalPacilian;
 import com.pandacare.mainapp.jadwal.model.JadwalKonsultasi;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,7 +18,7 @@ public class JadwalPacilianServiceTest {
         assertEquals("Senin", result.getDay());
         assertEquals("09:00", result.getStartTime());
         assertEquals("10:00", result.getEndTime());
-        assertEquals("WAITING", result.getStatusPacilian());
+        assertEquals(StatusJadwalPacilian.WAITING, result.getStatusPacilian());
     }
 
     @Test

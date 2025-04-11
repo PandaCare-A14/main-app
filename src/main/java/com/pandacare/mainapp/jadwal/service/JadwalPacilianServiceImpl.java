@@ -1,5 +1,6 @@
 package com.pandacare.mainapp.jadwal.service;
 
+import com.pandacare.mainapp.jadwal.enums.StatusJadwalPacilian;
 import com.pandacare.mainapp.jadwal.model.JadwalKonsultasi;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,7 @@ public class JadwalPacilianServiceImpl {
         jadwal.setDay(day);
         jadwal.setStartTime(startTime);
         jadwal.setEndTime(endTime);
-        jadwal.setStatusPacilian("WAITING");
+        jadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
         return jadwal;
     }
 }
