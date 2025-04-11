@@ -59,7 +59,7 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
     }
 
     @Override
-    public List<DoctorProfile> findByWorkSchedule(String day, String workHour) {
-        return doctorProfileRepository.findByWorkSchedule(day, workHour);
+    public List<DoctorProfile> findByWorkSchedule(String workSchedule) {
+        return doctorProfileRepository.findByWorkSchedule(workSchedule);
     }
 }

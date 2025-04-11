@@ -12,5 +12,5 @@ public interface DoctorProfileService {
     public DoctorProfile findById(String id);
     public List<DoctorProfile> findByName(String name);
     public List<DoctorProfile> findBySpeciality(String speciality);
-    public List<DoctorProfile> findByWorkSchedule(String day, String workHour);
+    public List<DoctorProfile> findByWorkSchedule(String workSchedule);
 }
