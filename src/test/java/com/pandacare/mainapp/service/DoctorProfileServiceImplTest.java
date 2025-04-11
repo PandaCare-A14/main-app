@@ -211,9 +211,9 @@ class DoctorProfileServiceImplTest {
         DoctorProfile expected = doctorProfileList.getFirst();
         List<DoctorProfile> matchingNames = new ArrayList<>();
         matchingNames.add(expected);
-        doReturn(matchingNames).when(doctorProfileRepository).findByWorkSchedule("Senin", "10:30-12:30");
+        doReturn(matchingNames).when(doctorProfileRepository).findByWorkSchedule("Senin 10:30-12:30");
 
-        List<DoctorProfile> result = doctorProfileService.findByWorkSchedule("Senin", "10:30-12:30");
+        List<DoctorProfile> result = doctorProfileService.findByWorkSchedule("Senin 10:30-12:30");
         assertEquals(matchingNames.size(), result.size());
         assertDoctorProfilesEqual(expected, result.getFirst());
     }
@@ -221,9 +221,9 @@ class DoctorProfileServiceImplTest {
     @Test
     void testFindByWorkScheduleIfNotFound() {
         List<DoctorProfile> matchingNames = new ArrayList<>();
-        doReturn(matchingNames).when(doctorProfileRepository).findByWorkSchedule("Sabtu", "13:00-16:00");
+        doReturn(matchingNames).when(doctorProfileRepository).findByWorkSchedule("Sabtu 13:00-16:00");
 
-        List<DoctorProfile> result = doctorProfileService.findByWorkSchedule("Sabtu", "13:00-16:00");
+        List<DoctorProfile> result = doctorProfileService.findByWorkSchedule("Sabtu 13:00-16:00");
         assertEquals(0, result.size());
     }
 }
