@@ -2,7 +2,7 @@ package com.pandacare.mainapp.konsultasi_dokter.service;
 
 import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
 import com.pandacare.mainapp.konsultasi_dokter.model.StatusJadwalDokter;
-import com.pandacare.mainapp.konsultasi_dokter.repository.JadwalKonsultasiRepository;
+import com.pandacare.mainapp.konsultasi_dokter.repository.JadwalDokterRepository;
 import com.pandacare.mainapp.konsultasi_dokter.service.impl.JadwalDokterServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,12 +10,12 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class JadwalDokterServiceImplTest {
-    private JadwalKonsultasiRepository repository;
+    private JadwalDokterRepository repository;
     private JadwalDokterServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        repository = new JadwalKonsultasiRepository();
+        repository = new JadwalDokterRepository();
         service = new JadwalDokterServiceImpl(repository);
     }
 

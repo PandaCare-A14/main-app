@@ -10,13 +10,13 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class JadwalDokterRepositoryTest {
-    private JadwalKonsultasiRepository repository;
+    private JadwalDokterRepository repository;
     private JadwalKonsultasi jadwal1;
     private JadwalKonsultasi jadwal2;
 
     @BeforeEach
     void setUp() {
-        repository = new JadwalKonsultasiRepository();
+        repository = new JadwalDokterRepository();
 
         jadwal1 = new JadwalKonsultasi();
         jadwal1.setId("jdwl-001");
