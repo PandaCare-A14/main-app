@@ -1,4 +1,3 @@
-// src/main/java/com/pandacare/rating/repository/RatingRepository.java
 package com.pandacare.rating.repository;
 
 import com.pandacare.rating.model.Rating;
@@ -12,6 +11,13 @@ public interface RatingRepository {
      * @return Optional berisi daftar rating atau kosong jika tidak ditemukan
      */
     Optional<List<Rating>> findByOwnerId(String idPacillian);
+    
+    /**
+     * Mencari rating berdasarkan ID Dokter
+     * @param idDokter ID dari Dokter
+     * @return Optional berisi daftar rating atau kosong jika tidak ditemukan
+     */
+    Optional<List<Rating>> findByIdDokter(String idDokter);
     
     /**
      * Menghapus rating berdasarkan ID Pacillian dan ID Dokter
