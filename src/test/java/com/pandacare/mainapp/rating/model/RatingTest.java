@@ -1,4 +1,4 @@
-package com.pandacare.rating.model;
+package com.pandacare.mainapp.rating.model;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

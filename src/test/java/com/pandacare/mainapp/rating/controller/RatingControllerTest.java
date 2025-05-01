@@ -1,7 +1,7 @@
-package com.pandacare.rating.controller;
+package com.pandacare.mainapp.rating.controller;
 
-import com.pandacare.rating.model.Rating;
-import com.pandacare.rating.service.RatingService;
+import com.pandacare.mainapp.rating.model.Rating;
+import com.pandacare.mainapp.rating.service.RatingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

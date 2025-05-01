@@ -1,6 +1,6 @@
-package com.pandacare.rating.service;
+package com.pandacare.mainapp.rating.service;
 
-import com.pandacare.rating.model.Rating;
+import com.pandacare.mainapp.rating.model.Rating;
 import java.util.List;
 
 public interface RatingService {

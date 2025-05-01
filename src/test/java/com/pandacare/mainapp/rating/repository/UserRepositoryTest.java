@@ -1,4 +1,4 @@
-package com.pandacare.rating.repository;
+package com.pandacare.mainapp.rating.repository;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

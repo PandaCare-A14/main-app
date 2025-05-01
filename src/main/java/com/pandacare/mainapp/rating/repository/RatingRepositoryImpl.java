@@ -1,6 +1,6 @@
-package com.pandacare.rating.repository;
+package com.pandacare.mainapp.rating.repository;
 
-import com.pandacare.rating.model.Rating;
+import com.pandacare.mainapp.rating.model.Rating;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
