@@ -6,11 +6,12 @@ import com.pandacare.mainapp.jadwal.repository.JadwalPacilianRepository;
 
 public class RequestJadwalHandler extends JadwalKonsultasiTemplate {
 
-    private final String idDokter, day, startTime, endTime;
+    private final String idDokter, idPasien, day, startTime, endTime;
     private final JadwalPacilianRepository repository;
 
-    public RequestJadwalHandler(String idDokter, String day, String startTime, String endTime, JadwalPacilianRepository repository) {
+    public RequestJadwalHandler(String idDokter,  String idPasien, String day, String startTime, String endTime, JadwalPacilianRepository repository) {
         this.idDokter = idDokter;
+        this.idPasien = idPasien;
         this.day = day;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -31,6 +32,7 @@ public class RequestJadwalHandler extends JadwalKonsultasiTemplate {
     protected JadwalKonsultasi prepare() {
         JadwalKonsultasi jadwal = new JadwalKonsultasi();
         jadwal.setIdDokter(idDokter);
+        jadwal.setIdPasien(idPasien);
         jadwal.setDay(day);
         jadwal.setStartTime(startTime);
         jadwal.setEndTime(endTime);

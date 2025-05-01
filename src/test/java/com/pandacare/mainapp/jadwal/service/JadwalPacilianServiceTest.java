@@ -55,7 +55,7 @@ public class JadwalPacilianServiceTest {
             return savedJadwal;
         });
 
-        JadwalKonsultasi result = service.requestJadwal("dok123", "Senin", "09:00", "10:00");
+        JadwalKonsultasi result = service.requestJadwal("dok123","pac123","Senin", "09:00", "10:00");
 
         assertNotNull(result);
         assertEquals("dok123", result.getIdDokter());
@@ -70,7 +70,7 @@ public class JadwalPacilianServiceTest {
     @Test
     void requestJadwal_shouldThrowException_whenStartTimeAfterEndTime() {
         Exception exception = assertThrows(IllegalArgumentException.class, () ->
-                service.requestJadwal("dok123", "Senin", "14:00", "10:00")
+                service.requestJadwal("dok123","pac123","Senin", "14:00", "10:00")
         );
         assertEquals("Start time must be before end time", exception.getMessage());
     }

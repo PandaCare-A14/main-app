@@ -5,6 +5,7 @@ import com.pandacare.mainapp.jadwal.model.JadwalKonsultasi;
 import com.pandacare.mainapp.jadwal.repository.JadwalPacilianRepository;
 import com.pandacare.mainapp.jadwal.service.template.AcceptChangeScheduleHandler;
 import com.pandacare.mainapp.jadwal.service.template.EditScheduleHandler;
+import com.pandacare.mainapp.jadwal.service.template.RejectChangeScheduleHandler;
 import com.pandacare.mainapp.jadwal.service.template.RequestJadwalHandler;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,8 @@ public class JadwalPacilianServiceImpl {
     @Autowired
     private JadwalPacilianRepository repository;
 
-    public JadwalKonsultasi requestJadwal(String idDokter, String day, String startTime, String endTime) {
-        RequestJadwalHandler handler = new RequestJadwalHandler(idDokter, day, startTime, endTime, repository);
+    public JadwalKonsultasi requestJadwal(String idDokter, String idPasien, String day, String startTime, String endTime) {
+        RequestJadwalHandler handler = new RequestJadwalHandler(idDokter, idPasien, day, startTime, endTime, repository);
         return handler.handle();
     }
 
@@ -41,12 +42,6 @@ public class JadwalPacilianServiceImpl {
     }
 
     public void rejectChangeSchedule(String id) {
-        JadwalKonsultasi jadwal = findById(id);
-
-        if (!jadwal.isChangeSchedule()) {
-            throw new IllegalStateException("No change request exists for this schedule");
-        }
-
-        deleteById(id);
+        new RejectChangeScheduleHandler(id, repository).handle();
     }
 }
