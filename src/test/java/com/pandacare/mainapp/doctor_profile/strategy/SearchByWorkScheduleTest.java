@@ -1,8 +1,8 @@
-package com.pandacare.mainapp.strategy;
+package com.pandacare.mainapp.doctor_profile.strategy;
 
 import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
-import com.pandacare.mainapp.doctor_profile.strategy.SearchByName;
+import com.pandacare.mainapp.doctor_profile.strategy.SearchByWorkSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,16 +17,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class SearchByNameTest {
+public class SearchByWorkScheduleTest {
 
-    SearchByName searchByName;
+    SearchByWorkSchedule searchByWorkSchedule;
     DoctorProfileRepository doctorProfileRepository;
     List<DoctorProfile> doctorProfileList;
 
     @BeforeEach
     void setUp() {
         doctorProfileRepository = mock(DoctorProfileRepository.class);
-        searchByName = new SearchByName(doctorProfileRepository);
+        searchByWorkSchedule = new SearchByWorkSchedule(doctorProfileRepository);
         doctorProfileList = new ArrayList<>();
 
         Map<String, String> workSchedule1 = new HashMap<>();
@@ -49,15 +49,16 @@ public class SearchByNameTest {
     }
 
     @Test
-    void testSearchByName() {
-        DoctorProfile doctorProfile = doctorProfileList.getFirst();
+    void testSearchByWorkSchedule() {
+        DoctorProfile doctorProfile = doctorProfileList.get(1);
         List<DoctorProfile> expected = new ArrayList<>();
         expected.add(doctorProfile);
-        doReturn(expected).when(doctorProfileRepository).findByName(doctorProfile.getName());
+        String workSchedule = "Kamis 10:00-11:30";
+        doReturn(expected).when(doctorProfileRepository).findByWorkSchedule(workSchedule);
 
-        List<DoctorProfile> result = searchByName.search(doctorProfile.getName());
+        List<DoctorProfile> result = searchByWorkSchedule.search(workSchedule);
 
         assertEquals(expected, result);
-        verify(doctorProfileRepository, times(1)).findByName(doctorProfile.getName());
+        verify(doctorProfileRepository, times(1)).findByWorkSchedule(workSchedule);
     }
 }

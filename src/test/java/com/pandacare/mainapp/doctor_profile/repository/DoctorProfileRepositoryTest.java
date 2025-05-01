@@ -1,4 +1,4 @@
-package com.pandacare.mainapp.repository;
+package com.pandacare.mainapp.doctor_profile.repository;
 
 import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;

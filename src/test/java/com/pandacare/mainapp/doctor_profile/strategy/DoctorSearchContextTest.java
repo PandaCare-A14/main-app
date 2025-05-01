@@ -1,32 +1,27 @@
-package com.pandacare.mainapp.strategy;
+package com.pandacare.mainapp.doctor_profile.strategy;
 
 import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
-import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
-import com.pandacare.mainapp.doctor_profile.strategy.SearchBySpeciality;
+import com.pandacare.mainapp.doctor_profile.strategy.DoctorSearchContext;
+import com.pandacare.mainapp.doctor_profile.strategy.SearchStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-public class SearchBySpecialityTest {
+class DoctorSearchContextTest {
 
-    SearchBySpeciality searchBySpeciality;
-    DoctorProfileRepository doctorProfileRepository;
+    private DoctorSearchContext searchContext;
+    private SearchStrategy mockStrategy;
     List<DoctorProfile> doctorProfileList;
 
     @BeforeEach
     void setUp() {
-        doctorProfileRepository = mock(DoctorProfileRepository.class);
-        searchBySpeciality = new SearchBySpeciality(doctorProfileRepository);
+        searchContext = new DoctorSearchContext();
+        mockStrategy = mock(SearchStrategy.class);
+        searchContext.setStrategy(mockStrategy);
         doctorProfileList = new ArrayList<>();
 
         Map<String, String> workSchedule1 = new HashMap<>();
@@ -49,15 +44,15 @@ public class SearchBySpecialityTest {
     }
 
     @Test
-    void testSearchBySpeciality() {
-        DoctorProfile doctorProfile = doctorProfileList.get(1);
+    void testExecuteSearchUsesCorrectStrategyAndReturnsResults() {
+        DoctorProfile doctorProfile = doctorProfileList.getFirst();
         List<DoctorProfile> expected = new ArrayList<>();
         expected.add(doctorProfile);
-        doReturn(expected).when(doctorProfileRepository).findBySpeciality(doctorProfile.getSpeciality());
+        doReturn(expected).when(mockStrategy).search(doctorProfile.getName());
 
-        List<DoctorProfile> result = searchBySpeciality.search(doctorProfile.getSpeciality());
+        List<DoctorProfile> result = searchContext.executeSearch(doctorProfile.getName());
 
         assertEquals(expected, result);
-        verify(doctorProfileRepository, times(1)).findBySpeciality(doctorProfile.getSpeciality());
+        verify(mockStrategy, times(1)).search(doctorProfile.getName());
     }
 }
