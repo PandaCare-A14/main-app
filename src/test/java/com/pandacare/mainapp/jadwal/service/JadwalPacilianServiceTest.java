@@ -2,19 +2,32 @@ package com.pandacare.mainapp.jadwal.service;
 
 import com.pandacare.mainapp.jadwal.enums.StatusJadwalPacilian;
 import com.pandacare.mainapp.jadwal.model.JadwalKonsultasi;
+import com.pandacare.mainapp.jadwal.repository.JadwalPacilianRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 public class JadwalPacilianServiceTest {
 
+    @Mock
+    private JadwalPacilianRepository repository;
+
+    @InjectMocks
     private JadwalPacilianServiceImpl service;
+
     private JadwalKonsultasi waitingJadwal;
     private JadwalKonsultasi approvedJadwal;
 
     @BeforeEach
     void setUp() {
-        service = new JadwalPacilianServiceImpl();
+        MockitoAnnotations.openMocks(this);
 
         waitingJadwal = new JadwalKonsultasi();
         waitingJadwal.setId("jadwal123");
@@ -31,10 +44,17 @@ public class JadwalPacilianServiceTest {
         approvedJadwal.setStartTime("13:00");
         approvedJadwal.setEndTime("14:00");
         approvedJadwal.setStatusPacilian(StatusJadwalPacilian.APPROVED);
+
+        when(repository.save(any(JadwalKonsultasi.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
     void requestJadwal_shouldReturnWaitingStatus() {
+        when(repository.save(any(JadwalKonsultasi.class))).thenAnswer(invocation -> {
+            JadwalKonsultasi savedJadwal = invocation.getArgument(0);
+            return savedJadwal;
+        });
+
         JadwalKonsultasi result = service.requestJadwal("dok123", "Senin", "09:00", "10:00");
 
         assertNotNull(result);
@@ -43,6 +63,8 @@ public class JadwalPacilianServiceTest {
         assertEquals("09:00", result.getStartTime());
         assertEquals("10:00", result.getEndTime());
         assertEquals(StatusJadwalPacilian.WAITING, result.getStatusPacilian());
+
+        verify(repository).save(any(JadwalKonsultasi.class));
     }
 
     @Test
@@ -55,14 +77,10 @@ public class JadwalPacilianServiceTest {
 
     @Test
     void editSchedule_shouldUpdateSchedule_whenStatusIsWaiting() {
-        JadwalPacilianServiceImpl mockService = new JadwalPacilianServiceImpl() {
-            @Override
-            public JadwalKonsultasi findById(String id) {
-                return waitingJadwal;
-            }
-        };
+        // Setup mock to return waitingJadwal when findById is called
+        when(repository.findById("jadwal123")).thenReturn(Optional.of(waitingJadwal));
 
-        JadwalKonsultasi updated = mockService.editSchedule("jadwal123", "Selasa", "10:00", "11:00");
+        JadwalKonsultasi updated = service.editSchedule("jadwal123", "Selasa", "10:00", "11:00");
 
         assertEquals("Selasa", updated.getDay());
         assertEquals("10:00", updated.getStartTime());
@@ -72,15 +90,11 @@ public class JadwalPacilianServiceTest {
 
     @Test
     void editSchedule_shouldThrowException_whenStatusIsNotWaiting() {
-        JadwalPacilianServiceImpl mockService = new JadwalPacilianServiceImpl() {
-            @Override
-            public JadwalKonsultasi findById(String id) {
-                return approvedJadwal;
-            }
-        };
+        // Setup mock to return approvedJadwal when findById is called
+        when(repository.findById("jadwal124")).thenReturn(Optional.of(approvedJadwal));
 
         Exception ex = assertThrows(IllegalStateException.class, () ->
-                mockService.editSchedule("jadwal124", "Senin", "09:00", "10:00")
+                service.editSchedule("jadwal124", "Senin", "09:00", "10:00")
         );
 
         assertEquals("Only schedules with status WAITING can be edited", ex.getMessage());
@@ -99,14 +113,10 @@ public class JadwalPacilianServiceTest {
         jadwal.setNewStartTime("15:00");
         jadwal.setNewEndTime("16:00");
 
-        JadwalPacilianServiceImpl mockService = new JadwalPacilianServiceImpl() {
-            @Override
-            public JadwalKonsultasi findById(String id) {
-                return jadwal;
-            }
-        };
+        // Setup mock
+        when(repository.findById("jadwal123")).thenReturn(Optional.of(jadwal));
 
-        JadwalKonsultasi result = mockService.acceptChangeSchedule("jadwal123");
+        JadwalKonsultasi result = service.acceptChangeSchedule("jadwal123");
 
         assertEquals("Kamis", result.getDay());
         assertEquals("15:00", result.getStartTime());
@@ -127,15 +137,11 @@ public class JadwalPacilianServiceTest {
         noChangeRequestJadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
         noChangeRequestJadwal.setChangeSchedule(false);
 
-        JadwalPacilianServiceImpl mockService = new JadwalPacilianServiceImpl() {
-            @Override
-            public JadwalKonsultasi findById(String id) {
-                return noChangeRequestJadwal;
-            }
-        };
+        // Setup mock
+        when(repository.findById("jadwal125")).thenReturn(Optional.of(noChangeRequestJadwal));
 
         Exception ex = assertThrows(IllegalStateException.class, () ->
-                mockService.acceptChangeSchedule("jadwal125")
+                service.acceptChangeSchedule("jadwal125")
         );
 
         assertEquals("No change request exists for this schedule", ex.getMessage());
@@ -151,22 +157,13 @@ public class JadwalPacilianServiceTest {
         jadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
         jadwal.setChangeSchedule(true);
 
-        final boolean[] deleted = {false}; // Fake repository dengan flag
+        // Setup mock
+        when(repository.findById("jadwal127")).thenReturn(Optional.of(jadwal));
+        doNothing().when(repository).deleteById("jadwal127");
 
-        JadwalPacilianServiceImpl mockService = new JadwalPacilianServiceImpl() {
-            @Override
-            public JadwalKonsultasi findById(String id) {
-                return jadwal;
-            }
+        service.rejectChangeSchedule("jadwal127");
 
-            @Override
-            public void deleteById(String id) {
-                deleted[0] = true;
-            }
-        };
-
-        mockService.rejectChangeSchedule("jadwal127");
-
-        assertTrue(deleted[0], "Schedule should be deleted if change is rejected");
+        // Verify the deleteById method was called
+        verify(repository).deleteById("jadwal127");
     }
 }

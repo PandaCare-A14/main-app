@@ -69,8 +69,6 @@ public class JadwalPacilianServiceImpl {
         return jadwal;
     }
 
-
-
     public void rejectChangeSchedule(String id) {
         JadwalKonsultasi jadwal = findById(id);
 
