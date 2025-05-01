@@ -3,11 +3,14 @@ package com.pandacare.mainapp.rating.service;
 import com.pandacare.mainapp.rating.model.Rating;
 import com.pandacare.mainapp.rating.repository.RatingRepository;
 import com.pandacare.mainapp.rating.repository.UserRepository;
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class RatingServiceImpl implements RatingService {
 
     private final RatingRepository ratingRepository;
