@@ -1,6 +1,8 @@
 package com.pandacare.mainapp.strategy;
 
-import com.pandacare.mainapp.model.DoctorProfile;
+import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
+import com.pandacare.mainapp.doctor_profile.strategy.DoctorSearchContext;
+import com.pandacare.mainapp.doctor_profile.strategy.SearchStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

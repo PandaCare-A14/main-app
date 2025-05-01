@@ -1,7 +1,7 @@
-package com.pandacare.mainapp.strategy;
+package com.pandacare.mainapp.doctor_profile.strategy;
 
-import com.pandacare.mainapp.model.DoctorProfile;
-import com.pandacare.mainapp.repository.DoctorProfileRepository;
+import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
+import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
 
 import java.util.List;
 

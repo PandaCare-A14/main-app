@@ -1,6 +1,6 @@
-package com.pandacare.mainapp.repository;
+package com.pandacare.mainapp.doctor_profile.repository;
 
-import com.pandacare.mainapp.model.DoctorProfile;
+import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 import org.springframework.stereotype.Repository;
 
 import java.time.Duration;

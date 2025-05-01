@@ -1,4 +1,4 @@
-package com.pandacare.mainapp.model;
+package com.pandacare.mainapp.doctor_profile.model;
 
 import lombok.Getter;
 import lombok.Setter;

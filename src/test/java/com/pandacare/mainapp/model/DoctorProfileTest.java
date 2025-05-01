@@ -1,5 +1,6 @@
 package com.pandacare.mainapp.model;
 
+import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

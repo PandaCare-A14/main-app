@@ -1,6 +1,7 @@
 package com.pandacare.mainapp.repository;
 
-import com.pandacare.mainapp.model.DoctorProfile;
+import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
+import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

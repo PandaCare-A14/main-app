@@ -1,6 +1,6 @@
-package com.pandacare.mainapp.service;
+package com.pandacare.mainapp.doctor_profile.service;
 
-import com.pandacare.mainapp.model.DoctorProfile;
+import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 
 import java.util.List;
 

@@ -1,11 +1,11 @@
-package com.pandacare.mainapp.service;
+package com.pandacare.mainapp.doctor_profile.service;
 
-import com.pandacare.mainapp.model.DoctorProfile;
-import com.pandacare.mainapp.repository.DoctorProfileRepository;
-import com.pandacare.mainapp.strategy.DoctorSearchContext;
-import com.pandacare.mainapp.strategy.SearchByName;
-import com.pandacare.mainapp.strategy.SearchBySpeciality;
-import com.pandacare.mainapp.strategy.SearchByWorkSchedule;
+import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
+import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
+import com.pandacare.mainapp.doctor_profile.strategy.DoctorSearchContext;
+import com.pandacare.mainapp.doctor_profile.strategy.SearchByName;
+import com.pandacare.mainapp.doctor_profile.strategy.SearchBySpeciality;
+import com.pandacare.mainapp.doctor_profile.strategy.SearchByWorkSchedule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
