@@ -2,20 +2,24 @@ package com.pandacare.mainapp.doctor_profile.service;
 
 import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
-import com.pandacare.mainapp.doctor_profile.strategy.DoctorSearchContext;
-import com.pandacare.mainapp.doctor_profile.strategy.SearchByName;
-import com.pandacare.mainapp.doctor_profile.strategy.SearchBySpeciality;
-import com.pandacare.mainapp.doctor_profile.strategy.SearchByWorkSchedule;
+import com.pandacare.mainapp.doctor_profile.strategy.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class DoctorProfileServiceImpl implements DoctorProfileService {
+    private final DoctorProfileRepository doctorProfileRepository;
+    private final Map<String, SearchStrategy> strategies;
 
     @Autowired
-    private DoctorProfileRepository doctorProfileRepository;
+    public DoctorProfileServiceImpl(DoctorProfileRepository doctorProfileRepository,
+                                    Map<String, SearchStrategy> strategies) {
+        this.doctorProfileRepository = doctorProfileRepository;
+        this.strategies = strategies;
+    }
 
     @Override
     public DoctorProfile createProfile(DoctorProfile doctorProfile) {
@@ -54,22 +58,12 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
 
     @Override
     public List<DoctorProfile> searchDoctorProfile(String searchType, String keyword) {
-        DoctorSearchContext context = new DoctorSearchContext();
-
-        switch (searchType) {
-            case "NAME":
-                context.setStrategy(new SearchByName(doctorProfileRepository));
-                break;
-            case "SPECIALITY":
-                context.setStrategy(new SearchBySpeciality(doctorProfileRepository));
-                break;
-            case "WORK_SCHEDULE":
-                context.setStrategy(new SearchByWorkSchedule(doctorProfileRepository));
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid search type");
+        SearchStrategy strategy = strategies.get(searchType.toLowerCase() + "SearchStrategy");
+        if (strategy == null) {
+            throw new IllegalArgumentException("Invalid search type");
         }
-
+        DoctorSearchContext context = new DoctorSearchContext();
+        context.setStrategy(strategy);
         return context.executeSearch(keyword);
     }
 }
