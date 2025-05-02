@@ -2,73 +2,86 @@ package com.pandacare.mainapp.konsultasi_dokter.controller;
 
 import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
 import com.pandacare.mainapp.konsultasi_dokter.service.JadwalDokterService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api")
 public class JadwalDokterController {
-
     private final JadwalDokterService service;
 
+    private static final Set<String> ALLOWED_STATUSES = Set.of(
+            "AVAILABLE", "APPROVED", "REJECTED", "REQUESTED", "CHANGE_SCHEDULE"
+    );
+
+    public JadwalDokterController(JadwalDokterService service) {
+        this.service = service;
+    }
+
     @PostMapping("/doctors/{idDokter}/schedules")
-    public ResponseEntity<?> createJadwal(@PathVariable String idDokter,
-                                          @RequestBody Map<String, String> body) {
-        JadwalKonsultasi created = service.createJadwal(
-                idDokter,
-                body.get("day"),
-                body.get("startTime"),
-                body.get("endTime")
-        );
-        return ResponseEntity.ok(Map.of("status", "success", "data", Map.of("schedule", created)));
+    public ResponseEntity<JadwalKonsultasi> createJadwal(
+            @PathVariable String idDokter,
+            @RequestBody Map<String, String> body
+    ) {
+        String day = body.get("day");
+        String startTime = body.get("startTime");
+        String endTime = body.get("endTime");
+
+        JadwalKonsultasi jadwal = service.createJadwal(idDokter, day, startTime, endTime);
+        return ResponseEntity.ok(jadwal);
     }
 
     @GetMapping("/doctors/{idDokter}/schedules")
-    public ResponseEntity<?> getAllByDokter(@PathVariable String idDokter,
-                                            @RequestParam(required = false) String status) {
-        List<JadwalKonsultasi> list = status == null
-                ? service.findByIdDokter(idDokter)
-                : service.findByIdDokterAndStatus(idDokter, status);
-        return ResponseEntity.ok(Map.of("status", "success", "data", Map.of("schedules", list)));
-    }
-
-    @GetMapping("/patients/{idPasien}/schedules")
-    public ResponseEntity<?> getAllByPasien(@PathVariable String idPasien) {
-        List<JadwalKonsultasi> list = service.findByIdPasien(idPasien);
-        return ResponseEntity.ok(Map.of("status", "success", "data", Map.of("schedules", list)));
+    public ResponseEntity<List<JadwalKonsultasi>> getJadwalByDokter(
+            @PathVariable String idDokter,
+            @RequestParam(required = false) String status
+    ) {
+        if (status != null) {
+            if (!ALLOWED_STATUSES.contains(status.toUpperCase())) {
+                return ResponseEntity.badRequest().body(Collections.emptyList());
+            }
+            return ResponseEntity.ok(service.findByIdDokterAndStatus(idDokter, status.toUpperCase()));
+        }
+        return ResponseEntity.ok(service.findByIdDokter(idDokter));
     }
 
     @GetMapping("/doctor/schedules/{id}")
-    public ResponseEntity<?> getById(@PathVariable String id) {
-        JadwalKonsultasi jadwal = service.findById(id);
-        return ResponseEntity.ok(Map.of("status", "success", "data", Map.of("schedule", jadwal)));
+    public ResponseEntity<JadwalKonsultasi> findById(@PathVariable String id) {
+        return ResponseEntity.ok(service.findById(id));
+    }
+
+    @GetMapping("/patients/{idPasien}/schedules")
+    public ResponseEntity<List<JadwalKonsultasi>> findByIdPasien(@PathVariable String idPasien) {
+        return ResponseEntity.ok(service.findByIdPasien(idPasien));
     }
 
     @PatchMapping("/schedules/{id}/status")
-    public ResponseEntity<?> updateStatus(@PathVariable String id,
-                                          @RequestBody Map<String, String> body) {
+    public ResponseEntity<JadwalKonsultasi> updateStatus(
+            @PathVariable String id,
+            @RequestBody Map<String, String> body
+    ) {
         String status = body.get("statusDokter");
         String message = body.get("message");
-        boolean result = false;
 
         switch (status) {
-            case "APPROVED" -> result = service.approveJadwal(id);
-            case "REJECTED" -> result = service.rejectJadwal(id);
-            case "CHANGE_SCHEDULE" -> result = service.changeJadwal(
-                    id,
-                    body.get("day"),
-                    body.get("startTime"),
-                    body.get("endTime"),
-                    message
-            );
+            case "APPROVED":
+                service.approveJadwal(id);
+                break;
+            case "REJECTED":
+                service.rejectJadwal(id);
+                break;
+            case "CHANGE_SCHEDULE":
+                String day = body.get("day");
+                String startTime = body.get("startTime");
+                String endTime = body.get("endTime");
+                service.changeJadwal(id, day, startTime, endTime, message);
+                break;
+            default:
+                return ResponseEntity.badRequest().build();
         }
 
-        if (!result) return ResponseEntity.badRequest().body(Map.of("status", "fail"));
-        return ResponseEntity.ok(Map.of("status", "success", "data", Map.of("schedule", service.findById(id))));
+        return ResponseEntity.ok(service.findById(id));
     }
 }

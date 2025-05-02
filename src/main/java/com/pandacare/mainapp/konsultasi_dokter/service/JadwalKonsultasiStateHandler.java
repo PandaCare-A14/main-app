@@ -2,11 +2,13 @@ package com.pandacare.mainapp.konsultasi_dokter.service;
 
 import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
 import com.pandacare.mainapp.konsultasi_dokter.model.state.*;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+@Component
 public class JadwalKonsultasiStateHandler {
 
     private final Map<String, Supplier<StatusJadwalDokter>> stateMap = Map.of(
