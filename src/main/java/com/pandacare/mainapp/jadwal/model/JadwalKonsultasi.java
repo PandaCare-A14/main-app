@@ -7,6 +7,7 @@ import lombok.Data;
 public class JadwalKonsultasi {
     private String id;
     private String idDokter;
+    private String idPasien;
     private String day;
     private String startTime;
     private String endTime;
