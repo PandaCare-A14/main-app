@@ -1,15 +1,15 @@
 package com.pandacare.mainapp.konsultasi_dokter.repository;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
-import com.pandacare.mainapp.konsultasi_dokter.model.StatusJadwalDokter;
+import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class JadwalDokterRepositoryTest {
+
     private JadwalDokterRepository repository;
     private JadwalKonsultasi jadwal1;
     private JadwalKonsultasi jadwal2;
@@ -19,67 +19,57 @@ class JadwalDokterRepositoryTest {
         repository = new JadwalDokterRepository();
 
         jadwal1 = new JadwalKonsultasi();
-        jadwal1.setId("jdwl-001");
-        jadwal1.setIdDokter(101L);
+        jadwal1.setId("JD-001");
+        jadwal1.setIdDokter("DOK-1");
         jadwal1.setDay("Senin");
-        jadwal1.setStartTime("09:00");
-        jadwal1.setEndTime("10:00");
-        jadwal1.setIdPasien(1L);
-        jadwal1.setStatusDokter(StatusJadwalDokter.AVAILABLE);
+        jadwal1.setStartTime("08:00");
+        jadwal1.setEndTime("09:00");
+        jadwal1.setStatusDokter("AVAILABLE");
 
         jadwal2 = new JadwalKonsultasi();
-        jadwal2.setId("jdwl-002");
-        jadwal2.setIdDokter(102L);
+        jadwal2.setId("JD-002");
+        jadwal2.setIdDokter("DOK-2");
         jadwal2.setDay("Selasa");
         jadwal2.setStartTime("10:00");
         jadwal2.setEndTime("11:00");
-        jadwal2.setStatusDokter(StatusJadwalDokter.REQUESTED);
-        jadwal2.setIdPasien(2L);
+        jadwal2.setStatusDokter("REQUESTED");
+        jadwal2.setIdPasien("PAT-1");
 
         repository.save(jadwal1);
         repository.save(jadwal2);
     }
 
     @Test
-    void testSavedJadwal() {
-        JadwalKonsultasi retrieved = repository.findById("jdwl-001");
-
-        assertNotNull(retrieved);
-        assertEquals("Senin", retrieved.getDay());
-        assertEquals("09:00", retrieved.getStartTime());
-    }
-
-    @Test
     void testFindByIdJadwal() {
-        JadwalKonsultasi found = repository.findByIdJadwal("jdwl-001");
-        assertNotNull(found);
-        assertEquals("jdwl-001", found.getId());
+        JadwalKonsultasi result = repository.findByIdJadwal("JD-001");
+        assertNotNull(result);
+        assertEquals("DOK-1", result.getIdDokter());
     }
 
     @Test
     void testFindByStatus() {
-        List<JadwalKonsultasi> result = repository.findByStatus(StatusJadwalDokter.REQUESTED);
-        assertEquals(1, result.size());
-        assertEquals("jdwl-002", result.get(0).getId());
+        List<JadwalKonsultasi> results = repository.findByStatus("REQUESTED");
+        assertEquals(1, results.size());
+        assertEquals("JD-002", results.get(0).getId());
+    }
+
+    @Test
+    void testFindByIdDokter() {
+        List<JadwalKonsultasi> results = repository.findByIdDokter("DOK-1");
+        assertEquals(1, results.size());
+        assertEquals("JD-001", results.get(0).getId());
     }
 
     @Test
     void testFindByIdPasien() {
-        List<JadwalKonsultasi> result = repository.findByIdPasien(2L);
-        assertEquals(1, result.size());
-        assertEquals("jdwl-002", result.get(0).getId());
+        List<JadwalKonsultasi> results = repository.findByIdPasien("PAT-1");
+        assertEquals(1, results.size());
+        assertEquals("JD-002", results.get(0).getId());
     }
 
     @Test
-    void shouldFindJadwalByDokterId() {
-        List<JadwalKonsultasi> jadwalFor101 = repository.findByIdDokter(101L);
-        assertEquals(1, jadwalFor101.size());
-        assertEquals("jdwl-001", jadwalFor101.get(0).getId());
-    }
-
-    @Test
-    void shouldReturnAllJadwal() {
-        List<JadwalKonsultasi> all = repository.findAll();
-        assertEquals(2, all.size());
+    void testFindAll() {
+        List<JadwalKonsultasi> results = repository.findAll();
+        assertEquals(2, results.size());
     }
 }
