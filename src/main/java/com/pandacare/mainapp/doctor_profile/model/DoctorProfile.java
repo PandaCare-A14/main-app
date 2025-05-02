@@ -17,6 +17,9 @@ public class DoctorProfile {
     private String speciality;
     private double rating;
 
+    public DoctorProfile() {
+    }
+
     public DoctorProfile(String name, String email, String phoneNumber, String workAddress, Map<String, String> workSchedule, String speciality, double rating) {
         this.name = name;
         this.email = email;
