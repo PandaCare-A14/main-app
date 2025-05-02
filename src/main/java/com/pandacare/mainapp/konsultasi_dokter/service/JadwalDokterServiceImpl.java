@@ -6,7 +6,9 @@ import com.pandacare.mainapp.konsultasi_dokter.model.strategy.CreateJadwalStrate
 import com.pandacare.mainapp.konsultasi_dokter.model.strategy.CreateManualStrategy;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class JadwalDokterServiceImpl implements JadwalDokterService {
@@ -51,5 +53,27 @@ public class JadwalDokterServiceImpl implements JadwalDokterService {
         stateHandler.reject(jadwal, "Jadwal tidak sesuai");
         repository.save(jadwal);
         return true;
+    }
+
+    @Override
+    public List<JadwalKonsultasi> findByIdDokter(String idDokter) {
+        return repository.findByIdDokter(idDokter);
+    }
+
+    @Override
+    public List<JadwalKonsultasi> findByIdDokterAndStatus(String idDokter, String status) {
+        return repository.findByIdDokter(idDokter).stream()
+                .filter(j -> status.equals(j.getStatusDokter()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<JadwalKonsultasi> findByIdPasien(String idPasien) {
+        return repository.findByIdPasien(idPasien);
+    }
+
+    @Override
+    public JadwalKonsultasi findById(String id) {
+        return repository.findByIdJadwal(id);
     }
 }
