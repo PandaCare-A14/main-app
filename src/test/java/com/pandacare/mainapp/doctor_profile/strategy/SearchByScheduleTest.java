@@ -2,7 +2,6 @@ package com.pandacare.mainapp.doctor_profile.strategy;
 
 import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
-import com.pandacare.mainapp.doctor_profile.strategy.SearchByWorkSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,16 +16,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class SearchByWorkScheduleTest {
+public class SearchByScheduleTest {
 
-    SearchByWorkSchedule searchByWorkSchedule;
+    SearchBySchedule searchBySchedule;
     DoctorProfileRepository doctorProfileRepository;
     List<DoctorProfile> doctorProfileList;
 
     @BeforeEach
     void setUp() {
         doctorProfileRepository = mock(DoctorProfileRepository.class);
-        searchByWorkSchedule = new SearchByWorkSchedule(doctorProfileRepository);
+        searchBySchedule = new SearchBySchedule(doctorProfileRepository);
         doctorProfileList = new ArrayList<>();
 
         Map<String, String> workSchedule1 = new HashMap<>();
@@ -56,7 +55,7 @@ public class SearchByWorkScheduleTest {
         String workSchedule = "Kamis 10:00-11:30";
         doReturn(expected).when(doctorProfileRepository).findByWorkSchedule(workSchedule);
 
-        List<DoctorProfile> result = searchByWorkSchedule.search(workSchedule);
+        List<DoctorProfile> result = searchBySchedule.search(workSchedule);
 
         assertEquals(expected, result);
         verify(doctorProfileRepository, times(1)).findByWorkSchedule(workSchedule);
