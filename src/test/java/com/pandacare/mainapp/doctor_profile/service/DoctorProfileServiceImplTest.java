@@ -2,7 +2,7 @@ package com.pandacare.mainapp.doctor_profile.service;
 
 import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
-import com.pandacare.mainapp.doctor_profile.service.DoctorProfileServiceImpl;
+import com.pandacare.mainapp.doctor_profile.strategy.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +27,21 @@ class DoctorProfileServiceImplTest {
     @Mock
     DoctorProfileRepository doctorProfileRepository;
 
+    @Mock
+    Map<String, SearchStrategy> strategies;
+
+    @Mock
+    SearchByName nameSearchStrategy;
+
+    @Mock
+    SearchBySpeciality specialitySearchStrategy;
+
+    @Mock
+    SearchBySchedule scheduleSearchStrategy;
+
+    @Mock
+    DoctorSearchContext doctorSearchContext;
+
     List<DoctorProfile> doctorProfileList;
 
     @BeforeEach
@@ -50,6 +65,15 @@ class DoctorProfileServiceImplTest {
                 workSchedule2, "Orthopedic", 4.8);
         doctorProfile2.setId("eb558e9f-1c39-460e-8860-71af6af63ds2");
         doctorProfileList.add(doctorProfile2);
+
+        // Initialize strategies map
+        strategies = new HashMap<>();
+        strategies.put("nameSearchStrategy", nameSearchStrategy);
+        strategies.put("specialitySearchStrategy", specialitySearchStrategy);
+        strategies.put("scheduleSearchStrategy", scheduleSearchStrategy);
+
+        // Inject strategies map into service
+        doctorProfileService = new DoctorProfileServiceImpl(doctorProfileRepository, strategies);
     }
 
     // Utility method
@@ -170,61 +194,86 @@ class DoctorProfileServiceImplTest {
         DoctorProfile expected = doctorProfileList.get(1);
         List<DoctorProfile> matchingNames = new ArrayList<>();
         matchingNames.add(expected);
-        doReturn(matchingNames).when(doctorProfileRepository).findByName(expected.getName());
 
-        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("NAME", expected.getName());
+        when(nameSearchStrategy.search(expected.getName())).thenReturn(matchingNames);
+
+        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("name", expected.getName());
+
         assertEquals(matchingNames.size(), result.size());
         assertDoctorProfilesEqual(expected, result.getFirst());
+        verify(nameSearchStrategy, times(1)).search(expected.getName());
     }
 
     @Test
     void testFindByNameIfNotFound() {
-        List<DoctorProfile> matchingNames = new ArrayList<>();
-        doReturn(matchingNames).when(doctorProfileRepository).findByName("Random Name");
+        List<DoctorProfile> emptyList = new ArrayList<>();
 
-        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("NAME", "Random Name");
+        when(nameSearchStrategy.search("Random Name")).thenReturn(emptyList);
+
+        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("name", "Random Name");
+
         assertEquals(0, result.size());
+        verify(nameSearchStrategy, times(1)).search("Random Name");
     }
 
     @Test
     void testFindBySpecialityIfFound() {
         DoctorProfile expected = doctorProfileList.get(1);
-        List<DoctorProfile> matchingNames = new ArrayList<>();
-        matchingNames.add(expected);
-        doReturn(matchingNames).when(doctorProfileRepository).findBySpeciality(expected.getSpeciality());
+        List<DoctorProfile> matchingSpecialities = new ArrayList<>();
+        matchingSpecialities.add(expected);
 
-        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("SPECIALITY", expected.getSpeciality());
-        assertEquals(matchingNames.size(), result.size());
+        when(specialitySearchStrategy.search(expected.getSpeciality())).thenReturn(matchingSpecialities);
+
+        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("speciality", expected.getSpeciality());
+
+        assertEquals(matchingSpecialities.size(), result.size());
         assertDoctorProfilesEqual(expected, result.getFirst());
+        verify(specialitySearchStrategy, times(1)).search(expected.getSpeciality());
     }
 
     @Test
     void testFindBySpecialityIfNotFound() {
-        List<DoctorProfile> matchingNames = new ArrayList<>();
-        doReturn(matchingNames).when(doctorProfileRepository).findBySpeciality("Random Speciality");
+        List<DoctorProfile> emptyList = new ArrayList<>();
 
-        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("SPECIALITY", "Random Speciality");
+        when(specialitySearchStrategy.search("Random Speciality")).thenReturn(emptyList);
+
+        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("speciality", "Random Speciality");
+
         assertEquals(0, result.size());
+        verify(specialitySearchStrategy, times(1)).search("Random Speciality");
     }
 
     @Test
     void testFindByWorkScheduleIfFound() {
         DoctorProfile expected = doctorProfileList.getFirst();
-        List<DoctorProfile> matchingNames = new ArrayList<>();
-        matchingNames.add(expected);
-        doReturn(matchingNames).when(doctorProfileRepository).findByWorkSchedule("Senin 10:30-12:30");
+        List<DoctorProfile> matchingSchedules = new ArrayList<>();
+        matchingSchedules.add(expected);
 
-        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("WORK_SCHEDULE", "Senin 10:30-12:30");
-        assertEquals(matchingNames.size(), result.size());
+        when(scheduleSearchStrategy.search("Senin 10:30-12:30")).thenReturn(matchingSchedules);
+
+        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("schedule", "Senin 10:30-12:30");
+
+        assertEquals(matchingSchedules.size(), result.size());
         assertDoctorProfilesEqual(expected, result.getFirst());
+        verify(scheduleSearchStrategy, times(1)).search("Senin 10:30-12:30");
     }
 
     @Test
     void testFindByWorkScheduleIfNotFound() {
-        List<DoctorProfile> matchingNames = new ArrayList<>();
-        doReturn(matchingNames).when(doctorProfileRepository).findByWorkSchedule("Sabtu 13:00-16:00");
+        List<DoctorProfile> emptyList = new ArrayList<>();
 
-        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("WORK_SCHEDULE", "Sabtu 13:00-16:00");
+        when(scheduleSearchStrategy.search("Sabtu 13:00-16:00")).thenReturn(emptyList);
+
+        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("schedule", "Sabtu 13:00-16:00");
+
         assertEquals(0, result.size());
+        verify(scheduleSearchStrategy, times(1)).search("Sabtu 13:00-16:00");
+    }
+
+    @Test
+    void testSearchWithInvalidType() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            doctorProfileService.searchDoctorProfile("INVALID_TYPE", "keyword");
+        });
     }
 }
