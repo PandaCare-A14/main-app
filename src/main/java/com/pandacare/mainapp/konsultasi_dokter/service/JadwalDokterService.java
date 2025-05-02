@@ -1,11 +1,10 @@
 package com.pandacare.mainapp.konsultasi_dokter.service;
 
+import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
+
 public interface JadwalDokterService {
-    void createJadwal(Long idDokter, String day, String startTime, String endTime);
-
+    JadwalKonsultasi createJadwal(String idDokter, String day, String startTime, String endTime);
+    boolean changeJadwal(String idJadwal, String newDay, String newStartTime, String newEndTime, String message);
     boolean approveJadwal(String idJadwal);
-
     boolean rejectJadwal(String idJadwal);
-
-    boolean changeJadwal(String idJadwal, String day, String startTime, String endTime);
 }
