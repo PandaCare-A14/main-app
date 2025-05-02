@@ -8,8 +8,9 @@ import java.util.stream.Collectors;
 public class JadwalKonsultasiRepository {
     private final Map<String, JadwalKonsultasi> data = new HashMap<>();
 
-    public void save(JadwalKonsultasi jadwal) {
+    public JadwalKonsultasi save(JadwalKonsultasi jadwal) {
         data.put(jadwal.getId(), jadwal);
+        return jadwal;
     }
 
     public JadwalKonsultasi findById(String id) {

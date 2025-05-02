@@ -2,15 +2,17 @@ package com.pandacare.mainapp.konsultasi_dokter.repository;
 
 import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
 import com.pandacare.mainapp.jadwalKonsultasi.repository.JadwalKonsultasiRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Repository
 public class JadwalDokterRepository {
     private final JadwalKonsultasiRepository sharedRepo = new JadwalKonsultasiRepository();
 
-    public void save(JadwalKonsultasi jadwal) {
-        sharedRepo.save(jadwal);
+    public JadwalKonsultasi save(JadwalKonsultasi jadwal) {
+        return sharedRepo.save(jadwal);
     }
 
     public JadwalKonsultasi findByIdJadwal(String id) {
