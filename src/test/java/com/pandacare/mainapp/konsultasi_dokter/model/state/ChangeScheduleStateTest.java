@@ -1,33 +1,33 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
-import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalTime;
+import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ChangeScheduleStateTest {
     private JadwalKonsultasi jadwal;
     private ChangeScheduleState state;
-    private JadwalStateContext context;
 
     @BeforeEach
     void setUp() {
         jadwal = new JadwalKonsultasi();
-        jadwal.setStatusDokter("CHANGE_SCHEDULE");
+        jadwal.setState(new ChangeScheduleState());
         state = new ChangeScheduleState();
-        context = new JadwalStateContext(jadwal);
     }
 
     @Test
     void testHandleRequest() {
         assertThrows(IllegalStateException.class, () ->
-                state.handleRequest(context, "PAT-003", "Reschedule lagi"));
+                state.handleRequest(jadwal, "PAT-003", "Reschedule lagi"));
     }
 
     @Test
     void testHandleApprove() {
-        state.handleApprove(context);
+        state.handleApprove(jadwal);
 
         assertEquals("APPROVED", jadwal.getStatusDokter());
         assertFalse(jadwal.isChangeSchedule());
@@ -35,7 +35,7 @@ class ChangeScheduleStateTest {
 
     @Test
     void testHandleReject() {
-        state.handleReject(context, "Pasien tidak setuju");
+        state.handleReject(jadwal, "Pasien tidak setuju");
 
         assertEquals("REJECTED", jadwal.getStatusDokter());
         assertEquals("Pasien tidak setuju", jadwal.getMessage());
@@ -45,6 +45,6 @@ class ChangeScheduleStateTest {
     @Test
     void testHandleChangeSchedule() {
         assertThrows(IllegalStateException.class, () ->
-                state.handleChangeSchedule(context, "Jumat", "15:00", "16:00", "Ubah lagi"));
+                state.handleChangeSchedule(jadwal, LocalDate.parse("2025-05-01"), LocalTime.parse("15:00"), LocalTime.parse("16:00"), "Ubah lagi"));
     }
 }

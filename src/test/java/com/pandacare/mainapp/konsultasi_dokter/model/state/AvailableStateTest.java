@@ -1,21 +1,21 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
-import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalTime;
+import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AvailableStateTest {
     private JadwalKonsultasi jadwal;
     private AvailableState state;
-    private JadwalStateContext context;
 
     @BeforeEach
     void setUp() {
         jadwal = new JadwalKonsultasi();
         state = new AvailableState();
-        context = new JadwalStateContext(jadwal);
     }
 
     @Test
@@ -23,7 +23,7 @@ class AvailableStateTest {
         String pasienId = "PAT-12345";
         String message = "Saya ingin konsultasi";
 
-        state.handleRequest(context, pasienId, message);
+        state.handleRequest(jadwal, pasienId, message);
 
         assertEquals("REQUESTED", jadwal.getStatusDokter());
         assertEquals(pasienId, jadwal.getIdPasien());
@@ -32,18 +32,18 @@ class AvailableStateTest {
 
     @Test
     void testHandleApprove() {
-        assertThrows(IllegalStateException.class, () -> state.handleApprove(context));
+        assertThrows(IllegalStateException.class, () -> state.handleApprove(jadwal));
     }
 
     @Test
     void testHandleReject() {
-        assertThrows(IllegalStateException.class, () -> state.handleReject(context, null));
+        assertThrows(IllegalStateException.class, () -> state.handleReject(jadwal, null));
     }
 
     @Test
     void testHandleChangeSchedule() {
         assertThrows(IllegalStateException.class,
-                () -> state.handleChangeSchedule(context, "MONDAY", "09:00", "10:00",
+                () -> state.handleChangeSchedule(jadwal, LocalDate.parse("2025-05-06"), LocalTime.parse("09:00"), LocalTime.parse("10:00"),
                         "ada urusan mendadak, mohon diganti"));
     }
 }

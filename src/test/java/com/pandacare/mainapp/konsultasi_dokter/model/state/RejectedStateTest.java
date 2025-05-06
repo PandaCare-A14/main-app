@@ -1,45 +1,46 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
-import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class RejectedStateTest {
     private JadwalKonsultasi jadwal;
     private RejectedState state;
-    private JadwalStateContext context;
 
     @BeforeEach
     void setUp() {
         jadwal = new JadwalKonsultasi();
-        jadwal.setStatusDokter("REJECTED");
+        jadwal.setState(new RejectedState());
         state = new RejectedState();
-        context = new JadwalStateContext(jadwal);
     }
 
     @Test
     void testHandleRequest() {
         assertThrows(IllegalStateException.class, () ->
-                state.handleRequest(context, "PAT-009", "Saya banding"));
+                state.handleRequest(jadwal, "PAT-009", "Saya banding"));
     }
 
     @Test
     void testHandleApprove() {
         assertThrows(IllegalStateException.class, () ->
-                state.handleApprove(context));
+                state.handleApprove(jadwal));
     }
 
     @Test
     void testHandleReject() {
         assertThrows(IllegalStateException.class, () ->
-                state.handleReject(context, "Masih ditolak"));
+                state.handleReject(jadwal, "Masih ditolak"));
     }
 
     @Test
     void testHandleChangeSchedule() {
         assertThrows(IllegalStateException.class, () ->
-                state.handleChangeSchedule(context, "Kamis", "13:00", "14:00", "Coba reschedule"));
+                state.handleChangeSchedule(jadwal, LocalDate.parse("2025-05-01"), LocalTime.parse("13:00"), LocalTime.parse("14:00"), "Coba reschedule"));
     }
 }
