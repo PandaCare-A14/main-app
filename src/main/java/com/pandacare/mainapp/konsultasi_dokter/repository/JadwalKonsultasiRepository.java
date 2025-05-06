@@ -1,10 +1,12 @@
 package com.pandacare.mainapp.konsultasi_dokter.repository;
 
 import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Repository
 public class JadwalKonsultasiRepository {
     private final Map<String, JadwalKonsultasi> data = new HashMap<>();
 
