@@ -1,56 +1,56 @@
 package com.pandacare.mainapp.konsultasi_dokter.service;
 
-import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
-import com.pandacare.mainapp.konsultasi_dokter.repository.JadwalDokterRepository;
+import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
 import com.pandacare.mainapp.konsultasi_dokter.model.strategy.CreateJadwalStrategy;
 import com.pandacare.mainapp.konsultasi_dokter.model.strategy.CreateManualStrategy;
+import com.pandacare.mainapp.konsultasi_dokter.repository.JadwalKonsultasiRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class JadwalDokterServiceImpl implements JadwalDokterService {
-    private final JadwalDokterRepository repository;
-    private final JadwalKonsultasiStateHandler stateHandler;
+    private final JadwalKonsultasiRepository repository;
 
-    public JadwalDokterServiceImpl(JadwalDokterRepository repository, JadwalKonsultasiStateHandler stateHandler) {
+    public JadwalDokterServiceImpl(JadwalKonsultasiRepository repository) {
         this.repository = repository;
-        this.stateHandler = stateHandler;
     }
 
     @Override
-    public JadwalKonsultasi createJadwal(String idDokter, String day, String startTime, String endTime) {
+    public JadwalKonsultasi createJadwal(String idDokter, LocalDate date, LocalTime startTime, LocalTime endTime) {
         CreateJadwalStrategy strategy = new CreateManualStrategy();
-        JadwalKonsultasi jadwal = strategy.create(idDokter, day, startTime, endTime);
+        JadwalKonsultasi jadwal = strategy.create(idDokter, date, startTime, endTime);
         jadwal.setId(UUID.randomUUID().toString());
         return repository.save(jadwal);
     }
 
     @Override
     public boolean changeJadwal(String idJadwal, String newDay, String newStartTime, String newEndTime, String message) {
-        JadwalKonsultasi jadwal = repository.findByIdJadwal(idJadwal);
+        JadwalKonsultasi jadwal = repository.findById(idJadwal);
         if (jadwal == null) return false;
-        stateHandler.changeSchedule(jadwal, newDay, newStartTime, newEndTime, message);
+        jadwal.changeSchedule(LocalDate.parse(newDay), LocalTime.parse(newStartTime), LocalTime.parse(newEndTime), message);
         repository.save(jadwal);
         return true;
     }
 
     @Override
     public boolean approveJadwal(String idJadwal) {
-        JadwalKonsultasi jadwal = repository.findByIdJadwal(idJadwal);
+        JadwalKonsultasi jadwal = repository.findById(idJadwal);
         if (jadwal == null) return false;
-        stateHandler.approve(jadwal);
+        jadwal.approve();
         repository.save(jadwal);
         return true;
     }
 
     @Override
     public boolean rejectJadwal(String idJadwal) {
-        JadwalKonsultasi jadwal = repository.findByIdJadwal(idJadwal);
+        JadwalKonsultasi jadwal = repository.findById(idJadwal);
         if (jadwal == null) return false;
-        stateHandler.reject(jadwal, "Jadwal tidak sesuai");
+        jadwal.reject("Jadwal tidak sesuai");
         repository.save(jadwal);
         return true;
     }
@@ -74,6 +74,6 @@ public class JadwalDokterServiceImpl implements JadwalDokterService {
 
     @Override
     public JadwalKonsultasi findById(String id) {
-        return repository.findByIdJadwal(id);
+        return repository.findById(id);
     }
 }

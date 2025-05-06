@@ -1,11 +1,13 @@
 package com.pandacare.mainapp.konsultasi_dokter.service;
 
-import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 public interface JadwalDokterService {
-    JadwalKonsultasi createJadwal(String idDokter, String day, String startTime, String endTime);
+    JadwalKonsultasi createJadwal(String idDokter, LocalDate date, LocalTime startTime, LocalTime endTime);
 
     boolean changeJadwal(String idJadwal, String newDay, String newStartTime, String newEndTime, String message);
 
