@@ -1,16 +1,20 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
+import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 public interface StatusJadwalDokter {
     String getStatusName();
 
     boolean isAvailable();
 
-    void handleRequest(JadwalStateContext context, String idPasien, String message);
+    void handleRequest(JadwalKonsultasi context, String idPasien, String message);
 
-    void handleApprove(JadwalStateContext context);
+    void handleApprove(JadwalKonsultasi context);
 
-    void handleReject(JadwalStateContext context, String reason);
+    void handleReject(JadwalKonsultasi context, String reason);
 
-    void handleChangeSchedule(JadwalStateContext context, String newDay, String newStartTime, String newEndTime,
-            String reason);
+    void handleChangeSchedule(JadwalKonsultasi context, LocalDate newDay, LocalTime newStartTime, LocalTime newEndTime,
+                              String reason);
 }

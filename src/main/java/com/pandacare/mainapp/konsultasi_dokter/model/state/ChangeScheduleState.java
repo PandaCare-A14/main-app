@@ -1,6 +1,8 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
-import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 public class ChangeScheduleState implements StatusJadwalDokter {
 
@@ -15,27 +17,25 @@ public class ChangeScheduleState implements StatusJadwalDokter {
     }
 
     @Override
-    public void handleRequest(JadwalStateContext context, String idPasien, String message) {
+    public void handleRequest(JadwalKonsultasi context, String idPasien, String message) {
         throw new IllegalStateException("Permintaan sedang dalam proses perubahan jadwal.");
     }
 
     @Override
-    public void handleApprove(JadwalStateContext context) {
-        JadwalKonsultasi jadwal = context.getJadwal();
-        jadwal.setStatusDokter("APPROVED");
-        jadwal.setChangeSchedule(false);
+    public void handleApprove(JadwalKonsultasi context) {
+        context.setState(new ApprovedState());
+        context.setChangeSchedule(false);
     }
 
     @Override
-    public void handleReject(JadwalStateContext context, String reason) {
-        JadwalKonsultasi jadwal = context.getJadwal();
-        jadwal.setStatusDokter("REJECTED");
+    public void handleReject(JadwalKonsultasi jadwal, String reason) {
+        jadwal.setState(new RejectedState());
         jadwal.setMessage(reason);
         jadwal.setChangeSchedule(false);
     }
 
     @Override
-    public void handleChangeSchedule(JadwalStateContext context, String newDay, String newStartTime, String newEndTime, String reason) {
+    public void handleChangeSchedule(JadwalKonsultasi context, LocalDate newDate, LocalTime newStartTime, LocalTime newEndTime, String reason) {
         throw new IllegalStateException("Permintaan sedang dalam proses perubahan jadwal.");
     }
 }

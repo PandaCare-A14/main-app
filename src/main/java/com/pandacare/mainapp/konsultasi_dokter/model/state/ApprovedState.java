@@ -1,6 +1,8 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
-import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
 
 public class ApprovedState implements StatusJadwalDokter {
 
@@ -15,22 +17,22 @@ public class ApprovedState implements StatusJadwalDokter {
     }
 
     @Override
-    public void handleRequest(JadwalStateContext context, String idPasien, String message) {
+    public void handleRequest(JadwalKonsultasi context, String idPasien, String message) {
         throw new IllegalStateException("Permintaan sudah disetujui.");
     }
 
     @Override
-    public void handleApprove(JadwalStateContext context) {
+    public void handleApprove(JadwalKonsultasi context) {
         throw new IllegalStateException("Permintaan sudah disetujui.");
     }
 
     @Override
-    public void handleReject(JadwalStateContext context, String reason) {
+    public void handleReject(JadwalKonsultasi context, String reason) {
         throw new IllegalStateException("Permintaan sudah disetujui.");
     }
 
     @Override
-    public void handleChangeSchedule(JadwalStateContext context, String newDay, String newStartTime, String newEndTime, String reason) {
+    public void handleChangeSchedule(JadwalKonsultasi context, LocalDate newDate, LocalTime newStartTime, LocalTime newEndTime, String reason) {
         throw new IllegalStateException("Permintaan sudah disetujui.");
     }
 }

@@ -1,9 +1,10 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
-import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 public class RequestedState implements StatusJadwalDokter {
-
     @Override
     public String getStatusName() {
         return "REQUESTED";
@@ -15,31 +16,28 @@ public class RequestedState implements StatusJadwalDokter {
     }
 
     @Override
-    public void handleRequest(JadwalStateContext context, String idPasien, String message) {
+    public void handleRequest(JadwalKonsultasi context, String idPasien, String message) {
         throw new IllegalStateException("Sudah ada permintaan.");
     }
 
     @Override
-    public void handleApprove(JadwalStateContext context) {
-        JadwalKonsultasi jadwal = context.getJadwal();
-        jadwal.setStatusDokter("APPROVED");
+    public void handleApprove(JadwalKonsultasi jadwal) {
+        jadwal.setState(new ApprovedState());
     }
 
     @Override
-    public void handleReject(JadwalStateContext context, String reason) {
-        JadwalKonsultasi jadwal = context.getJadwal();
-        jadwal.setStatusDokter("REJECTED");
+    public void handleReject(JadwalKonsultasi jadwal, String reason) {
+        jadwal.setState(new RejectedState());
         jadwal.setMessage(reason);
     }
 
     @Override
-    public void handleChangeSchedule(JadwalStateContext context, String newDay, String newStartTime, String newEndTime, String reason) {
-        JadwalKonsultasi jadwal = context.getJadwal();
-        jadwal.setDay(newDay);
+    public void handleChangeSchedule(JadwalKonsultasi jadwal, LocalDate newDate, LocalTime newStartTime, LocalTime newEndTime, String reason) {
+        jadwal.setDate(newDate);
         jadwal.setStartTime(newStartTime);
         jadwal.setEndTime(newEndTime);
         jadwal.setMessage(reason);
-        jadwal.setStatusDokter("CHANGE_SCHEDULE");
+        jadwal.setState(new ChangeScheduleState());
         jadwal.setChangeSchedule(true);
     }
 }
