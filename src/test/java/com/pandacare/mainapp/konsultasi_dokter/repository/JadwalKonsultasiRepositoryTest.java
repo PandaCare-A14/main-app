@@ -1,16 +1,17 @@
-package com.pandacare.mainapp.jadwalKonsultasi.repository;
+package com.pandacare.mainapp.konsultasi_dokter.repository;
 
 import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
-import com.pandacare.mainapp.konsultasi_dokter.repository.JadwalKonsultasiRepository;
+import com.pandacare.mainapp.konsultasi_dokter.model.state.AvailableState;
+import com.pandacare.mainapp.konsultasi_dokter.model.state.RequestedState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class JadwalKonsultasiRepositoryTest {
-
     private JadwalKonsultasiRepository repository;
     private JadwalKonsultasi jadwal1;
     private JadwalKonsultasi jadwal2;
@@ -20,18 +21,18 @@ class JadwalKonsultasiRepositoryTest {
         repository = new JadwalKonsultasiRepository();
 
         jadwal1 = new JadwalKonsultasi();
-        jadwal1.setId("jdwl-001");
-        jadwal1.setIdDokter("DOC-001");
-        jadwal1.setIdPasien("PAT-001");
-        jadwal1.setStatusDokter("AVAILABLE");
-        jadwal1.setDay("Senin");
+        jadwal1.setId("SCHED001");
+        jadwal1.setIdDokter("DOC001");
+        jadwal1.setIdPasien("PAT001");
+        jadwal1.setState(new AvailableState());
+        jadwal1.setDate(LocalDate.parse("2025-05-06"));
 
         jadwal2 = new JadwalKonsultasi();
-        jadwal2.setId("jdwl-002");
-        jadwal2.setIdDokter("DOC-002");
-        jadwal2.setIdPasien("PAT-002");
-        jadwal2.setStatusDokter("REQUESTED");
-        jadwal2.setDay("Selasa");
+        jadwal2.setId("SCHED002");
+        jadwal2.setIdDokter("DOC002");
+        jadwal2.setIdPasien("PAT002");
+        jadwal2.setState(new RequestedState());
+        jadwal2.setDate(LocalDate.parse("2025-05-07"));
 
         repository.save(jadwal1);
         repository.save(jadwal2);
@@ -42,7 +43,7 @@ class JadwalKonsultasiRepositoryTest {
         JadwalKonsultasi found = repository.findById("jdwl-001");
 
         assertNotNull(found);
-        assertEquals("Senin", found.getDay());
+        assertEquals(LocalDate.parse("2025-05-06"), found.getDate());
     }
 
     @Test
@@ -64,7 +65,6 @@ class JadwalKonsultasiRepositoryTest {
     @Test
     void testFindByStatus() {
         List<JadwalKonsultasi> result = repository.findByStatus("REQUESTED");
-
         assertEquals(1, result.size());
         assertEquals("jdwl-002", result.get(0).getId());
     }
@@ -72,7 +72,6 @@ class JadwalKonsultasiRepositoryTest {
     @Test
     void testFindAll() {
         List<JadwalKonsultasi> all = repository.findAll();
-
         assertEquals(2, all.size());
     }
 }
