@@ -1,6 +1,7 @@
 package com.pandacare.mainapp.jadwalKonsultasi.repository;
 
-import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.repository.JadwalKonsultasiRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

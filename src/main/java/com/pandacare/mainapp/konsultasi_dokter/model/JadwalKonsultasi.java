@@ -1,5 +1,7 @@
-package com.pandacare.mainapp.jadwalKonsultasi.model;
+package com.pandacare.mainapp.konsultasi_dokter.model;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,9 +13,9 @@ public class JadwalKonsultasi {
     private String statusPacilian;
     private String idDokter;
     private String idPasien;
-    private String day;
-    private String startTime;
-    private String endTime;
+    private LocalDate date;
+    private LocalTime startTime;
+    private LocalTime endTime;
     private String note;
     private String message;
     private boolean changeSchedule = false;
