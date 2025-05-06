@@ -1,10 +1,11 @@
 package com.pandacare.mainapp.konsultasi_dokter.controller;
 
-import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
 import com.pandacare.mainapp.konsultasi_dokter.service.JadwalDokterService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 
 @RestController
@@ -21,44 +22,39 @@ public class JadwalDokterController {
     }
 
     @PostMapping("/doctors/{idDokter}/schedules")
-    public ResponseEntity<JadwalKonsultasi> createJadwal(
+    public JadwalKonsultasi createJadwal(
             @PathVariable String idDokter,
             @RequestBody Map<String, String> body
     ) {
-        String day = body.get("day");
-        String startTime = body.get("startTime");
-        String endTime = body.get("endTime");
-
-        JadwalKonsultasi jadwal = service.createJadwal(idDokter, day, startTime, endTime);
-        return ResponseEntity.ok(jadwal);
+        LocalDate date = LocalDate.parse(body.get("date"));
+        LocalTime startTime = LocalTime.parse(body.get("startTime"));
+        LocalTime endTime = LocalTime.parse(body.get("endTime"));
+        return service.createJadwal(idDokter, date, startTime, endTime);
     }
 
     @GetMapping("/doctors/{idDokter}/schedules")
-    public ResponseEntity<List<JadwalKonsultasi>> getJadwalByDokter(
+    public List<JadwalKonsultasi> getJadwalByDokter(
             @PathVariable String idDokter,
             @RequestParam(required = false) String status
     ) {
-        if (status != null) {
-            if (!ALLOWED_STATUSES.contains(status.toUpperCase())) {
-                return ResponseEntity.badRequest().body(Collections.emptyList());
-            }
-            return ResponseEntity.ok(service.findByIdDokterAndStatus(idDokter, status.toUpperCase()));
+        if (status != null && ALLOWED_STATUSES.contains(status.toUpperCase())) {
+            return service.findByIdDokterAndStatus(idDokter, status.toUpperCase());
         }
-        return ResponseEntity.ok(service.findByIdDokter(idDokter));
+        return service.findByIdDokter(idDokter);
     }
 
     @GetMapping("/doctor/schedules/{id}")
-    public ResponseEntity<JadwalKonsultasi> findById(@PathVariable String id) {
-        return ResponseEntity.ok(service.findById(id));
+    public JadwalKonsultasi findById(@PathVariable String id) {
+        return service.findById(id);
     }
 
     @GetMapping("/patients/{idPasien}/schedules")
-    public ResponseEntity<List<JadwalKonsultasi>> findByIdPasien(@PathVariable String idPasien) {
-        return ResponseEntity.ok(service.findByIdPasien(idPasien));
+    public List<JadwalKonsultasi> findByIdPasien(@PathVariable String idPasien) {
+        return service.findByIdPasien(idPasien);
     }
 
     @PatchMapping("/schedules/{id}/status")
-    public ResponseEntity<JadwalKonsultasi> updateStatus(
+    public JadwalKonsultasi updateStatus(
             @PathVariable String id,
             @RequestBody Map<String, String> body
     ) {
@@ -66,22 +62,17 @@ public class JadwalDokterController {
         String message = body.get("message");
 
         switch (status) {
-            case "APPROVED":
-                service.approveJadwal(id);
-                break;
-            case "REJECTED":
-                service.rejectJadwal(id);
-                break;
-            case "CHANGE_SCHEDULE":
-                String day = body.get("day");
+            case "APPROVED" -> service.approveJadwal(id);
+            case "REJECTED" -> service.rejectJadwal(id);
+            case "CHANGE_SCHEDULE" -> {
+                String date = body.get("date");
                 String startTime = body.get("startTime");
                 String endTime = body.get("endTime");
-                service.changeJadwal(id, day, startTime, endTime, message);
-                break;
-            default:
-                return ResponseEntity.badRequest().build();
+                service.changeJadwal(id, date, startTime, endTime, message);
+            }
+            default -> throw new IllegalArgumentException("Status tidak valid: " + status);
         }
 
-        return ResponseEntity.ok(service.findById(id));
+        return service.findById(id);
     }
 }
