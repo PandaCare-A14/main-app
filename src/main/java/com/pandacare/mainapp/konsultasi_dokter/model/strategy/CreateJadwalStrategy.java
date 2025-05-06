@@ -1,7 +1,9 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.strategy;
 
-import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 public interface CreateJadwalStrategy {
-    JadwalKonsultasi create(String idDokter, String day, String startTime, String endTime);
+    JadwalKonsultasi create(String idDokter, LocalDate date, LocalTime startTime, LocalTime endTime);
 }
