@@ -1,6 +1,6 @@
-package com.pandacare.mainapp.jadwalKonsultasi.repository;
+package com.pandacare.mainapp.konsultasi_dokter.repository;
 
-import com.pandacare.mainapp.jadwalKonsultasi.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
 
 import java.util.*;
 import java.util.stream.Collectors;
