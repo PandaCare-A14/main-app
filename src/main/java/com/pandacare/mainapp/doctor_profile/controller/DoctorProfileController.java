@@ -31,17 +31,39 @@ public class DoctorProfileController {
     // Search doctors by different criteria
     @GetMapping("/search")
     public String searchDoctors(
-            @RequestParam(required = false, defaultValue = "name") String searchType,
+            @RequestParam(defaultValue = "name") String searchType,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String day,
+            @RequestParam(required = false) String startTime,
+            @RequestParam(required = false) String endTime,
             Model model) {
 
         List<DoctorProfile> doctors;
 
-        if (keyword == null || keyword.trim().isEmpty()) {
-            // No keyword provided, fallback to all doctors
+        if (searchType.equals("schedule")) {
+            // Handle schedule search
+            if (day == null || day.trim().isEmpty() ||
+                    startTime == null || startTime.trim().isEmpty() ||
+                    endTime == null || endTime.trim().isEmpty()) {
+                doctors = doctorProfileService.findAll();
+                model.addAttribute("error", "Please select day and time range for schedule search");
+            } else {
+                try {
+                    // Combine day and time into a schedule string format "Day HH:MM-HH:MM"
+                    String scheduleQuery = day + " " + startTime + "-" + endTime;
+                    doctors = doctorProfileService.searchDoctorProfile(searchType, scheduleQuery);
+                } catch (IllegalArgumentException e) {
+                    doctors = doctorProfileService.findAll();
+                    model.addAttribute("error", "Invalid schedule criteria");
+                }
+            }
+        }
+        else if (keyword == null || keyword.trim().isEmpty()) {
+            // No keyword provided for name/speciality search
             doctors = doctorProfileService.findAll();
             model.addAttribute("error", "Please enter a keyword to search.");
-        } else {
+        }
+        else {
             try {
                 doctors = doctorProfileService.searchDoctorProfile(searchType, keyword);
             } catch (IllegalArgumentException e) {
@@ -50,9 +72,18 @@ public class DoctorProfileController {
             }
         }
 
+        // Add attributes to model
         model.addAttribute("doctors", doctors);
         model.addAttribute("searchType", searchType);
         model.addAttribute("keyword", keyword);
+
+        // For schedule search, preserve the selected values
+        if (searchType.equals("schedule")) {
+            model.addAttribute("day", day);
+            model.addAttribute("startTime", startTime);
+            model.addAttribute("endTime", endTime);
+        }
+
         return "doctors/search";
     }
 
