@@ -63,6 +63,23 @@ class DoctorProfileRepositoryTest {
     }
 
     @Test
+    void testSaveNullDoctorProfile() {
+        DoctorProfile doctorProfile = null;
+        DoctorProfile result = doctorProfileRepository.save(doctorProfile);
+
+        assertNull(result);
+    }
+
+    @Test
+    void testSaveDoctorProfileWithNullId() {
+        DoctorProfile doctorProfile = doctorProfileList.getFirst();
+        doctorProfile.setId(null);
+        DoctorProfile result = doctorProfileRepository.save(doctorProfile);
+
+        assertNull(result);
+    }
+
+    @Test
     void testSaveUpdateDoctorProfile() {
         DoctorProfile doctorProfile = doctorProfileList.getFirst();
         doctorProfileRepository.save(doctorProfile);
