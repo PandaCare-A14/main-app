@@ -1,15 +1,15 @@
 package com.pandacare.mainapp.reservasi.service.template;
 
-import com.pandacare.mainapp.reservasi.enums.StatusJadwalPacilian;
+import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.repository.JadwalPacilianRepository;
+import com.pandacare.mainapp.reservasi.repository.ReservasiKonsultasiRepository;
 
 public class RequestJadwalHandler extends ReservasiKonsultasiTemplate {
 
     private final String idDokter, idPasien, day, startTime, endTime;
-    private final JadwalPacilianRepository repository;
+    private final ReservasiKonsultasiRepository repository;
 
-    public RequestJadwalHandler(String idDokter,  String idPasien, String day, String startTime, String endTime, JadwalPacilianRepository repository) {
+    public RequestJadwalHandler(String idDokter,  String idPasien, String day, String startTime, String endTime, ReservasiKonsultasiRepository repository) {
         this.idDokter = idDokter;
         this.idPasien = idPasien;
         this.day = day;
@@ -36,7 +36,7 @@ public class RequestJadwalHandler extends ReservasiKonsultasiTemplate {
         jadwal.setDay(day);
         jadwal.setStartTime(startTime);
         jadwal.setEndTime(endTime);
-        jadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
+        jadwal.setStatusPacilian(StatusReservasiKonsultasi.WAITING);
         return jadwal;
     }
 

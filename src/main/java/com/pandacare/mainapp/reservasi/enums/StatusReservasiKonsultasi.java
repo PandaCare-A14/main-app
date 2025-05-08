@@ -1,6 +1,6 @@
 package com.pandacare.mainapp.reservasi.enums;
 
-public enum StatusJadwalPacilian {
+public enum StatusReservasiKonsultasi {
     WAITING,
     APPROVED,
     REJECTED,

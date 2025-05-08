@@ -1,7 +1,7 @@
 package com.pandacare.mainapp.reservasi.service;
 
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.repository.JadwalPacilianRepository;
+import com.pandacare.mainapp.reservasi.repository.ReservasiKonsultasiRepository;
 import com.pandacare.mainapp.reservasi.service.template.AcceptChangeScheduleHandler;
 import com.pandacare.mainapp.reservasi.service.template.EditScheduleHandler;
 import com.pandacare.mainapp.reservasi.service.template.RejectChangeScheduleHandler;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 public class ReservasiKonsultasiServiceImpl {
 
     @Autowired
-    private JadwalPacilianRepository repository;
+    private ReservasiKonsultasiRepository repository;
 
     public ReservasiKonsultasi requestJadwal(String idDokter, String idPasien, String day, String startTime, String endTime) {
         RequestJadwalHandler handler = new RequestJadwalHandler(idDokter, idPasien, day, startTime, endTime, repository);

@@ -1,8 +1,8 @@
 package com.pandacare.mainapp.reservasi.service;
 
-import com.pandacare.mainapp.reservasi.enums.StatusJadwalPacilian;
+import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.repository.JadwalPacilianRepository;
+import com.pandacare.mainapp.reservasi.repository.ReservasiKonsultasiRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -17,7 +17,7 @@ import static org.mockito.Mockito.*;
 public class JadwalPacilianServiceTest {
 
     @Mock
-    private JadwalPacilianRepository repository;
+    private ReservasiKonsultasiRepository repository;
 
     @InjectMocks
     private ReservasiKonsultasiServiceImpl service;
@@ -35,7 +35,7 @@ public class JadwalPacilianServiceTest {
         waitingJadwal.setDay("Senin");
         waitingJadwal.setStartTime("09:00");
         waitingJadwal.setEndTime("10:00");
-        waitingJadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
+        waitingJadwal.setStatusPacilian(StatusReservasiKonsultasi.WAITING);
 
         approvedJadwal = new ReservasiKonsultasi();
         approvedJadwal.setId("jadwal124");
@@ -43,7 +43,7 @@ public class JadwalPacilianServiceTest {
         approvedJadwal.setDay("Rabu");
         approvedJadwal.setStartTime("13:00");
         approvedJadwal.setEndTime("14:00");
-        approvedJadwal.setStatusPacilian(StatusJadwalPacilian.APPROVED);
+        approvedJadwal.setStatusPacilian(StatusReservasiKonsultasi.APPROVED);
 
         when(repository.save(any(ReservasiKonsultasi.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
@@ -62,7 +62,7 @@ public class JadwalPacilianServiceTest {
         assertEquals("Senin", result.getDay());
         assertEquals("09:00", result.getStartTime());
         assertEquals("10:00", result.getEndTime());
-        assertEquals(StatusJadwalPacilian.WAITING, result.getStatusPacilian());
+        assertEquals(StatusReservasiKonsultasi.WAITING, result.getStatusPacilian());
 
         verify(repository).save(any(ReservasiKonsultasi.class));
     }
@@ -85,7 +85,7 @@ public class JadwalPacilianServiceTest {
         assertEquals("Selasa", updated.getDay());
         assertEquals("10:00", updated.getStartTime());
         assertEquals("11:00", updated.getEndTime());
-        assertEquals(StatusJadwalPacilian.WAITING, updated.getStatusPacilian());
+        assertEquals(StatusReservasiKonsultasi.WAITING, updated.getStatusPacilian());
     }
 
     @Test
@@ -107,7 +107,7 @@ public class JadwalPacilianServiceTest {
         jadwal.setDay("Selasa");
         jadwal.setStartTime("10:00");
         jadwal.setEndTime("11:00");
-        jadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
+        jadwal.setStatusPacilian(StatusReservasiKonsultasi.WAITING);
         jadwal.setChangeSchedule(true);
         jadwal.setNewDay("Kamis");
         jadwal.setNewStartTime("15:00");
@@ -124,7 +124,7 @@ public class JadwalPacilianServiceTest {
 
         assertNotNull(result);
         assertFalse(result.isChangeSchedule(), "State changeSchedule set to false if accepted");
-        assertEquals(StatusJadwalPacilian.WAITING, result.getStatusPacilian(), "Status should remain WAITING");
+        assertEquals(StatusReservasiKonsultasi.WAITING, result.getStatusPacilian(), "Status should remain WAITING");
     }
 
     @Test
@@ -134,7 +134,7 @@ public class JadwalPacilianServiceTest {
         noChangeRequestJadwal.setDay("Rabu");
         noChangeRequestJadwal.setStartTime("13:00");
         noChangeRequestJadwal.setEndTime("14:00");
-        noChangeRequestJadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
+        noChangeRequestJadwal.setStatusPacilian(StatusReservasiKonsultasi.WAITING);
         noChangeRequestJadwal.setChangeSchedule(false);
 
         // Setup mock
@@ -154,7 +154,7 @@ public class JadwalPacilianServiceTest {
         jadwal.setDay("Selasa");
         jadwal.setStartTime("10:00");
         jadwal.setEndTime("11:00");
-        jadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
+        jadwal.setStatusPacilian(StatusReservasiKonsultasi.WAITING);
         jadwal.setChangeSchedule(true);
 
         // Setup mock

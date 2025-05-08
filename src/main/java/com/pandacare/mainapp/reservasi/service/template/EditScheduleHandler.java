@@ -1,16 +1,16 @@
 package com.pandacare.mainapp.reservasi.service.template;
 
-import com.pandacare.mainapp.reservasi.enums.StatusJadwalPacilian;
+import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.repository.JadwalPacilianRepository;
+import com.pandacare.mainapp.reservasi.repository.ReservasiKonsultasiRepository;
 
 public class EditScheduleHandler extends ReservasiKonsultasiTemplate {
 
     private final String id, newDay, newStartTime, newEndTime;
-    private final JadwalPacilianRepository repository;
+    private final ReservasiKonsultasiRepository repository;
     private ReservasiKonsultasi jadwal;
 
-    public EditScheduleHandler(String id, String newDay, String newStartTime, String newEndTime, JadwalPacilianRepository repository) {
+    public EditScheduleHandler(String id, String newDay, String newStartTime, String newEndTime, ReservasiKonsultasiRepository repository) {
         this.id = id;
         this.newDay = newDay;
         this.newStartTime = newStartTime;
@@ -22,7 +22,7 @@ public class EditScheduleHandler extends ReservasiKonsultasiTemplate {
     protected void validate() {
         jadwal = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
 
-        if (jadwal.getStatusPacilian() != StatusJadwalPacilian.WAITING) {
+        if (jadwal.getStatusPacilian() != StatusReservasiKonsultasi.WAITING) {
             throw new IllegalStateException("Only schedules with status WAITING can be edited");
         }
 
