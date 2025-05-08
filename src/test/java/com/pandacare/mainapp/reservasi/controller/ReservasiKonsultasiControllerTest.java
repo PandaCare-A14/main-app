@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ReservasiKonsultasiController.class)
-class JadwalPacilianControllerTest {
+class ReservasiKonsultasiControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
