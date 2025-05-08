@@ -7,7 +7,7 @@ public class RejectChangeReservasiHandler extends ReservasiKonsultasiTemplate {
 
     private final String id;
     private final ReservasiKonsultasiRepository repository;
-    private ReservasiKonsultasi jadwal;
+    private ReservasiKonsultasi reservasi;
 
     public RejectChangeReservasiHandler(String id, ReservasiKonsultasiRepository repository) {
         this.id = id;
@@ -16,17 +16,17 @@ public class RejectChangeReservasiHandler extends ReservasiKonsultasiTemplate {
 
     @Override
     protected void validate() {
-        jadwal = repository.findById(id)
+        reservasi = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
 
-        if (!jadwal.isChangeSchedule()) {
+        if (!reservasi.isChangeSchedule()) {
             throw new IllegalStateException("No change request exists for this schedule");
         }
     }
 
     @Override
     protected ReservasiKonsultasi prepare() {
-        return jadwal;
+        return reservasi;
     }
 
     @Override

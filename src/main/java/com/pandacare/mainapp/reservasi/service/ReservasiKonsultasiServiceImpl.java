@@ -16,12 +16,12 @@ public class ReservasiKonsultasiServiceImpl {
     @Autowired
     private ReservasiKonsultasiRepository repository;
 
-    public ReservasiKonsultasi requestJadwal(String idDokter, String idPasien, String day, String startTime, String endTime) {
+    public ReservasiKonsultasi requestReservasi(String idDokter, String idPasien, String day, String startTime, String endTime) {
         RequestReservasiHandler handler = new RequestReservasiHandler(idDokter, idPasien, day, startTime, endTime, repository);
         return handler.handle();
     }
 
-    public ReservasiKonsultasi editSchedule(String id, String day, String startTime, String endTime) {
+    public ReservasiKonsultasi editReservasi(String id, String day, String startTime, String endTime) {
         EditReservasiHandler handler = new EditReservasiHandler(id, day, startTime, endTime, repository);
         return handler.handle();
     }

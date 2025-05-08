@@ -6,8 +6,8 @@ public abstract class ReservasiKonsultasiTemplate {
 
     public final ReservasiKonsultasi handle() {
         validate();
-        ReservasiKonsultasi jadwal = prepare();
-        return save(jadwal);
+        ReservasiKonsultasi reservasi = prepare();
+        return save(reservasi);
     }
 
     protected abstract void validate();

@@ -13,11 +13,11 @@ import java.util.Map;
 public class ReservasiKonsultasiController {
 
     @Autowired
-    private ReservasiKonsultasiServiceImpl jadwalService;
+    private ReservasiKonsultasiServiceImpl reservasiService;
 
     @PostMapping("/request")
-    public ResponseEntity<?> requestJadwal(@RequestBody Map<String, String> body) {
-        ReservasiKonsultasi result = jadwalService.requestJadwal(
+    public ResponseEntity<?> requestReservasi(@RequestBody Map<String, String> body) {
+        ReservasiKonsultasi result = reservasiService.requestReservasi(
                 body.get("idDokter"),
                 body.get("idPasien"),
                 body.get("day"),
@@ -27,7 +27,7 @@ public class ReservasiKonsultasiController {
 
         return ResponseEntity.ok(Map.of(
                 "message", "Jadwal konsultasi berhasil diajukan",
-                "jadwal", result
+                "reservasi", result
         ));
     }
 }

@@ -21,10 +21,10 @@ class ReservasiKonsultasiControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private ReservasiKonsultasiServiceImpl jadwalService;
+    private ReservasiKonsultasiServiceImpl reservasiService;
 
     @Test
-    void testRequestJadwal_success() throws Exception {
+    void testRequestReservasi_success() throws Exception {
         ReservasiKonsultasi dummy = new ReservasiKonsultasi();
         dummy.setId("JK001");
         dummy.setIdDokter("dok123");
@@ -33,7 +33,7 @@ class ReservasiKonsultasiControllerTest {
         dummy.setStartTime("09:00");
         dummy.setEndTime("10:00");
 
-        when(jadwalService.requestJadwal(any(), any(), any(), any(), any())).thenReturn(dummy);
+        when(reservasiService.requestReservasi(any(), any(), any(), any(), any())).thenReturn(dummy);
 
         mockMvc.perform(post("/api/jadwal-konsultasi/request")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -48,6 +48,6 @@ class ReservasiKonsultasiControllerTest {
             """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Jadwal konsultasi berhasil diajukan"))
-                .andExpect(jsonPath("$.jadwal.idDokter").value("dok123"));
+                .andExpect(jsonPath("$.reservasi.idDokter").value("dok123"));
     }
 }

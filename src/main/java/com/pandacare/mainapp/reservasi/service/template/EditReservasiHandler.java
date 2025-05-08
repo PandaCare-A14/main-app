@@ -8,7 +8,7 @@ public class EditReservasiHandler extends ReservasiKonsultasiTemplate {
 
     private final String id, newDay, newStartTime, newEndTime;
     private final ReservasiKonsultasiRepository repository;
-    private ReservasiKonsultasi jadwal;
+    private ReservasiKonsultasi reservasi;
 
     public EditReservasiHandler(String id, String newDay, String newStartTime, String newEndTime, ReservasiKonsultasiRepository repository) {
         this.id = id;
@@ -20,9 +20,9 @@ public class EditReservasiHandler extends ReservasiKonsultasiTemplate {
 
     @Override
     protected void validate() {
-        jadwal = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
+        reservasi = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
 
-        if (jadwal.getStatusPacilian() != StatusReservasiKonsultasi.WAITING) {
+        if (reservasi.getStatusPacilian() != StatusReservasiKonsultasi.WAITING) {
             throw new IllegalStateException("Only schedules with status WAITING can be edited");
         }
 
@@ -33,10 +33,10 @@ public class EditReservasiHandler extends ReservasiKonsultasiTemplate {
 
     @Override
     protected ReservasiKonsultasi prepare() {
-        jadwal.setDay(newDay);
-        jadwal.setStartTime(newStartTime);
-        jadwal.setEndTime(newEndTime);
-        return jadwal;
+        reservasi.setDay(newDay);
+        reservasi.setStartTime(newStartTime);
+        reservasi.setEndTime(newEndTime);
+        return reservasi;
     }
 
     @Override
