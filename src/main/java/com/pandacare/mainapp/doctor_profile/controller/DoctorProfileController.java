@@ -5,6 +5,7 @@ import com.pandacare.mainapp.doctor_profile.service.DoctorProfileService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -30,18 +31,23 @@ public class DoctorProfileController {
     // Search doctors by different criteria
     @GetMapping("/search")
     public String searchDoctors(
-            @RequestParam String searchType,
-            @RequestParam String keyword,
+            @RequestParam(required = false, defaultValue = "name") String searchType,
+            @RequestParam(required = false) String keyword,
             Model model) {
 
         List<DoctorProfile> doctors;
 
-        try {
-            doctors = doctorProfileService.searchDoctorProfile(searchType, keyword);
-        } catch (IllegalArgumentException e) {
-            // If invalid search type, fall back to showing all doctors
+        if (keyword == null || keyword.trim().isEmpty()) {
+            // No keyword provided, fallback to all doctors
             doctors = doctorProfileService.findAll();
-            model.addAttribute("error", "Invalid search criteria");
+            model.addAttribute("error", "Please enter a keyword to search.");
+        } else {
+            try {
+                doctors = doctorProfileService.searchDoctorProfile(searchType, keyword);
+            } catch (IllegalArgumentException e) {
+                doctors = doctorProfileService.findAll();
+                model.addAttribute("error", "Invalid search criteria.");
+            }
         }
 
         model.addAttribute("doctors", doctors);
@@ -53,9 +59,12 @@ public class DoctorProfileController {
     // Show doctor details
     @GetMapping("/{id}")
     public String showDoctorDetails(@PathVariable String id, Model model) {
+        if (id == null) {
+            return "redirect:/doctors";
+        }
+
         DoctorProfile doctor = doctorProfileService.findById(id);
         if (doctor == null) {
-            // Handle doctor not found case
             return "redirect:/doctors";
         }
         model.addAttribute("doctor", doctor);
@@ -71,11 +80,11 @@ public class DoctorProfileController {
 
     // Save new doctor
     @PostMapping
-    public String saveDoctor(@ModelAttribute DoctorProfile doctorProfile) {
+    public String saveDoctor(@ModelAttribute DoctorProfile doctorProfile, RedirectAttributes redirectAttributes) {
         DoctorProfile created = doctorProfileService.createProfile(doctorProfile);
         if (created == null) {
-            // Handle creation failure (e.g., duplicate ID)
-            return "redirect:/doctors/new?error";
+            redirectAttributes.addFlashAttribute("error", "Failed to create doctor profile");
+            return "redirect:/doctors/new";
         }
         return "redirect:/doctors/" + created.getId();
     }
@@ -93,11 +102,15 @@ public class DoctorProfileController {
 
     // Update doctor
     @PostMapping("/{id}")
-    public String updateDoctor(@PathVariable String id, @ModelAttribute DoctorProfile doctorProfile) {
+    public String updateDoctor(@PathVariable String id, @ModelAttribute DoctorProfile doctorProfile, RedirectAttributes redirectAttributes) {
+        if (id == null) {
+            return "redirect:/doctors";
+        }
+
         DoctorProfile updated = doctorProfileService.updateProfile(doctorProfile);
         if (updated == null) {
-            // Handle update failure
-            return "redirect:/doctors/" + id + "/edit?error";
+            redirectAttributes.addFlashAttribute("error", "Failed to update doctor profile");
+            return "redirect:/doctors/" + id + "/edit";
         }
         return "redirect:/doctors/" + id;
     }
