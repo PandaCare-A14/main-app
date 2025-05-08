@@ -1,7 +1,7 @@
 package com.pandacare.mainapp.reservasi.controller;
 
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.service.JadwalPacilianServiceImpl;
+import com.pandacare.mainapp.reservasi.service.ReservasiKonsultasiServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -21,7 +21,7 @@ class JadwalPacilianControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private JadwalPacilianServiceImpl jadwalService;
+    private ReservasiKonsultasiServiceImpl jadwalService;
 
     @Test
     void testRequestJadwal_success() throws Exception {

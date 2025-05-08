@@ -1,7 +1,7 @@
 package com.pandacare.mainapp.reservasi.controller;
 
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.service.JadwalPacilianServiceImpl;
+import com.pandacare.mainapp.reservasi.service.ReservasiKonsultasiServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +13,7 @@ import java.util.Map;
 public class JadwalPacilianController {
 
     @Autowired
-    private JadwalPacilianServiceImpl jadwalService;
+    private ReservasiKonsultasiServiceImpl jadwalService;
 
     @PostMapping("/request")
     public ResponseEntity<?> requestJadwal(@RequestBody Map<String, String> body) {

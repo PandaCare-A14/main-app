@@ -20,7 +20,7 @@ public class JadwalPacilianServiceTest {
     private JadwalPacilianRepository repository;
 
     @InjectMocks
-    private JadwalPacilianServiceImpl service;
+    private ReservasiKonsultasiServiceImpl service;
 
     private ReservasiKonsultasi waitingJadwal;
     private ReservasiKonsultasi approvedJadwal;
