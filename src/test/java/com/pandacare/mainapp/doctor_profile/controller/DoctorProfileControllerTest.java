@@ -76,7 +76,14 @@ class DoctorProfileControllerTest {
             List<DoctorProfile> doctors = List.of(testDoctor);
             when(doctorProfileService.searchDoctorProfile("name", "Smith")).thenReturn(doctors);
 
-            String viewName = doctorProfileController.searchDoctors("name", "Smith", model);
+            String viewName = doctorProfileController.searchDoctors(
+                    "name",
+                    "Smith",
+                    null, // day
+                    null, // startTime
+                    null, // endTime
+                    model
+            );
 
             assertEquals("doctors/search", viewName);
             verify(model).addAttribute("doctors", doctors);
@@ -90,7 +97,14 @@ class DoctorProfileControllerTest {
             List<DoctorProfile> doctors = List.of(testDoctor);
             when(doctorProfileService.findAll()).thenReturn(doctors);
 
-            String viewName = doctorProfileController.searchDoctors("name", "", model);
+            String viewName = doctorProfileController.searchDoctors(
+                    "name",
+                    "",
+                    null, // day
+                    null, // startTime
+                    null, // endTime
+                    model
+            );
 
             assertEquals("doctors/search", viewName);
             verify(model).addAttribute("doctors", doctors);
@@ -106,7 +120,14 @@ class DoctorProfileControllerTest {
             List<DoctorProfile> allDoctors = List.of(testDoctor);
             when(doctorProfileService.findAll()).thenReturn(allDoctors);
 
-            String viewName = doctorProfileController.searchDoctors("invalid", "Smith", model);
+            String viewName = doctorProfileController.searchDoctors(
+                    "invalid",
+                    "Smith",
+                    null, // day
+                    null, // startTime
+                    null, // endTime
+                    model
+            );
 
             assertEquals("doctors/search", viewName);
             verify(model).addAttribute("error", "Invalid search criteria.");
@@ -239,6 +260,114 @@ class DoctorProfileControllerTest {
 
             assertEquals("redirect:/doctors", viewName);
             verify(doctorProfileService, never()).deleteProfile(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Schedule Search Operations")
+    class ScheduleSearchTests {
+
+        @Test
+        @DisplayName("Schedule search with valid parameters should return results")
+        void searchDoctors_withValidSchedule_shouldReturnResults() {
+            List<DoctorProfile> doctors = List.of(testDoctor);
+            String scheduleQuery = "Monday 09:00-17:00";
+            when(doctorProfileService.searchDoctorProfile("schedule", scheduleQuery)).thenReturn(doctors);
+
+            String viewName = doctorProfileController.searchDoctors(
+                    "schedule",
+                    null, // keyword
+                    "Monday", // day
+                    "09:00", // startTime
+                    "17:00", // endTime
+                    model
+            );
+
+            assertEquals("doctors/search", viewName);
+            verify(model).addAttribute("doctors", doctors);
+            verify(model).addAttribute("searchType", "schedule");
+            verify(model).addAttribute("day", "Monday");
+            verify(model).addAttribute("startTime", "09:00");
+            verify(model).addAttribute("endTime", "17:00");
+        }
+
+        @Test
+        @DisplayName("Schedule search with missing day should show error")
+        void searchDoctors_withMissingDay_shouldShowError() {
+            List<DoctorProfile> doctors = List.of(testDoctor);
+            when(doctorProfileService.findAll()).thenReturn(doctors);
+
+            String viewName = doctorProfileController.searchDoctors(
+                    "schedule",
+                    null, // keyword
+                    null, // day (missing)
+                    "09:00", // startTime
+                    "17:00", // endTime
+                    model
+            );
+
+            assertEquals("doctors/search", viewName);
+            verify(model).addAttribute("error", "Please select day and time range for schedule search");
+            verify(model).addAttribute("doctors", doctors);
+        }
+
+        @Test
+        @DisplayName("Schedule search with missing start time should show error")
+        void searchDoctors_withMissingStartTime_shouldShowError() {
+            List<DoctorProfile> doctors = List.of(testDoctor);
+            when(doctorProfileService.findAll()).thenReturn(doctors);
+
+            String viewName = doctorProfileController.searchDoctors(
+                    "schedule",
+                    null, // keyword
+                    "Monday", // day
+                    null, // startTime (missing)
+                    "17:00", // endTime
+                    model
+            );
+
+            assertEquals("doctors/search", viewName);
+            verify(model).addAttribute("error", "Please select day and time range for schedule search");
+        }
+
+        @Test
+        @DisplayName("Schedule search with missing end time should show error")
+        void searchDoctors_withMissingEndTime_shouldShowError() {
+            List<DoctorProfile> doctors = List.of(testDoctor);
+            when(doctorProfileService.findAll()).thenReturn(doctors);
+
+            String viewName = doctorProfileController.searchDoctors(
+                    "schedule",
+                    null, // keyword
+                    "Monday", // day
+                    "09:00", // startTime
+                    null, // endTime (missing)
+                    model
+            );
+
+            assertEquals("doctors/search", viewName);
+            verify(model).addAttribute("error", "Please select day and time range for schedule search");
+        }
+
+        @Test
+        @DisplayName("Schedule search with invalid time format should show error")
+        void searchDoctors_withInvalidTimeFormat_shouldShowError() {
+            List<DoctorProfile> doctors = List.of(testDoctor);
+            when(doctorProfileService.findAll()).thenReturn(doctors);
+            when(doctorProfileService.searchDoctorProfile(eq("schedule"), anyString()))
+                    .thenThrow(new IllegalArgumentException());
+
+            String viewName = doctorProfileController.searchDoctors(
+                    "schedule",
+                    null, // keyword
+                    "Monday", // day
+                    "invalid", // startTime (invalid)
+                    "17:00", // endTime
+                    model
+            );
+
+            assertEquals("doctors/search", viewName);
+            verify(model).addAttribute("error", "Invalid schedule criteria");
         }
     }
 }
