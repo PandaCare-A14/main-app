@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class DoctorProfileControllerRefactoredTest {
+class DoctorProfileControllerTest {
 
     @Mock
     private DoctorProfileService doctorProfileService;
@@ -85,6 +85,19 @@ class DoctorProfileControllerRefactoredTest {
         }
 
         @Test
+        @DisplayName("Search doctors with empty keyword should show all doctors with message")
+        void searchDoctors_withEmptyKeyword_shouldShowAllDoctors() {
+            List<DoctorProfile> doctors = List.of(testDoctor);
+            when(doctorProfileService.findAll()).thenReturn(doctors);
+
+            String viewName = doctorProfileController.searchDoctors("name", "", model);
+
+            assertEquals("doctors/search", viewName);
+            verify(model).addAttribute("doctors", doctors);
+            verify(model).addAttribute("error", "Please enter a keyword to search.");
+        }
+
+        @Test
         @DisplayName("Search doctors with invalid criteria should show error")
         void searchDoctors_withInvalidCriteria_shouldShowError() {
             when(doctorProfileService.searchDoctorProfile("invalid", "Smith"))
@@ -96,7 +109,7 @@ class DoctorProfileControllerRefactoredTest {
             String viewName = doctorProfileController.searchDoctors("invalid", "Smith", model);
 
             assertEquals("doctors/search", viewName);
-            verify(model).addAttribute("error", "Invalid search criteria");
+            verify(model).addAttribute("error", "Invalid search criteria.");
             verify(model).addAttribute("doctors", allDoctors);
         }
 
@@ -120,6 +133,15 @@ class DoctorProfileControllerRefactoredTest {
 
             assertEquals("redirect:/doctors", viewName);
         }
+
+        @Test
+        @DisplayName("Show doctor details with null ID should redirect")
+        void showDoctorDetails_withNullId_shouldRedirect() {
+            String viewName = doctorProfileController.showDoctorDetails(null, model);
+
+            assertEquals("redirect:/doctors", viewName);
+            verify(doctorProfileService, never()).findById(any());
+        }
     }
 
     @Nested
@@ -139,9 +161,20 @@ class DoctorProfileControllerRefactoredTest {
         void saveDoctor_withNewDoctor_shouldRedirectToDetail() {
             when(doctorProfileService.createProfile(testDoctor)).thenReturn(testDoctor);
 
-            String viewName = doctorProfileController.saveDoctor(testDoctor);
+            String viewName = doctorProfileController.saveDoctor(testDoctor, redirectAttributes);
 
             assertEquals("redirect:/doctors/eb558e9f-1c39-460e-8860-71af6af63ds2", viewName);
+        }
+
+        @Test
+        @DisplayName("Save with duplicate ID should redirect with error")
+        void saveDoctor_withDuplicateId_shouldRedirectWithError() {
+            when(doctorProfileService.createProfile(testDoctor)).thenReturn(null);
+
+            String viewName = doctorProfileController.saveDoctor(testDoctor, redirectAttributes);
+
+            assertEquals("redirect:/doctors/new", viewName);
+            assertTrue(redirectAttributes.getFlashAttributes().containsKey("error"));
         }
 
         @Test
@@ -156,13 +189,34 @@ class DoctorProfileControllerRefactoredTest {
         }
 
         @Test
+        @DisplayName("Show edit form for non-existent doctor should redirect")
+        void showEditDoctorForm_forNonExistentDoctor_shouldRedirect() {
+            when(doctorProfileService.findById("invalid")).thenReturn(null);
+
+            String viewName = doctorProfileController.showEditDoctorForm("invalid", model);
+
+            assertEquals("redirect:/doctors", viewName);
+        }
+
+        @Test
         @DisplayName("Update existing doctor should redirect to detail page")
         void updateDoctor_forExistingDoctor_shouldRedirectToDetail() {
             when(doctorProfileService.updateProfile(testDoctor)).thenReturn(testDoctor);
 
-            String viewName = doctorProfileController.updateDoctor("eb558e9f-1c39-460e-8860-71af6af63ds2", testDoctor);
+            String viewName = doctorProfileController.updateDoctor("eb558e9f-1c39-460e-8860-71af6af63ds2", testDoctor, redirectAttributes);
 
             assertEquals("redirect:/doctors/eb558e9f-1c39-460e-8860-71af6af63ds2", viewName);
+        }
+
+        @Test
+        @DisplayName("Update non-existent doctor should redirect with error")
+        void updateDoctor_forNonExistentDoctor_shouldRedirectWithError() {
+            when(doctorProfileService.updateProfile(testDoctor)).thenReturn(null);
+
+            String viewName = doctorProfileController.updateDoctor("eb558e9f-1c39-460e-8860-71af6af63ds2", testDoctor, redirectAttributes);
+
+            assertEquals("redirect:/doctors/eb558e9f-1c39-460e-8860-71af6af63ds2/edit", viewName);
+            assertTrue(redirectAttributes.getFlashAttributes().containsKey("error"));
         }
 
         @Test
@@ -175,29 +229,16 @@ class DoctorProfileControllerRefactoredTest {
             assertEquals("redirect:/doctors", viewName);
             verify(doctorProfileService).deleteProfile(testDoctor);
         }
-    }
-
-    @Nested
-    @DisplayName("Edge Cases")
-    class EdgeCasesTests {
-        @Test
-        @DisplayName("Save with duplicate ID should redirect with error")
-        void saveDoctor_withDuplicateId_shouldRedirectWithError() {
-            when(doctorProfileService.createProfile(testDoctor)).thenReturn(null);
-
-            String viewName = doctorProfileController.saveDoctor(testDoctor);
-
-            assertEquals("redirect:/doctors/new?error", viewName);
-        }
 
         @Test
-        @DisplayName("Update non-existent doctor should redirect with error")
-        void updateDoctor_forNonExistentDoctor_shouldRedirectWithError() {
-            when(doctorProfileService.updateProfile(testDoctor)).thenReturn(null);
+        @DisplayName("Delete non-existent doctor should redirect to list")
+        void deleteDoctor_forNonExistentDoctor_shouldRedirectToList() {
+            when(doctorProfileService.findById("invalid")).thenReturn(null);
 
-            String viewName = doctorProfileController.updateDoctor("eb558e9f-1c39-460e-8860-71af6af63ds2", testDoctor);
+            String viewName = doctorProfileController.deleteDoctor("invalid");
 
-            assertEquals("redirect:/doctors/eb558e9f-1c39-460e-8860-71af6af63ds2/edit?error", viewName);
+            assertEquals("redirect:/doctors", viewName);
+            verify(doctorProfileService, never()).deleteProfile(any());
         }
     }
 }
