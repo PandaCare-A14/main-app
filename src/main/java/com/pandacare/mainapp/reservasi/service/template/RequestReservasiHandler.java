@@ -30,18 +30,18 @@ public class RequestReservasiHandler extends ReservasiKonsultasiTemplate {
 
     @Override
     protected ReservasiKonsultasi prepare() {
-        ReservasiKonsultasi jadwal = new ReservasiKonsultasi();
-        jadwal.setIdDokter(idDokter);
-        jadwal.setIdPasien(idPasien);
-        jadwal.setDay(day);
-        jadwal.setStartTime(startTime);
-        jadwal.setEndTime(endTime);
-        jadwal.setStatusPacilian(StatusReservasiKonsultasi.WAITING);
-        return jadwal;
+        ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
+        reservasi.setIdDokter(idDokter);
+        reservasi.setIdPasien(idPasien);
+        reservasi.setDay(day);
+        reservasi.setStartTime(startTime);
+        reservasi.setEndTime(endTime);
+        reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+        return reservasi;
     }
 
     @Override
-    protected ReservasiKonsultasi save(ReservasiKonsultasi jadwal) {
-        return repository.save(jadwal);
+    protected ReservasiKonsultasi save(ReservasiKonsultasi reservasi) {
+        return repository.save(reservasi);
     }
 }

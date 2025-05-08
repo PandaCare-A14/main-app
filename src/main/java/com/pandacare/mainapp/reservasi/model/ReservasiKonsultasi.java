@@ -11,8 +11,8 @@ public class ReservasiKonsultasi {
     private String day;
     private String startTime;
     private String endTime;
-    private StatusReservasiKonsultasi statusPacilian;
-    private boolean changeSchedule;
+    private StatusReservasiKonsultasi statusReservasi;
+    private boolean changeReservasi;
     private String newDay;
     private String newStartTime;
     private String newEndTime;

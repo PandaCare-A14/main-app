@@ -35,7 +35,7 @@ public class ReservasiKonsultasiServiceTest {
         waitingReservasi.setDay("Senin");
         waitingReservasi.setStartTime("09:00");
         waitingReservasi.setEndTime("10:00");
-        waitingReservasi.setStatusPacilian(StatusReservasiKonsultasi.WAITING);
+        waitingReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
 
         approvedReservasi = new ReservasiKonsultasi();
         approvedReservasi.setId("jadwal124");
@@ -43,7 +43,7 @@ public class ReservasiKonsultasiServiceTest {
         approvedReservasi.setDay("Rabu");
         approvedReservasi.setStartTime("13:00");
         approvedReservasi.setEndTime("14:00");
-        approvedReservasi.setStatusPacilian(StatusReservasiKonsultasi.APPROVED);
+        approvedReservasi.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
 
         when(repository.save(any(ReservasiKonsultasi.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
@@ -51,8 +51,8 @@ public class ReservasiKonsultasiServiceTest {
     @Test
     void requestReservasi_shouldReturnWaitingStatus() {
         when(repository.save(any(ReservasiKonsultasi.class))).thenAnswer(invocation -> {
-            ReservasiKonsultasi savedJadwal = invocation.getArgument(0);
-            return savedJadwal;
+            ReservasiKonsultasi savedReservasi = invocation.getArgument(0);
+            return savedReservasi;
         });
 
         ReservasiKonsultasi result = service.requestReservasi("dok123","pac123","Senin", "09:00", "10:00");
@@ -62,7 +62,7 @@ public class ReservasiKonsultasiServiceTest {
         assertEquals("Senin", result.getDay());
         assertEquals("09:00", result.getStartTime());
         assertEquals("10:00", result.getEndTime());
-        assertEquals(StatusReservasiKonsultasi.WAITING, result.getStatusPacilian());
+        assertEquals(StatusReservasiKonsultasi.WAITING, result.getStatusReservasi());
 
         verify(repository).save(any(ReservasiKonsultasi.class));
     }
@@ -85,7 +85,7 @@ public class ReservasiKonsultasiServiceTest {
         assertEquals("Selasa", updated.getDay());
         assertEquals("10:00", updated.getStartTime());
         assertEquals("11:00", updated.getEndTime());
-        assertEquals(StatusReservasiKonsultasi.WAITING, updated.getStatusPacilian());
+        assertEquals(StatusReservasiKonsultasi.WAITING, updated.getStatusReservasi());
     }
 
     @Test
@@ -102,46 +102,46 @@ public class ReservasiKonsultasiServiceTest {
 
     @Test
     void acceptChangeReservasi_shouldApplyRequestedChange() {
-        ReservasiKonsultasi jadwal = new ReservasiKonsultasi();
-        jadwal.setId("jadwal123");
-        jadwal.setDay("Selasa");
-        jadwal.setStartTime("10:00");
-        jadwal.setEndTime("11:00");
-        jadwal.setStatusPacilian(StatusReservasiKonsultasi.WAITING);
-        jadwal.setChangeSchedule(true);
-        jadwal.setNewDay("Kamis");
-        jadwal.setNewStartTime("15:00");
-        jadwal.setNewEndTime("16:00");
+        ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
+        reservasi.setId("jadwal123");
+        reservasi.setDay("Selasa");
+        reservasi.setStartTime("10:00");
+        reservasi.setEndTime("11:00");
+        reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+        reservasi.setChangeReservasi(true);
+        reservasi.setNewDay("Kamis");
+        reservasi.setNewStartTime("15:00");
+        reservasi.setNewEndTime("16:00");
 
         // Setup mock
-        when(repository.findById("jadwal123")).thenReturn(Optional.of(jadwal));
+        when(repository.findById("jadwal123")).thenReturn(Optional.of(reservasi));
 
-        ReservasiKonsultasi result = service.acceptChangeSchedule("jadwal123");
+        ReservasiKonsultasi result = service.acceptChangeReservasi("jadwal123");
 
         assertEquals("Kamis", result.getDay());
         assertEquals("15:00", result.getStartTime());
         assertEquals("16:00", result.getEndTime());
 
         assertNotNull(result);
-        assertFalse(result.isChangeSchedule(), "State changeSchedule set to false if accepted");
-        assertEquals(StatusReservasiKonsultasi.WAITING, result.getStatusPacilian(), "Status should remain WAITING");
+        assertFalse(result.isChangeReservasi(), "State changeSchedule set to false if accepted");
+        assertEquals(StatusReservasiKonsultasi.WAITING, result.getStatusReservasi(), "Status should remain WAITING");
     }
 
     @Test
     void acceptChangeReservasi_shouldThrowException_whenChangeReservasiIsFalse() {
-        ReservasiKonsultasi noChangeRequestJadwal = new ReservasiKonsultasi();
-        noChangeRequestJadwal.setId("jadwal125");
-        noChangeRequestJadwal.setDay("Rabu");
-        noChangeRequestJadwal.setStartTime("13:00");
-        noChangeRequestJadwal.setEndTime("14:00");
-        noChangeRequestJadwal.setStatusPacilian(StatusReservasiKonsultasi.WAITING);
-        noChangeRequestJadwal.setChangeSchedule(false);
+        ReservasiKonsultasi noChangeRequestReservasi = new ReservasiKonsultasi();
+        noChangeRequestReservasi.setId("jadwal125");
+        noChangeRequestReservasi.setDay("Rabu");
+        noChangeRequestReservasi.setStartTime("13:00");
+        noChangeRequestReservasi.setEndTime("14:00");
+        noChangeRequestReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+        noChangeRequestReservasi.setChangeReservasi(false);
 
         // Setup mock
-        when(repository.findById("jadwal125")).thenReturn(Optional.of(noChangeRequestJadwal));
+        when(repository.findById("jadwal125")).thenReturn(Optional.of(noChangeRequestReservasi));
 
         Exception ex = assertThrows(IllegalStateException.class, () ->
-                service.acceptChangeSchedule("jadwal125")
+                service.acceptChangeReservasi("jadwal125")
         );
 
         assertEquals("No change request exists for this schedule", ex.getMessage());
@@ -149,19 +149,19 @@ public class ReservasiKonsultasiServiceTest {
 
     @Test
     void rejectChangeReservasi_shouldDeleteReservasi() {
-        ReservasiKonsultasi jadwal = new ReservasiKonsultasi();
-        jadwal.setId("jadwal127");
-        jadwal.setDay("Selasa");
-        jadwal.setStartTime("10:00");
-        jadwal.setEndTime("11:00");
-        jadwal.setStatusPacilian(StatusReservasiKonsultasi.WAITING);
-        jadwal.setChangeSchedule(true);
+        ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
+        reservasi.setId("jadwal127");
+        reservasi.setDay("Selasa");
+        reservasi.setStartTime("10:00");
+        reservasi.setEndTime("11:00");
+        reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+        reservasi.setChangeReservasi(true);
 
         // Setup mock
-        when(repository.findById("jadwal127")).thenReturn(Optional.of(jadwal));
+        when(repository.findById("jadwal127")).thenReturn(Optional.of(reservasi));
         doNothing().when(repository).deleteById("jadwal127");
 
-        service.rejectChangeSchedule("jadwal127");
+        service.rejectChangeReservasi("jadwal127");
 
         // Verify the deleteById method was called
         verify(repository).deleteById("jadwal127");

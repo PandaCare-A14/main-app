@@ -35,12 +35,12 @@ public class ReservasiKonsultasiServiceImpl {
         repository.deleteById(id);
     }
 
-    public ReservasiKonsultasi acceptChangeSchedule(String id) {
+    public ReservasiKonsultasi acceptChangeReservasi(String id) {
         AcceptChangeReservasiHandler handler = new AcceptChangeReservasiHandler(id, repository);
         return handler.handle();
     }
 
-    public void rejectChangeSchedule(String id) {
+    public void rejectChangeReservasi(String id) {
         new RejectChangeReservasiHandler(id, repository).handle();
     }
 }
