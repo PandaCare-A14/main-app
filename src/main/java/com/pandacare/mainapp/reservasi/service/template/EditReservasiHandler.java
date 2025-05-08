@@ -4,13 +4,13 @@ import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.repository.ReservasiKonsultasiRepository;
 
-public class EditScheduleHandler extends ReservasiKonsultasiTemplate {
+public class EditReservasiHandler extends ReservasiKonsultasiTemplate {
 
     private final String id, newDay, newStartTime, newEndTime;
     private final ReservasiKonsultasiRepository repository;
     private ReservasiKonsultasi jadwal;
 
-    public EditScheduleHandler(String id, String newDay, String newStartTime, String newEndTime, ReservasiKonsultasiRepository repository) {
+    public EditReservasiHandler(String id, String newDay, String newStartTime, String newEndTime, ReservasiKonsultasiRepository repository) {
         this.id = id;
         this.newDay = newDay;
         this.newStartTime = newStartTime;

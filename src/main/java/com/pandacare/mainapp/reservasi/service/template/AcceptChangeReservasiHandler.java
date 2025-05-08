@@ -3,13 +3,13 @@ package com.pandacare.mainapp.reservasi.service.template;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.repository.ReservasiKonsultasiRepository;
 
-public class AcceptChangeScheduleHandler extends ReservasiKonsultasiTemplate {
+public class AcceptChangeReservasiHandler extends ReservasiKonsultasiTemplate {
 
     private final String id;
     private final ReservasiKonsultasiRepository repository;
     private ReservasiKonsultasi jadwal;
 
-    public AcceptChangeScheduleHandler(String id, ReservasiKonsultasiRepository repository) {
+    public AcceptChangeReservasiHandler(String id, ReservasiKonsultasiRepository repository) {
         this.id = id;
         this.repository = repository;
     }
