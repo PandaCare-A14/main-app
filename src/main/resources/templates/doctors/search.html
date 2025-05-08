@@ -5,6 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Find Doctors - PandaCare</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchTypeSelect = document.getElementById('searchType');
+            const keywordField = document.getElementById('keywordField');
+            const scheduleFields = document.getElementById('scheduleFields');
+
+            function toggleFields() {
+                if (searchTypeSelect.value === 'schedule') {
+                    keywordField.classList.add('hidden');
+                    scheduleFields.classList.remove('hidden');
+                } else {
+                    keywordField.classList.remove('hidden');
+                    scheduleFields.classList.add('hidden');
+                }
+            }
+
+            // Initial check
+            toggleFields();
+
+            // Change event listener
+            searchTypeSelect.addEventListener('change', toggleFields);
+        });
+    </script>
 </head>
 <body class="bg-gray-50">
 <div class="container mx-auto px-4 py-8">
@@ -21,12 +44,43 @@
                     <option value="schedule" th:selected="${searchType == 'schedule'}">Work Schedule</option>
                 </select>
             </div>
-            <div class="flex-1">
+
+            <!-- Default Keyword Input -->
+            <div class="flex-1" id="keywordField">
                 <label for="keyword" class="block text-sm font-medium text-gray-700 mb-1">Keyword</label>
                 <input type="text" id="keyword" name="keyword" th:value="${keyword != null} ? ${keyword} : ''"
                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                        placeholder="Enter search term...">
             </div>
+
+            <!-- Schedule Fields (Hidden by default) -->
+            <div class="hidden flex-1" id="scheduleFields">
+                <div class="flex flex-col md:flex-row gap-2">
+                    <div class="flex-1">
+                        <label for="day" class="block text-sm font-medium text-gray-700">Day</label>
+                        <select id="day" name="day" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label for="startTime" class="block text-sm font-medium text-gray-700">Start Time</label>
+                        <input type="time" id="startTime" name="startTime"
+                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div class="flex-1">
+                        <label for="endTime" class="block text-sm font-medium text-gray-700">End Time</label>
+                        <input type="time" id="endTime" name="endTime"
+                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+
             <div class="flex items-end">
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition duration-200">
                     Search
