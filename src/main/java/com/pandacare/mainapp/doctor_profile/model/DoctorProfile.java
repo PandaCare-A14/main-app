@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Getter @Setter
 public class DoctorProfile {
@@ -18,9 +19,12 @@ public class DoctorProfile {
     private double rating;
 
     public DoctorProfile() {
+        this.id = UUID.randomUUID().toString();
+        this.workSchedule = new HashMap<>();
     }
 
     public DoctorProfile(String name, String email, String phoneNumber, String workAddress, Map<String, String> workSchedule, String speciality, double rating) {
+        this.id = UUID.randomUUID().toString();
         this.name = name;
         this.email = email;
         this.phoneNumber = phoneNumber;
