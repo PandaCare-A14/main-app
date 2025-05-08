@@ -23,6 +23,12 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
 
     @Override
     public DoctorProfile createProfile(DoctorProfile doctorProfile) {
+        if (doctorProfile == null) {
+            return null;
+        }
+        if (doctorProfile.getId() == null) {
+            return null;
+        }
         if (doctorProfileRepository.findById(doctorProfile.getId()) == null) {
             doctorProfileRepository.save(doctorProfile);
             return doctorProfile;
