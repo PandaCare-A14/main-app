@@ -2,6 +2,8 @@ package com.pandacare.mainapp.konsultasi_dokter.controller;
 
 import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
 import com.pandacare.mainapp.konsultasi_dokter.service.JadwalDokterService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -9,7 +11,8 @@ import java.time.LocalTime;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api")
+@CrossOrigin(origins = "*")
+@RequestMapping("/doctors/")
 public class JadwalDokterController {
     private final JadwalDokterService service;
 
@@ -21,58 +24,122 @@ public class JadwalDokterController {
         this.service = service;
     }
 
-    @PostMapping("/doctors/{idDokter}/schedules")
-    public JadwalKonsultasi createJadwal(
+    @PostMapping("/{idDokter}/schedules")
+    public ResponseEntity<JadwalKonsultasi> createJadwal(
             @PathVariable String idDokter,
             @RequestBody Map<String, String> body
     ) {
-        LocalDate date = LocalDate.parse(body.get("date"));
-        LocalTime startTime = LocalTime.parse(body.get("startTime"));
-        LocalTime endTime = LocalTime.parse(body.get("endTime"));
-        return service.createJadwal(idDokter, date, startTime, endTime);
+        try {
+            LocalDate date = LocalDate.parse(body.get("date"));
+            LocalTime startTime = LocalTime.parse(body.get("startTime"));
+            LocalTime endTime = LocalTime.parse(body.get("endTime"));
+            JadwalKonsultasi jadwal = service.createJadwal(idDokter, date, startTime, endTime);
+            return ResponseEntity.status(HttpStatus.CREATED).body(jadwal);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
-    @GetMapping("/doctors/{idDokter}/schedules")
-    public List<JadwalKonsultasi> getJadwalByDokter(
+    @PostMapping("/{idDokter}/schedules/interval")
+    public ResponseEntity<List<JadwalKonsultasi>> createJadwalInterval(
+            @PathVariable String idDokter,
+            @RequestBody Map<String, String> body
+    ) {
+        try {
+            LocalDate date = LocalDate.parse(body.get("date"));
+            LocalTime startTime = LocalTime.parse(body.get("startTime"));
+            LocalTime endTime = LocalTime.parse(body.get("endTime"));
+
+            int durationMinutes = body.containsKey("durationMinutes")
+                    ? Integer.parseInt(body.get("durationMinutes"))
+                    : 30;
+
+            List<JadwalKonsultasi> jadwals = service.createJadwalInterval(idDokter, date, startTime, endTime);
+            return ResponseEntity.status(HttpStatus.CREATED).body(jadwals);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @GetMapping("/{idDokter}/schedules")
+    public ResponseEntity<List<JadwalKonsultasi>> getJadwalByDokter(
             @PathVariable String idDokter,
             @RequestParam(required = false) String status
     ) {
-        if (status != null && ALLOWED_STATUSES.contains(status.toUpperCase())) {
-            return service.findByIdDokterAndStatus(idDokter, status.toUpperCase());
+        try {
+            List<JadwalKonsultasi> jadwals;
+            if (status != null && ALLOWED_STATUSES.contains(status.toUpperCase())) {
+                jadwals = service.findByIdDokterAndStatus(idDokter, status.toUpperCase());
+            } else {
+                jadwals = service.findByIdDokter(idDokter);
+            }
+            return ResponseEntity.ok(jadwals);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        return service.findByIdDokter(idDokter);
     }
 
-    @GetMapping("/doctor/schedules/{id}")
-    public JadwalKonsultasi findById(@PathVariable String id) {
-        return service.findById(id);
-    }
-
-    @GetMapping("/patients/{idPasien}/schedules")
-    public List<JadwalKonsultasi> findByIdPasien(@PathVariable String idPasien) {
-        return service.findByIdPasien(idPasien);
+    @GetMapping("/schedules/{id}")
+    public ResponseEntity<JadwalKonsultasi> findById(@PathVariable String id) {
+        try {
+            JadwalKonsultasi jadwal = service.findById(id);
+            if (jadwal != null) {
+                return ResponseEntity.ok(jadwal);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PatchMapping("/schedules/{id}/status")
-    public JadwalKonsultasi updateStatus(
+    public ResponseEntity<JadwalKonsultasi> updateStatus(
             @PathVariable String id,
             @RequestBody Map<String, String> body
     ) {
-        String status = body.get("statusDokter");
-        String message = body.get("message");
-
-        switch (status) {
-            case "APPROVED" -> service.approveJadwal(id);
-            case "REJECTED" -> service.rejectJadwal(id);
-            case "CHANGE_SCHEDULE" -> {
-                String date = body.get("date");
-                String startTime = body.get("startTime");
-                String endTime = body.get("endTime");
-                service.changeJadwal(id, date, startTime, endTime, message);
+        try {
+            String status = body.get("statusDokter");
+            if (status == null) {
+                return ResponseEntity.badRequest().build();
             }
-            default -> throw new IllegalArgumentException("Status tidak valid: " + status);
-        }
 
-        return service.findById(id);
+            boolean success;
+
+            switch (status) {
+                case "APPROVED":
+                    success = service.approveJadwal(id);
+                    if (success) {
+                        return ResponseEntity.ok(service.findById(id));
+                    } else {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                    }
+                case "REJECTED":
+                    success = service.rejectJadwal(id);
+                    if (success) {
+                        return ResponseEntity.ok(service.findById(id));
+                    } else {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                    }
+                case "CHANGE_SCHEDULE":
+                    String message = body.get("message");
+                    LocalDate date = LocalDate.parse(body.get("date"));
+                    LocalTime startTime = LocalTime.parse(body.get("startTime"));
+                    LocalTime endTime = LocalTime.parse(body.get("endTime"));
+                    success = service.changeJadwal(id, date, startTime, endTime, message);
+                    if (success) {
+                        return ResponseEntity.ok(service.findById(id));
+                    } else {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                    }
+                default:
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(null);
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
