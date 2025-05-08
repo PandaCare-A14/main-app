@@ -79,7 +79,7 @@ public class DoctorProfileController {
     }
 
     // Save new doctor
-    @PostMapping
+    @PostMapping("/new/save")
     public String saveDoctor(@ModelAttribute DoctorProfile doctorProfile, RedirectAttributes redirectAttributes) {
         DoctorProfile created = doctorProfileService.createProfile(doctorProfile);
         if (created == null) {
@@ -101,7 +101,7 @@ public class DoctorProfileController {
     }
 
     // Update doctor
-    @PostMapping("/{id}")
+    @PostMapping("/{id}/save")
     public String updateDoctor(@PathVariable String id, @ModelAttribute DoctorProfile doctorProfile, RedirectAttributes redirectAttributes) {
         if (id == null) {
             return "redirect:/doctors";
