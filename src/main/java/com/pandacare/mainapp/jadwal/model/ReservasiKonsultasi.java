@@ -4,7 +4,7 @@ import com.pandacare.mainapp.jadwal.enums.StatusJadwalPacilian;
 import lombok.Data;
 
 @Data
-public class JadwalKonsultasi {
+public class ReservasiKonsultasi {
     private String id;
     private String idDokter;
     private String idPasien;

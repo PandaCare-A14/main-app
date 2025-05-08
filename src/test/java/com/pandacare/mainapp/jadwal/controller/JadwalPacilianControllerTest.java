@@ -1,6 +1,6 @@
 package com.pandacare.mainapp.jadwal.controller;
 
-import com.pandacare.mainapp.jadwal.model.JadwalKonsultasi;
+import com.pandacare.mainapp.jadwal.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.jadwal.service.JadwalPacilianServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ class JadwalPacilianControllerTest {
 
     @Test
     void testRequestJadwal_success() throws Exception {
-        JadwalKonsultasi dummy = new JadwalKonsultasi();
+        ReservasiKonsultasi dummy = new ReservasiKonsultasi();
         dummy.setId("JK001");
         dummy.setIdDokter("dok123");
         dummy.setIdPasien("pac123");

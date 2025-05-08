@@ -1,7 +1,6 @@
 package com.pandacare.mainapp.jadwal.service;
 
-import com.pandacare.mainapp.jadwal.enums.StatusJadwalPacilian;
-import com.pandacare.mainapp.jadwal.model.JadwalKonsultasi;
+import com.pandacare.mainapp.jadwal.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.jadwal.repository.JadwalPacilianRepository;
 import com.pandacare.mainapp.jadwal.service.template.AcceptChangeScheduleHandler;
 import com.pandacare.mainapp.jadwal.service.template.EditScheduleHandler;
@@ -17,17 +16,17 @@ public class JadwalPacilianServiceImpl {
     @Autowired
     private JadwalPacilianRepository repository;
 
-    public JadwalKonsultasi requestJadwal(String idDokter, String idPasien, String day, String startTime, String endTime) {
+    public ReservasiKonsultasi requestJadwal(String idDokter, String idPasien, String day, String startTime, String endTime) {
         RequestJadwalHandler handler = new RequestJadwalHandler(idDokter, idPasien, day, startTime, endTime, repository);
         return handler.handle();
     }
 
-    public JadwalKonsultasi editSchedule(String id, String day, String startTime, String endTime) {
+    public ReservasiKonsultasi editSchedule(String id, String day, String startTime, String endTime) {
         EditScheduleHandler handler = new EditScheduleHandler(id, day, startTime, endTime, repository);
         return handler.handle();
     }
 
-    public JadwalKonsultasi findById(String id) {
+    public ReservasiKonsultasi findById(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
     }
@@ -36,7 +35,7 @@ public class JadwalPacilianServiceImpl {
         repository.deleteById(id);
     }
 
-    public JadwalKonsultasi acceptChangeSchedule(String id) {
+    public ReservasiKonsultasi acceptChangeSchedule(String id) {
         AcceptChangeScheduleHandler handler = new AcceptChangeScheduleHandler(id, repository);
         return handler.handle();
     }

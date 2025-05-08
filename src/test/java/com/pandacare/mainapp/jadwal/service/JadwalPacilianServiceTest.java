@@ -1,7 +1,7 @@
 package com.pandacare.mainapp.jadwal.service;
 
 import com.pandacare.mainapp.jadwal.enums.StatusJadwalPacilian;
-import com.pandacare.mainapp.jadwal.model.JadwalKonsultasi;
+import com.pandacare.mainapp.jadwal.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.jadwal.repository.JadwalPacilianRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,14 +22,14 @@ public class JadwalPacilianServiceTest {
     @InjectMocks
     private JadwalPacilianServiceImpl service;
 
-    private JadwalKonsultasi waitingJadwal;
-    private JadwalKonsultasi approvedJadwal;
+    private ReservasiKonsultasi waitingJadwal;
+    private ReservasiKonsultasi approvedJadwal;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        waitingJadwal = new JadwalKonsultasi();
+        waitingJadwal = new ReservasiKonsultasi();
         waitingJadwal.setId("jadwal123");
         waitingJadwal.setIdDokter("dok123");
         waitingJadwal.setDay("Senin");
@@ -37,7 +37,7 @@ public class JadwalPacilianServiceTest {
         waitingJadwal.setEndTime("10:00");
         waitingJadwal.setStatusPacilian(StatusJadwalPacilian.WAITING);
 
-        approvedJadwal = new JadwalKonsultasi();
+        approvedJadwal = new ReservasiKonsultasi();
         approvedJadwal.setId("jadwal124");
         approvedJadwal.setIdDokter("dok123");
         approvedJadwal.setDay("Rabu");
@@ -45,17 +45,17 @@ public class JadwalPacilianServiceTest {
         approvedJadwal.setEndTime("14:00");
         approvedJadwal.setStatusPacilian(StatusJadwalPacilian.APPROVED);
 
-        when(repository.save(any(JadwalKonsultasi.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(repository.save(any(ReservasiKonsultasi.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
     void requestJadwal_shouldReturnWaitingStatus() {
-        when(repository.save(any(JadwalKonsultasi.class))).thenAnswer(invocation -> {
-            JadwalKonsultasi savedJadwal = invocation.getArgument(0);
+        when(repository.save(any(ReservasiKonsultasi.class))).thenAnswer(invocation -> {
+            ReservasiKonsultasi savedJadwal = invocation.getArgument(0);
             return savedJadwal;
         });
 
-        JadwalKonsultasi result = service.requestJadwal("dok123","pac123","Senin", "09:00", "10:00");
+        ReservasiKonsultasi result = service.requestJadwal("dok123","pac123","Senin", "09:00", "10:00");
 
         assertNotNull(result);
         assertEquals("dok123", result.getIdDokter());
@@ -64,7 +64,7 @@ public class JadwalPacilianServiceTest {
         assertEquals("10:00", result.getEndTime());
         assertEquals(StatusJadwalPacilian.WAITING, result.getStatusPacilian());
 
-        verify(repository).save(any(JadwalKonsultasi.class));
+        verify(repository).save(any(ReservasiKonsultasi.class));
     }
 
     @Test
@@ -80,7 +80,7 @@ public class JadwalPacilianServiceTest {
         // Setup mock to return waitingJadwal when findById is called
         when(repository.findById("jadwal123")).thenReturn(Optional.of(waitingJadwal));
 
-        JadwalKonsultasi updated = service.editSchedule("jadwal123", "Selasa", "10:00", "11:00");
+        ReservasiKonsultasi updated = service.editSchedule("jadwal123", "Selasa", "10:00", "11:00");
 
         assertEquals("Selasa", updated.getDay());
         assertEquals("10:00", updated.getStartTime());
@@ -102,7 +102,7 @@ public class JadwalPacilianServiceTest {
 
     @Test
     void acceptChangeSchedule_shouldApplyRequestedChange() {
-        JadwalKonsultasi jadwal = new JadwalKonsultasi();
+        ReservasiKonsultasi jadwal = new ReservasiKonsultasi();
         jadwal.setId("jadwal123");
         jadwal.setDay("Selasa");
         jadwal.setStartTime("10:00");
@@ -116,7 +116,7 @@ public class JadwalPacilianServiceTest {
         // Setup mock
         when(repository.findById("jadwal123")).thenReturn(Optional.of(jadwal));
 
-        JadwalKonsultasi result = service.acceptChangeSchedule("jadwal123");
+        ReservasiKonsultasi result = service.acceptChangeSchedule("jadwal123");
 
         assertEquals("Kamis", result.getDay());
         assertEquals("15:00", result.getStartTime());
@@ -129,7 +129,7 @@ public class JadwalPacilianServiceTest {
 
     @Test
     void acceptChangeSchedule_shouldThrowException_whenChangeScheduleIsFalse() {
-        JadwalKonsultasi noChangeRequestJadwal = new JadwalKonsultasi();
+        ReservasiKonsultasi noChangeRequestJadwal = new ReservasiKonsultasi();
         noChangeRequestJadwal.setId("jadwal125");
         noChangeRequestJadwal.setDay("Rabu");
         noChangeRequestJadwal.setStartTime("13:00");
@@ -149,7 +149,7 @@ public class JadwalPacilianServiceTest {
 
     @Test
     void rejectChangeSchedule_shouldDeleteSchedule() {
-        JadwalKonsultasi jadwal = new JadwalKonsultasi();
+        ReservasiKonsultasi jadwal = new ReservasiKonsultasi();
         jadwal.setId("jadwal127");
         jadwal.setDay("Selasa");
         jadwal.setStartTime("10:00");

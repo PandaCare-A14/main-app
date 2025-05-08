@@ -1,6 +1,6 @@
 package com.pandacare.mainapp.jadwal.controller;
 
-import com.pandacare.mainapp.jadwal.model.JadwalKonsultasi;
+import com.pandacare.mainapp.jadwal.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.jadwal.service.JadwalPacilianServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ public class JadwalPacilianController {
 
     @PostMapping("/request")
     public ResponseEntity<?> requestJadwal(@RequestBody Map<String, String> body) {
-        JadwalKonsultasi result = jadwalService.requestJadwal(
+        ReservasiKonsultasi result = jadwalService.requestJadwal(
                 body.get("idDokter"),
                 body.get("idPasien"),
                 body.get("day"),

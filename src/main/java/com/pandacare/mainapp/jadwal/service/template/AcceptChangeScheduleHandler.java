@@ -1,13 +1,13 @@
 package com.pandacare.mainapp.jadwal.service.template;
 
-import com.pandacare.mainapp.jadwal.model.JadwalKonsultasi;
+import com.pandacare.mainapp.jadwal.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.jadwal.repository.JadwalPacilianRepository;
 
-public class AcceptChangeScheduleHandler extends JadwalKonsultasiTemplate {
+public class AcceptChangeScheduleHandler extends ReservasiKonsultasiTemplate {
 
     private final String id;
     private final JadwalPacilianRepository repository;
-    private JadwalKonsultasi jadwal;
+    private ReservasiKonsultasi jadwal;
 
     public AcceptChangeScheduleHandler(String id, JadwalPacilianRepository repository) {
         this.id = id;
@@ -25,7 +25,7 @@ public class AcceptChangeScheduleHandler extends JadwalKonsultasiTemplate {
     }
 
     @Override
-    protected JadwalKonsultasi prepare() {
+    protected ReservasiKonsultasi prepare() {
         jadwal.setDay(jadwal.getNewDay());
         jadwal.setStartTime(jadwal.getNewStartTime());
         jadwal.setEndTime(jadwal.getNewEndTime());
@@ -39,7 +39,7 @@ public class AcceptChangeScheduleHandler extends JadwalKonsultasiTemplate {
     }
 
     @Override
-    protected JadwalKonsultasi save(JadwalKonsultasi jadwal) {
+    protected ReservasiKonsultasi save(ReservasiKonsultasi jadwal) {
         return repository.save(jadwal);
     }
 }
