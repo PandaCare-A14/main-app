@@ -1,5 +1,6 @@
 package com.pandacare.mainapp.reservasi.controller;
 
+import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.service.ReservasiKonsultasiServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ReservasiKonsultasiController.class)
 class ReservasiKonsultasiControllerTest {
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -25,27 +27,29 @@ class ReservasiKonsultasiControllerTest {
 
     @Test
     void testRequestReservasi_success() throws Exception {
+        // Membuat objek dummy untuk reservasi
         ReservasiKonsultasi dummy = new ReservasiKonsultasi();
-        dummy.setId("JK001");
+        dummy.setId("RSV001");
         dummy.setIdDokter("dok123");
         dummy.setIdPasien("pac123");
         dummy.setDay("MONDAY");
         dummy.setStartTime("09:00");
         dummy.setEndTime("10:00");
+        dummy.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
 
         when(reservasiService.requestReservasi(any(), any(), any(), any(), any())).thenReturn(dummy);
 
-        mockMvc.perform(post("/api/jadwal-konsultasi/request")
+        mockMvc.perform(post("/api/reservasi-konsultasi/request")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                {
-                  "idDokter": "dok123",
-                  "idPasien": "pac123",
-                  "day": "MONDAY",
-                  "startTime": "09:00",
-                  "endTime": "10:00"
-                }
-            """))
+                            {
+                                "idDokter": "dok123",
+                                "idPasien": "pac123",
+                                "day": "MONDAY",
+                                "startTime": "09:00",
+                                "endTime": "10:00"
+                            }
+                        """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Jadwal konsultasi berhasil diajukan"))
                 .andExpect(jsonPath("$.reservasi.idDokter").value("dok123"));
