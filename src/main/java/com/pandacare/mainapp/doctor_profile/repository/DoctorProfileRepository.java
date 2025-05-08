@@ -6,16 +6,19 @@ import org.springframework.stereotype.Repository;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class DoctorProfileRepository {
     private final List<DoctorProfile> doctorProfiles = new ArrayList<>();
 
     public DoctorProfile save(DoctorProfile doctorProfile) {
+        if (doctorProfile == null) {
+            return null;
+        }
+        if (doctorProfile.getId() == null) {
+            return null;
+        }
         int i = 0;
         for (DoctorProfile savedDoctorProfile : doctorProfiles) {
             if (savedDoctorProfile.getId().equals(doctorProfile.getId())) {
