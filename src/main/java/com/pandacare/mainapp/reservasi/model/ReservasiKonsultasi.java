@@ -1,6 +1,6 @@
-package com.pandacare.mainapp.jadwal.model;
+package com.pandacare.mainapp.reservasi.model;
 
-import com.pandacare.mainapp.jadwal.enums.StatusJadwalPacilian;
+import com.pandacare.mainapp.reservasi.enums.StatusJadwalPacilian;
 import lombok.Data;
 
 @Data

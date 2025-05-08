@@ -1,8 +1,8 @@
-package com.pandacare.mainapp.jadwal.service.template;
+package com.pandacare.mainapp.reservasi.service.template;
 
-import com.pandacare.mainapp.jadwal.enums.StatusJadwalPacilian;
-import com.pandacare.mainapp.jadwal.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.jadwal.repository.JadwalPacilianRepository;
+import com.pandacare.mainapp.reservasi.enums.StatusJadwalPacilian;
+import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
+import com.pandacare.mainapp.reservasi.repository.JadwalPacilianRepository;
 
 public class EditScheduleHandler extends ReservasiKonsultasiTemplate {
 

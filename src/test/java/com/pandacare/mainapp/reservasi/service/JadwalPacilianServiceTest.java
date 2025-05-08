@@ -1,8 +1,8 @@
-package com.pandacare.mainapp.jadwal.service;
+package com.pandacare.mainapp.reservasi.service;
 
-import com.pandacare.mainapp.jadwal.enums.StatusJadwalPacilian;
-import com.pandacare.mainapp.jadwal.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.jadwal.repository.JadwalPacilianRepository;
+import com.pandacare.mainapp.reservasi.enums.StatusJadwalPacilian;
+import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
+import com.pandacare.mainapp.reservasi.repository.JadwalPacilianRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

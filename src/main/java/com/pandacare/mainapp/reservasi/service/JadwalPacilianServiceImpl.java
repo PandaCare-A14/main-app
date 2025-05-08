@@ -1,11 +1,11 @@
-package com.pandacare.mainapp.jadwal.service;
+package com.pandacare.mainapp.reservasi.service;
 
-import com.pandacare.mainapp.jadwal.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.jadwal.repository.JadwalPacilianRepository;
-import com.pandacare.mainapp.jadwal.service.template.AcceptChangeScheduleHandler;
-import com.pandacare.mainapp.jadwal.service.template.EditScheduleHandler;
-import com.pandacare.mainapp.jadwal.service.template.RejectChangeScheduleHandler;
-import com.pandacare.mainapp.jadwal.service.template.RequestJadwalHandler;
+import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
+import com.pandacare.mainapp.reservasi.repository.JadwalPacilianRepository;
+import com.pandacare.mainapp.reservasi.service.template.AcceptChangeScheduleHandler;
+import com.pandacare.mainapp.reservasi.service.template.EditScheduleHandler;
+import com.pandacare.mainapp.reservasi.service.template.RejectChangeScheduleHandler;
+import com.pandacare.mainapp.reservasi.service.template.RequestJadwalHandler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

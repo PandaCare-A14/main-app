@@ -1,4 +1,4 @@
-package com.pandacare.mainapp.jadwal.enums;
+package com.pandacare.mainapp.reservasi.enums;
 
 public enum StatusJadwalPacilian {
     WAITING,

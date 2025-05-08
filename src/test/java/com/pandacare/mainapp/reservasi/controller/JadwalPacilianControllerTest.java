@@ -1,7 +1,7 @@
-package com.pandacare.mainapp.jadwal.controller;
+package com.pandacare.mainapp.reservasi.controller;
 
-import com.pandacare.mainapp.jadwal.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.jadwal.service.JadwalPacilianServiceImpl;
+import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
+import com.pandacare.mainapp.reservasi.service.JadwalPacilianServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

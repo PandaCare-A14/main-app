@@ -1,6 +1,6 @@
-package com.pandacare.mainapp.jadwal.service.template;
+package com.pandacare.mainapp.reservasi.service.template;
 
-import com.pandacare.mainapp.jadwal.model.ReservasiKonsultasi;
+import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 
 public abstract class ReservasiKonsultasiTemplate {
 
