@@ -100,6 +100,22 @@ class DoctorProfileServiceImplTest {
     }
 
     @Test
+    void createNullDoctorProfile() {
+        DoctorProfile result = doctorProfileService.createProfile(null);
+
+        assertNull(result);
+    }
+
+    @Test
+    void createDoctorProfileWithNullId() {
+        DoctorProfile expected = doctorProfileList.getFirst();
+        expected.setId(null);
+        DoctorProfile result = doctorProfileService.createProfile(expected);
+
+        assertNull(result);
+    }
+
+    @Test
     void testCreateDoctorProfileIfAlreadyExists() {
         DoctorProfile doctorProfile = doctorProfileList.getFirst();
         doReturn(doctorProfile).when(doctorProfileRepository).findById(doctorProfile.getId());
