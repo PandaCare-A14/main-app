@@ -10,7 +10,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/jadwal-konsultasi")
-public class JadwalPacilianController {
+public class ReservasiKonsultasiController {
 
     @Autowired
     private ReservasiKonsultasiServiceImpl jadwalService;
