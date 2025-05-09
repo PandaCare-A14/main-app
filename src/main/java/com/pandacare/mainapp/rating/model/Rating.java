@@ -38,12 +38,14 @@ public class Rating {
      * Validation method for rating score
      */
     public void setRatingScore(Integer ratingScore) {
+        if (ratingScore == null) {
+            throw new IllegalArgumentException("Rating score cannot be null");
+        }
         if (ratingScore < 1 || ratingScore > 5) {
             throw new IllegalArgumentException("Rating score harus di antara 1 dan 5");
         }
         this.ratingScore = ratingScore;
     }
-
     /**
      * Update rating from another rating
      */

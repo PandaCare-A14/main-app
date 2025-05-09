@@ -33,6 +33,27 @@ public class RatingTest {
     }
 
     @Test
+    public void testConstructorWithoutIdAndDates() {
+        // Arrange
+        String idDokter = "DOC12345";
+        String idPasien = "PAT7890";
+        Integer ratingScore = 4;
+        String ulasan = "Dokter sangat ramah dan profesional";
+
+        // Act
+        Rating rating = new Rating(idDokter, idPasien, ratingScore, ulasan);
+
+        // Assert
+        assertNull(rating.getId());  // ID should be null
+        assertNotNull(rating.getCreatedAt());  // Created date should be set
+        assertNotNull(rating.getUpdatedAt());  // Updated date should be set
+        assertEquals(idDokter, rating.getIdDokter());
+        assertEquals(idPasien, rating.getIdPasien());
+        assertEquals(ratingScore, rating.getRatingScore());
+        assertEquals(ulasan, rating.getUlasan());
+    }
+
+    @Test
     public void testRatingScoreValidation() {
         // Arrange
         Rating rating = new Rating();
@@ -74,5 +95,49 @@ public class RatingTest {
         assertEquals(5, rating.getRatingScore());
         assertEquals("Updated review", rating.getUlasan());
         assertTrue(rating.getUpdatedAt().isAfter(rating.getCreatedAt()));
+    }
+
+    @Test
+    public void testSetRatingScoreNull() {
+        // Arrange
+        Rating rating = new Rating();
+
+        // Act & Assert - Null value for ratingScore should throw IllegalArgumentException
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            rating.setRatingScore(null);
+        });
+
+        assertTrue(exception.getMessage().contains("Rating score cannot be null"));
+    }
+
+    @Test
+    void testEqualsAndHashCode() {
+        Rating r1 = new Rating(
+                "RTG0001", "DOC1", "PAT1", 5, "Great!",
+                LocalDateTime.now(), LocalDateTime.now()
+        );
+        Rating r2 = new Rating(
+                "RTG0001", "DOC1", "PAT1", 5, "Great!",
+                r1.getCreatedAt(), r1.getUpdatedAt()
+        );
+        Rating r3 = new Rating(
+                "RTG0002", "DOC2", "PAT2", 3, "Okay",
+                LocalDateTime.now(), LocalDateTime.now()
+        );
+
+        assertEquals(r1, r2);
+        assertNotEquals(r1, r3);
+        assertEquals(r1.hashCode(), r2.hashCode());
+    }
+
+    @Test
+    void testToString() {
+        Rating r = new Rating(
+                "RTG0001", "DOC1", "PAT1", 5, "Great!",
+                LocalDateTime.now(), LocalDateTime.now()
+        );
+        String result = r.toString();
+        assertNotNull(result);
+        assertTrue(result.contains("RTG0001")); // check ID in string
     }
 }
