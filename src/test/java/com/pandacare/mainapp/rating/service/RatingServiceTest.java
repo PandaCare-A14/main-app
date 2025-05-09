@@ -20,9 +20,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.pandacare.mainapp.common.exception.BusinessException;
 import com.pandacare.mainapp.common.exception.ResourceNotFoundException;
-import com.pandacare.mainapp.rating.dto.RatingListResponse;
+import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.dto.RatingRequest;
-import com.pandacare.mainapp.rating.dto.RatingResponse;
+import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import com.pandacare.mainapp.rating.model.Rating;
 import com.pandacare.mainapp.rating.repository.RatingRepository;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;

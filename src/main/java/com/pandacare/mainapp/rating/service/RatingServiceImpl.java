@@ -1,124 +1,137 @@
 package com.pandacare.mainapp.rating.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
+import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.pandacare.mainapp.common.exception.BusinessException;
+import com.pandacare.mainapp.common.exception.ResourceNotFoundException;
+import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
+import com.pandacare.mainapp.rating.dto.RatingRequest;
+import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import com.pandacare.mainapp.rating.model.Rating;
 import com.pandacare.mainapp.rating.repository.RatingRepository;
+import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
+import com.pandacare.mainapp.reservasi.service.ReservasiKonsultasiServiceImpl;
 
+/**
+ * Implementation of RatingService
+ */
+@Service
 public class RatingServiceImpl implements RatingService {
 
-    private final RatingRepository ratingRepository;
-    private final UserRepository userRepository;
+    @Autowired
+    private RatingRepository ratingRepository;
 
-    public RatingServiceImpl(RatingRepository ratingRepository, UserRepository userRepository) {
-        this.ratingRepository = ratingRepository;
-        this.userRepository = userRepository;
+    @Autowired
+    private ReservasiKonsultasiServiceImpl reservasiService;
+
+    @Override
+    public RatingListResponse getRatingsByDokter(String idDokter) {
+        List<Rating> ratings = ratingRepository.findByIdDokter(idDokter);
+        List<RatingResponse> ratingResponses = ratings.stream()
+                .map(RatingResponse::new)
+                .collect(Collectors.toList());
+
+        Double averageRating = ratingRepository.calculateAverageRatingByDokter(idDokter);
+        if (averageRating == null) {
+            averageRating = 0.0;
+        }
+
+        long totalRatings = ratingRepository.countByIdDokter(idDokter);
+
+        return new RatingListResponse(averageRating, (int) totalRatings, ratingResponses);
+    }
+
+    @Override
+    public List<RatingResponse> getRatingsByPasien(String idPasien) {
+        List<Rating> ratings = ratingRepository.findByIdPasien(idPasien);
+        return ratings.stream()
+                .map(RatingResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public RatingResponse getRatingByPasienAndDokter(String idPasien, String idDokter) {
+        Rating rating = ratingRepository.findByIdPasienAndIdDokter(idPasien, idDokter)
+                .orElseThrow(() -> new ResourceNotFoundException("Rating tidak ditemukan"));
+
+        return new RatingResponse(rating);
+    }
+
+    @Override
+    public RatingResponse addRating(String idPasien, String idDokter, RatingRequest request) {
+        // Verify request data (handled by DTO validate method in controller)
+
+        // Verify patient has consulted with this doctor
+        boolean hasConsulted = verifyConsultation(idPasien, idDokter);
+        if (!hasConsulted) {
+            throw new BusinessException("Pasien belum pernah melakukan konsultasi dengan dokter ini");
+        }
+
+        // Check if rating already exists
+        if (ratingRepository.findByIdPasienAndIdDokter(idPasien, idDokter).isPresent()) {
+            throw new BusinessException("Rating untuk dokter ini sudah diberikan. Silakan gunakan endpoint update untuk mengubah rating");
+        }
+
+        // Create and save new rating
+        Rating rating = new Rating();
+        rating.setIdDokter(idDokter);
+        rating.setIdPasien(idPasien);
+        rating.setRatingScore(request.getRatingScore());
+        rating.setUlasan(request.getUlasan());
+        rating.setCreatedAt(LocalDateTime.now());
+        rating.setUpdatedAt(LocalDateTime.now());
+
+        Rating savedRating = ratingRepository.save(rating);
+
+        return new RatingResponse(savedRating);
+    }
+
+    @Override
+    public RatingResponse updateRating(String idPasien, String idDokter, RatingRequest request) {
+        // Verify request data (handled by DTO validate method in controller)
+
+        // Find existing rating
+        Rating rating = ratingRepository.findByIdPasienAndIdDokter(idPasien, idDokter)
+                .orElseThrow(() -> new ResourceNotFoundException("Rating tidak ditemukan"));
+
+        // Update rating
+        rating.setRatingScore(request.getRatingScore());
+        rating.setUlasan(request.getUlasan());
+        rating.setUpdatedAt(LocalDateTime.now());
+
+        Rating updatedRating = ratingRepository.save(rating);
+
+        return new RatingResponse(updatedRating);
+    }
+
+    @Override
+    public void deleteRating(String idPasien, String idDokter) {
+        // Check if rating exists
+        if (!ratingRepository.findByIdPasienAndIdDokter(idPasien, idDokter).isPresent()) {
+            throw new ResourceNotFoundException("Rating tidak ditemukan");
+        }
+
+        // Delete rating
+        ratingRepository.deleteByIdPasienAndIdDokter(idPasien, idDokter);
     }
 
     /**
-     * Template method untuk proses pembuatan/pembaruan rating
-     * Mendefinisikan struktur algoritma, dengan langkah-langkah tertentu yang dapat di-override
+     * Verify that the patient has completed a consultation with the doctor
+     * @param idPasien patient ID
+     * @param idDokter doctor ID
+     * @return true if consultation exists
      */
-    protected final Rating processRating(Rating rating, boolean isNew) {
-        // Validasi data rating
-        validateRating(rating);
+    private boolean verifyConsultation(String idPasien, String idDokter) {
+        List<ReservasiKonsultasi> consultations = reservasiService.findAllByPasien(idPasien);
 
-        // Validasi pengguna
-        if (isNew) {
-            validateUsers(rating);
-        }
-
-        // Set tanggal sesuai status
-        prepareRatingDates(rating, isNew);
-
-        // Jika update, pastikan rating sudah ada
-        if (!isNew) {
-            Rating existingRating = findExistingRating(rating);
-            // Copy ID dan created date dari yang sudah ada
-            rating.setId(existingRating.getId());
-            rating.setCreatedAt(existingRating.getCreatedAt());
-        }
-
-        // Simpan rating
-        return saveRating(rating);
-    }
-
-    // Hook methods yang dapat dioverride oleh subclass
-    protected void validateRating(Rating rating) {
-        if (rating.getRatingScore() < 1 || rating.getRatingScore() > 5) {
-            throw new IllegalArgumentException("Rating score harus di antara 1 dan 5");
-        }
-
-        if (rating.getUlasan() == null || rating.getUlasan().trim().isEmpty()) {
-            throw new IllegalArgumentException("Ulasan tidak boleh kosong");
-        }
-    }
-
-    protected void validateUsers(Rating rating) {
-        // Validasi dokter ada
-        if (!userRepository.existsById(rating.getIdDokter())) {
-            throw new IllegalArgumentException("Dokter dengan ID " + rating.getIdDokter() + " tidak ditemukan");
-        }
-
-        // Validasi pacillian ada
-        if (!userRepository.existsById(rating.getIdPacillian())) {
-            throw new IllegalArgumentException("Pacillian dengan ID " + rating.getIdPacillian() + " tidak ditemukan");
-        }
-    }
-
-    protected void prepareRatingDates(Rating rating, boolean isNew) {
-        LocalDateTime now = LocalDateTime.now();
-        if (isNew) {
-            rating.setCreatedAt(now);
-        }
-        rating.setUpdatedAt(now);
-    }
-
-    protected Rating findExistingRating(Rating rating) {
-        Optional<List<Rating>> ratingsByOwner = ratingRepository.findByOwnerId(rating.getIdPacillian());
-
-        if (ratingsByOwner.isPresent()) {
-            return ratingsByOwner.get().stream()
-                .filter(r -> r.getIdDokter().equals(rating.getIdDokter()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(
-                    "Rating untuk dokter dengan ID " + rating.getIdDokter() + " tidak ditemukan"));
-        } else {
-            throw new IllegalArgumentException("Tidak ada rating yang dimiliki oleh pacillian dengan ID "
-                + rating.getIdPacillian());
-        }
-    }
-
-    protected Rating saveRating(Rating rating) {
-        return ratingRepository.save(rating);
-    }
-
-    @Override
-    public Rating addRating(Rating rating) {
-        return processRating(rating, true);
-    }
-
-    @Override
-    public Rating updateRating(Rating rating) {
-        return processRating(rating, false);
-    }
-
-    @Override
-    public Rating deleteRating(String idPacillian, String idDokter) {
-        return ratingRepository.deleteById(idPacillian, idDokter)
-            .orElseThrow(() -> new IllegalArgumentException("Rating tidak ditemukan"));
-    }
-
-    @Override
-    public List<Rating> getRatingsByOwnerId(String idPacillian) {
-        return ratingRepository.findByOwnerId(idPacillian).orElse(new ArrayList<>());
-    }
-
-    @Override
-    public List<Rating> getRatingsByIdDokter(String idDokter) {
-        return ratingRepository.findByIdDokter(idDokter).orElse(new ArrayList<>());
+        // Check if any consultation exists with this doctor
+        return consultations.stream()
+                .anyMatch(c -> c.getIdDokter().equals(idDokter));
     }
 }
