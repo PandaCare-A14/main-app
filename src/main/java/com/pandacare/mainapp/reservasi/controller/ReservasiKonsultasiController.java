@@ -70,4 +70,16 @@ public class ReservasiKonsultasiController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
+
+    @PostMapping("/{id}/reject-change")
+    public ResponseEntity<?> rejectChangeReservasi(@PathVariable String id) {
+        try {
+            reservasiService.rejectChangeReservasi(id);
+            return ResponseEntity.ok(Map.of(
+                    "message", "Perubahan jadwal ditolak"
+            ));
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
 }
