@@ -192,4 +192,26 @@ public class ReservasiKonsultasiServiceTest {
 
         assertEquals("Schedule not found", ex.getMessage());
     }
+
+    @Test
+    void acceptChangeReservasi_shouldThrowException_ifReservasiNotFound() {
+        when(repository.findById("not_found")).thenReturn(Optional.empty());
+
+        Exception ex = assertThrows(IllegalArgumentException.class, () ->
+                service.acceptChangeReservasi("not_found")
+        );
+
+        assertEquals("Schedule not found", ex.getMessage());
+    }
+
+    @Test
+    void rejectChangeReservasi_shouldThrowException_ifReservasiNotFound() {
+        when(repository.findById("not_exist")).thenReturn(Optional.empty());
+
+        Exception ex = assertThrows(IllegalArgumentException.class, () ->
+                service.rejectChangeReservasi("not_exist")
+        );
+
+        assertEquals("Schedule not found", ex.getMessage());
+    }
 }

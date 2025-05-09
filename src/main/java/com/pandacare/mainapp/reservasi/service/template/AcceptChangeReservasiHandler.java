@@ -16,8 +16,7 @@ public class AcceptChangeReservasiHandler extends ReservasiKonsultasiTemplate {
 
     @Override
     protected void validate() {
-        reservasi = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
+        reservasi = repository.findById(id).get();
 
         if (!reservasi.isChangeReservasi()) {
             throw new IllegalStateException("No change request exists for this schedule");
