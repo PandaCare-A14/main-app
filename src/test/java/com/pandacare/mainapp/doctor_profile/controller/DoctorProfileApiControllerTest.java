@@ -1,5 +1,10 @@
 package com.pandacare.mainapp.doctor_profile.controller;
 
+import com.pandacare.mainapp.doctor_profile.dto.request.CreateDoctorRequest;
+import com.pandacare.mainapp.doctor_profile.dto.request.UpdateDoctorRequest;
+import com.pandacare.mainapp.doctor_profile.dto.response.DoctorListResponse;
+import com.pandacare.mainapp.doctor_profile.dto.response.DoctorResponse;
+import com.pandacare.mainapp.doctor_profile.dto.response.ErrorResponse;
 import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 import com.pandacare.mainapp.doctor_profile.service.DoctorProfileService;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +15,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -26,6 +32,8 @@ class DoctorProfileApiControllerTest {
 
     private DoctorProfile doctor1;
     private DoctorProfile doctor2;
+    private CreateDoctorRequest createRequest;
+    private UpdateDoctorRequest updateRequest;
 
     @BeforeEach
     void setUp() {
@@ -34,10 +42,27 @@ class DoctorProfileApiControllerTest {
         doctor1 = new DoctorProfile();
         doctor1.setId("doc1");
         doctor1.setName("Dr. Smith");
+        doctor1.setEmail("dr.smith@example.com");
+        doctor1.setSpeciality("Cardiology");
+        doctor1.setRating(4.5);
 
         doctor2 = new DoctorProfile();
         doctor2.setId("doc2");
         doctor2.setName("Dr. Johnson");
+        doctor2.setEmail("dr.johnson@example.com");
+        doctor2.setSpeciality("Neurology");
+        doctor2.setRating(4.8);
+
+        createRequest = new CreateDoctorRequest();
+        createRequest.setName("Dr. New");
+        createRequest.setEmail("dr.new@example.com");
+        createRequest.setSpeciality("Pediatrics");
+
+        updateRequest = new UpdateDoctorRequest();
+        updateRequest.setId("doc1");
+        updateRequest.setName("Dr. Smith Updated");
+        updateRequest.setEmail("dr.smith.updated@example.com");
+        updateRequest.setSpeciality("Cardiology Updated");
     }
 
     @Test
@@ -47,10 +72,13 @@ class DoctorProfileApiControllerTest {
         when(doctorProfileService.findAll()).thenReturn(doctors);
 
         // Act
-        List<DoctorProfile> result = doctorProfileApiController.getAllDoctors();
+        ResponseEntity<DoctorListResponse> response = doctorProfileApiController.getAllDoctors();
 
         // Assert
-        assertEquals(2, result.size());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().getTotalItems());
+        assertEquals(2, response.getBody().getDoctors().size());
         verify(doctorProfileService, times(1)).findAll();
     }
 
@@ -60,11 +88,13 @@ class DoctorProfileApiControllerTest {
         when(doctorProfileService.findById("doc1")).thenReturn(doctor1);
 
         // Act
-        ResponseEntity<DoctorProfile> response = doctorProfileApiController.getDoctorById("doc1");
+        ResponseEntity<DoctorResponse> response = doctorProfileApiController.getDoctorById("doc1");
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(doctor1, response.getBody());
+        assertNotNull(response.getBody());
+        assertEquals("doc1", response.getBody().getId());
+        assertEquals("Dr. Smith", response.getBody().getName());
         verify(doctorProfileService, times(1)).findById("doc1");
     }
 
@@ -74,7 +104,7 @@ class DoctorProfileApiControllerTest {
         when(doctorProfileService.findById("nonexistent")).thenReturn(null);
 
         // Act
-        ResponseEntity<DoctorProfile> response = doctorProfileApiController.getDoctorById("nonexistent");
+        ResponseEntity<DoctorResponse> response = doctorProfileApiController.getDoctorById("nonexistent");
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -85,72 +115,101 @@ class DoctorProfileApiControllerTest {
     @Test
     void createDoctor_WithValidData_ShouldReturnCreatedDoctor() {
         // Arrange
-        when(doctorProfileService.createProfile(doctor1)).thenReturn(doctor1);
+        DoctorProfile newDoctor = new DoctorProfile();
+        newDoctor.setName(createRequest.getName());
+        newDoctor.setEmail(createRequest.getEmail());
+        newDoctor.setSpeciality(createRequest.getSpeciality());
+
+        when(doctorProfileService.createProfile(any(DoctorProfile.class))).thenReturn(newDoctor);
 
         // Act
-        ResponseEntity<DoctorProfile> response = doctorProfileApiController.createDoctor(doctor1);
+        ResponseEntity<?> response = doctorProfileApiController.createDoctor(createRequest);
 
         // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(doctor1, response.getBody());
-        verify(doctorProfileService, times(1)).createProfile(doctor1);
+        assertTrue(response.getBody() instanceof DoctorResponse);
+        DoctorResponse responseBody = (DoctorResponse) response.getBody();
+        assertEquals("Dr. New", responseBody.getName());
+        verify(doctorProfileService, times(1)).createProfile(any(DoctorProfile.class));
     }
 
     @Test
     void createDoctor_WithInvalidData_ShouldReturnBadRequest() {
         // Arrange
-        when(doctorProfileService.createProfile(doctor1)).thenReturn(null);
+        when(doctorProfileService.createProfile(any(DoctorProfile.class)))
+                .thenThrow(new IllegalArgumentException("Invalid data"));
 
         // Act
-        ResponseEntity<DoctorProfile> response = doctorProfileApiController.createDoctor(doctor1);
+        ResponseEntity<?> response = doctorProfileApiController.createDoctor(createRequest);
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(doctorProfileService, times(1)).createProfile(doctor1);
+        assertTrue(response.getBody() instanceof ErrorResponse);
+        verify(doctorProfileService, times(1)).createProfile(any(DoctorProfile.class));
     }
 
     @Test
     void updateDoctor_WithValidDataAndMatchingId_ShouldReturnUpdatedDoctor() {
         // Arrange
-        when(doctorProfileService.updateProfile(doctor1)).thenReturn(doctor1);
+        DoctorProfile updatedDoctor = new DoctorProfile();
+        updatedDoctor.setId(updateRequest.getId());
+        updatedDoctor.setName(updateRequest.getName());
+        updatedDoctor.setEmail(updateRequest.getEmail());
+        updatedDoctor.setSpeciality(updateRequest.getSpeciality());
+
+        when(doctorProfileService.updateProfile(any(DoctorProfile.class))).thenReturn(updatedDoctor);
 
         // Act
-        ResponseEntity<DoctorProfile> response = doctorProfileApiController.updateDoctor("doc1", doctor1);
+        ResponseEntity<?> response = doctorProfileApiController.updateDoctor("doc1", updateRequest);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(doctor1, response.getBody());
-        verify(doctorProfileService, times(1)).updateProfile(doctor1);
+        assertTrue(response.getBody() instanceof DoctorResponse);
+        DoctorResponse responseBody = (DoctorResponse) response.getBody();
+        assertEquals("Dr. Smith Updated", responseBody.getName());
+        verify(doctorProfileService, times(1)).updateProfile(any(DoctorProfile.class));
     }
 
     @Test
     void updateDoctor_WithMismatchedId_ShouldReturnBadRequest() {
         // Arrange
-        DoctorProfile doctorWithMismatchedId = new DoctorProfile();
-        doctorWithMismatchedId.setId("doc2");
+        UpdateDoctorRequest mismatchedRequest = new UpdateDoctorRequest();
+        mismatchedRequest.setId("doc2"); // Different from path ID
 
         // Act
-        ResponseEntity<DoctorProfile> response = doctorProfileApiController.updateDoctor("doc1", doctorWithMismatchedId);
+        ResponseEntity<?> response = doctorProfileApiController.updateDoctor("doc1", mismatchedRequest);
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNull(response.getBody());
         verify(doctorProfileService, never()).updateProfile(any());
     }
 
     @Test
     void updateDoctor_WithNonExistingId_ShouldReturnNotFound() {
         // Arrange
-        when(doctorProfileService.updateProfile(doctor1)).thenReturn(null);
+        when(doctorProfileService.updateProfile(any(DoctorProfile.class))).thenReturn(null);
 
         // Act
-        ResponseEntity<DoctorProfile> response = doctorProfileApiController.updateDoctor("doc1", doctor1);
+        ResponseEntity<?> response = doctorProfileApiController.updateDoctor("doc1", updateRequest);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(doctorProfileService, times(1)).updateProfile(doctor1);
+        verify(doctorProfileService, times(1)).updateProfile(any(DoctorProfile.class));
+    }
+
+    @Test
+    void updateDoctor_WithException_ShouldReturnErrorResponse() {
+        // Arrange
+        when(doctorProfileService.updateProfile(any(DoctorProfile.class)))
+                .thenThrow(new RuntimeException("Update failed"));
+
+        // Act
+        ResponseEntity<?> response = doctorProfileApiController.updateDoctor("doc1", updateRequest);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(response.getBody() instanceof ErrorResponse);
+        verify(doctorProfileService, times(1)).updateProfile(any(DoctorProfile.class));
     }
 
     @Test
