@@ -56,4 +56,18 @@ public class ReservasiKonsultasiController {
         List<ReservasiKonsultasi> reservasiList = reservasiService.findAllByPasien(idPasien);
         return ResponseEntity.ok(reservasiList);
     }
+
+    @PostMapping("/{id}/accept-change")
+    public ResponseEntity<?> acceptChangeReservasi(@PathVariable String id) {
+        try {
+            ReservasiKonsultasi updated = reservasiService.acceptChangeReservasi(id);
+            return ResponseEntity.ok(Map.of(
+                    "message", "Perubahan reservasi diterima",
+                    "reservasi", updated
+            ));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
 }
