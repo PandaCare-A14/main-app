@@ -25,7 +25,7 @@ class JadwalKonsultasiTest {
     void testDefaultState() {
         assertEquals("AVAILABLE", jadwal.getStatusDokter());
         assertTrue(jadwal.isAvailable());
-        assertTrue(jadwal.getCurrentState() instanceof AvailableState);
+        assertInstanceOf(AvailableState.class, jadwal.getCurrentState());
     }
 
     @Test
@@ -41,73 +41,73 @@ class JadwalKonsultasiTest {
         assertFalse(jadwal.isChangeSchedule());
 
         jadwal.setIdPasien("PAT-67890");
-        jadwal.setNote("Test note");
-        jadwal.setMessage("Test message");
+        jadwal.setNote("Test note pasien");
+        jadwal.setMessage("Test message dokter");
         jadwal.setChangeSchedule(true);
         jadwal.setStatusPacilian("URGENT");
 
         assertEquals("PAT-67890", jadwal.getIdPasien());
-        assertEquals("Test note", jadwal.getNote());
-        assertEquals("Test message", jadwal.getMessage());
+        assertEquals("Test note pasien", jadwal.getNote());
+        assertEquals("Test message dokter", jadwal.getMessage());
         assertTrue(jadwal.isChangeSchedule());
         assertEquals("URGENT", jadwal.getStatusPacilian());
     }
 
     @Test
     void testRequest() {
-        assertTrue(jadwal.getCurrentState() instanceof AvailableState);
+        assertInstanceOf(AvailableState.class, jadwal.getCurrentState());
 
-        jadwal.request("PAT-67890", "Need consultation");
+        jadwal.request("PAT-67890", "Ada benjolan di telinga");
 
-        assertTrue(jadwal.getCurrentState() instanceof RequestedState);
+        assertInstanceOf(RequestedState.class, jadwal.getCurrentState());
         assertEquals("REQUESTED", jadwal.getStatusDokter());
         assertFalse(jadwal.isAvailable());
         assertEquals("PAT-67890", jadwal.getIdPasien());
-        assertEquals("Need consultation", jadwal.getMessage());
+        assertEquals("Ada benjolan di telinga", jadwal.getMessage());
     }
 
     @Test
     void testApproveFromRequested() {
-        jadwal.request("PAT-67890", "Need consultation");
-        assertTrue(jadwal.getCurrentState() instanceof RequestedState);
+        jadwal.request("PAT-67890", "Ada benjolan di telinga");
+        assertInstanceOf(RequestedState.class, jadwal.getCurrentState());
 
         jadwal.approve();
 
-        assertTrue(jadwal.getCurrentState() instanceof ApprovedState);
+        assertInstanceOf(ApprovedState.class, jadwal.getCurrentState());
         assertEquals("APPROVED", jadwal.getStatusDokter());
         assertFalse(jadwal.isAvailable());
     }
 
     @Test
     void testRejectFromRequested() {
-        jadwal.request("PAT-67890", "Need consultation");
-        assertTrue(jadwal.getCurrentState() instanceof RequestedState);
+        jadwal.request("PAT-67890", "Ada benjolan di telinga");
+        assertInstanceOf(RequestedState.class, jadwal.getCurrentState());
 
-        jadwal.reject("Doctor unavailable");
+        jadwal.reject("Jadwal nabrak");
 
-        assertTrue(jadwal.getCurrentState() instanceof RejectedState);
+        assertInstanceOf(RejectedState.class, jadwal.getCurrentState());
         assertEquals("REJECTED", jadwal.getStatusDokter());
         assertFalse(jadwal.isAvailable());
-        assertEquals("Doctor unavailable", jadwal.getNote());
+        assertEquals("Jadwal nabrak", jadwal.getMessage());
     }
 
     @Test
     void testChangeScheduleFromRequested() {
-        jadwal.request("PAT-67890", "Need consultation");
-        assertTrue(jadwal.getCurrentState() instanceof RequestedState);
+        jadwal.request("PAT-67890", "");
+        assertInstanceOf(RequestedState.class, jadwal.getCurrentState());
 
         LocalDate newDate = LocalDate.parse("2025-05-07");
         LocalTime newStart = LocalTime.parse("14:00");
         LocalTime newEnd = LocalTime.parse("15:00");
-        jadwal.changeSchedule(newDate, newStart, newEnd, "Doctor available at new time");
+        jadwal.changeSchedule(newDate, newStart, newEnd, "Ada urusan mendadak, mohon ganti jadwal");
 
-        assertTrue(jadwal.getCurrentState() instanceof ChangeScheduleState);
-        assertEquals("CHANGED", jadwal.getStatusDokter());
+        assertInstanceOf(ChangeScheduleState.class, jadwal.getCurrentState());
+        assertEquals("CHANGE_SCHEDULE", jadwal.getStatusDokter());
         assertFalse(jadwal.isAvailable());
         assertEquals(newDate, jadwal.getDate());
         assertEquals(newStart, jadwal.getStartTime());
         assertEquals(newEnd, jadwal.getEndTime());
-        assertEquals("Doctor available at new time", jadwal.getNote());
+        assertEquals("Ada urusan mendadak, mohon ganti jadwal", jadwal.getMessage());
         assertTrue(jadwal.isChangeSchedule());
     }
 
@@ -123,22 +123,28 @@ class JadwalKonsultasiTest {
 
     @Test
     void testInvalidStateTransitions() {
-        jadwal.approve();
-        assertTrue(jadwal.getCurrentState() instanceof AvailableState);
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> jadwal.approve()
+        );
+
+        assertEquals("Belum ada permintaan.", exception.getMessage());
+
+        assertInstanceOf(AvailableState.class, jadwal.getCurrentState());
         assertEquals("AVAILABLE", jadwal.getStatusDokter());
     }
 
     @Test
     void testCompleteFlow() {
         assertTrue(jadwal.isAvailable());
-        jadwal.request("PAT-67890", "Need urgent consultation");
+        jadwal.request("PAT-67890", "");
         assertEquals("REQUESTED", jadwal.getStatusDokter());
 
         LocalDate newDate = LocalDate.parse("2025-05-08");
         LocalTime newStart = LocalTime.parse("09:00");
         LocalTime newEnd = LocalTime.parse("10:00");
-        jadwal.changeSchedule(newDate, newStart, newEnd, "Doctor suggests earlier time");
-        assertEquals("CHANGED", jadwal.getStatusDokter());
+        jadwal.changeSchedule(newDate, newStart, newEnd, "Mohon dimajukan waktunya, ada tindakan darurat");
+        assertEquals("CHANGE_SCHEDULE", jadwal.getStatusDokter());
         assertEquals(newDate, jadwal.getDate());
 
         jadwal.approve();

@@ -71,7 +71,7 @@ class JadwalDokterServiceImplTest {
         when(repository.findById(jadwalId)).thenReturn(jadwal);
         when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        boolean result = service.changeJadwal(jadwalId, newDate.toString(), newStart.toString(), newEnd.toString(), message);
+        boolean result = service.changeJadwal(jadwalId, newDate, newStart, newEnd, message);
 
         assertTrue(result);
         assertEquals(newDate, jadwal.getDate());
@@ -83,8 +83,12 @@ class JadwalDokterServiceImplTest {
 
     @Test
     void changeJadwalNotFound() {
+        LocalDate date = LocalDate.parse("2025-05-10");
+        LocalTime startTime = LocalTime.parse("14:00");
+        LocalTime endTime = LocalTime.parse("15:00");
+
         when(repository.findById(jadwalId)).thenReturn(null);
-        assertFalse(service.changeJadwal(jadwalId, "2025-05-10", "14:00", "15:00", ""));
+        assertFalse(service.changeJadwal(jadwalId, date, startTime, endTime, ""));
         verify(repository, never()).save(any());
     }
 
@@ -142,7 +146,7 @@ class JadwalDokterServiceImplTest {
 
         List<JadwalKonsultasi> result = service.findByIdDokterAndStatus(idDokter, "AVAILABLE");
         assertEquals(1, result.size());
-        assertEquals("AVAILABLE", result.get(0).getStatusDokter());
+        assertEquals("AVAILABLE", result.getFirst().getStatusDokter());
     }
 
     @Test
@@ -150,19 +154,6 @@ class JadwalDokterServiceImplTest {
         jadwal.setState(new AvailableState());
         when(repository.findByIdDokter(idDokter)).thenReturn(Collections.singletonList(jadwal));
         assertTrue(service.findByIdDokterAndStatus(idDokter, "REJECTED").isEmpty());
-    }
-
-    @Test
-    void findByIdPasienReturnsList() {
-        jadwal.setIdPasien(idPasien);
-        when(repository.findByIdPasien(idPasien)).thenReturn(Collections.singletonList(jadwal));
-        assertEquals(1, service.findByIdPasien(idPasien).size());
-    }
-
-    @Test
-    void findByIdPasienEmpty() {
-        when(repository.findByIdPasien(idPasien)).thenReturn(Collections.emptyList());
-        assertTrue(service.findByIdPasien(idPasien).isEmpty());
     }
 
     @Test
@@ -175,5 +166,83 @@ class JadwalDokterServiceImplTest {
     void findByIdNotFound() {
         when(repository.findById(jadwalId)).thenReturn(null);
         assertNull(service.findById(jadwalId));
+    }
+
+    @Test
+    void createJadwalIntervalSuccess() {
+        LocalDate testDate = LocalDate.parse("2025-05-06");
+        LocalTime testStart = LocalTime.parse("10:00");
+        LocalTime testEnd = LocalTime.parse("12:00");
+        int testDuration = 30;
+
+        when(repository.save(any(JadwalKonsultasi.class)))
+                .thenAnswer(invocation -> {
+                    JadwalKonsultasi jadwal = invocation.getArgument(0);
+                    if (jadwal.getId() == null) {
+                        jadwal.setId(UUID.randomUUID().toString());
+                    }
+                    return jadwal;
+                });
+
+        List<JadwalKonsultasi> result = service.createJadwalInterval(idDokter, testDate, testStart, testEnd);
+
+        assertEquals(4, result.size());
+
+        assertEquals(idDokter, result.getFirst().getIdDokter());
+        assertEquals(testDate, result.getFirst().getDate());
+        assertEquals(testStart, result.getFirst().getStartTime());
+        assertEquals(testStart.plusMinutes(testDuration), result.get(0).getEndTime());
+        assertEquals("AVAILABLE", result.get(0).getStatusDokter());
+
+        assertEquals(idDokter, result.get(3).getIdDokter());
+        assertEquals(testDate, result.get(3).getDate());
+        assertEquals(testStart.plusMinutes(testDuration * 3), result.get(3).getStartTime());
+        assertEquals(testEnd, result.get(3).getEndTime());
+        assertEquals("AVAILABLE", result.get(3).getStatusDokter());
+
+        verify(repository, times(4)).save(any(JadwalKonsultasi.class));
+    }
+
+
+    @Test
+    void createJadwalIntervalWithInvalidTime() {
+        LocalDate testDate = LocalDate.parse("2025-05-06");
+        LocalTime testStart = LocalTime.parse("12:00");
+        LocalTime testEnd = LocalTime.parse("10:00");
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            service.createJadwalInterval(idDokter, testDate, testStart, testEnd);
+        });
+
+        assertTrue(exception.getMessage().contains("Waktu mulai tidak boleh lebih setelah waktu selesai") ||
+                exception.getMessage().contains("Waktu selesai tidak boleh lebih awal dari waktu mulai"));
+
+        verify(repository, never()).save(any(JadwalKonsultasi.class));
+    }
+
+    @Test
+    void createJadwalIntervalWithOverlap() {
+        LocalDate testDate = LocalDate.parse("2025-05-06");
+        LocalTime testStart = LocalTime.parse("10:00");
+        LocalTime testEnd = LocalTime.parse("12:00");
+
+        JadwalKonsultasi existingJadwal = new JadwalKonsultasi();
+        existingJadwal.setId("existing-jadwal");
+        existingJadwal.setIdDokter(idDokter);
+        existingJadwal.setDate(testDate);
+        existingJadwal.setStartTime(LocalTime.parse("11:00"));
+        existingJadwal.setEndTime(LocalTime.parse("11:30"));
+
+        when(repository.findOverlappingSchedule(eq(idDokter), eq(testDate), eq(testStart), eq(testEnd)))
+                .thenReturn(Collections.singletonList(existingJadwal));
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            service.createJadwalInterval(idDokter, testDate, testStart, testEnd);
+        });
+
+        // Sesuaikan dengan pesan error yang ada di JadwalDokterServiceImpl
+        assertTrue(exception.getMessage().contains("Jadwal sudah ada pada waktu yang sama"));
+
+        verify(repository, never()).save(any(JadwalKonsultasi.class));
     }
 }

@@ -51,7 +51,7 @@ public class CreateManualStrategyTest {
     @Test
     void testCreateJadwalIfEndTimeIsEmpty() {
         assertThrows(IllegalArgumentException.class, () -> {
-            strategy.create("DOK-001", LocalDate.parse("2025-05-06"), LocalTime.parse("08:00"), LocalTime.parse(""));
+            strategy.create("DOK-001", LocalDate.parse("2025-05-06"), LocalTime.parse("08:00"), null);
         });
     }
 
