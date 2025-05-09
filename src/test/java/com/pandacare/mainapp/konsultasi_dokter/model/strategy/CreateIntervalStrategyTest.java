@@ -1,6 +1,6 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.strategy;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,14 +28,14 @@ public class CreateIntervalStrategyTest {
         LocalTime startTime = LocalTime.of(9, 0);
         LocalTime endTime = LocalTime.of(12, 0);
 
-        JadwalKonsultasi jadwal = intervalStrategy.create(idDokter, date, startTime, endTime);
+        CaregiverSchedule jadwal = intervalStrategy.create(idDokter, date, startTime, endTime);
 
         assertNotNull(jadwal);
-        assertEquals(idDokter, jadwal.getIdDokter());
+        assertEquals(idDokter, jadwal.getIdCaregiver());
         assertEquals(date, jadwal.getDate());
         assertEquals(startTime, jadwal.getStartTime());
         assertEquals(startTime.plusMinutes(DURATION_MINUTES), jadwal.getEndTime());
-        assertEquals("AVAILABLE", jadwal.getStatusDokter());
+        assertEquals("AVAILABLE", jadwal.getStatusCaregiver());
     }
 
     @Test
@@ -43,7 +43,7 @@ public class CreateIntervalStrategyTest {
         LocalTime startTime = LocalTime.of(9, 0);
         LocalTime endTime = LocalTime.of(11, 0);
 
-        List<JadwalKonsultasi> jadwalList = intervalStrategy.createMultipleSlots(
+        List<CaregiverSchedule> jadwalList = intervalStrategy.createMultipleSlots(
                 idDokter, date, startTime, endTime);
 
         assertEquals(4, jadwalList.size());
@@ -61,8 +61,8 @@ public class CreateIntervalStrategyTest {
         assertEquals(LocalTime.of(11, 0), jadwalList.get(3).getEndTime());
 
         jadwalList.forEach(jadwal -> {
-            assertEquals("AVAILABLE", jadwal.getStatusDokter());
-            assertEquals(idDokter, jadwal.getIdDokter());
+            assertEquals("AVAILABLE", jadwal.getStatusCaregiver());
+            assertEquals(idDokter, jadwal.getIdCaregiver());
             assertEquals(date, jadwal.getDate());
             assertNotNull(jadwal.getId());
         });
@@ -73,7 +73,7 @@ public class CreateIntervalStrategyTest {
         LocalTime startTime = LocalTime.of(9, 0);
         LocalTime endTime = LocalTime.of(10, 30);
 
-        List<JadwalKonsultasi> jadwalList = intervalStrategy.createMultipleSlots(
+        List<CaregiverSchedule> jadwalList = intervalStrategy.createMultipleSlots(
                 idDokter, date, startTime, endTime);
 
         assertEquals(3, jadwalList.size());
@@ -89,7 +89,7 @@ public class CreateIntervalStrategyTest {
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> intervalStrategy.createMultipleSlots(idDokter, date, startTime, endTime));
 
-        assertTrue(exception.getMessage().contains("Rentang waktu harus habis dibagi"));
+        assertTrue(exception.getMessage().contains("Time is not valid."));
     }
 
     @Test
@@ -98,7 +98,7 @@ public class CreateIntervalStrategyTest {
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> intervalStrategy.createMultipleSlots(idDokter, date, time, time));
 
-        assertTrue(exception.getMessage().contains("Waktu mulai tidak boleh sama dengan waktu selesai"));
+        assertTrue(exception.getMessage().contains("Start time can't be equal to end time."));
     }
 
     @Test
@@ -108,6 +108,6 @@ public class CreateIntervalStrategyTest {
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> intervalStrategy.createMultipleSlots(idDokter, date, startTime, endTime));
 
-        assertTrue(exception.getMessage().contains("Waktu mulai tidak boleh setelah waktu selesai"));
+        assertTrue(exception.getMessage().contains("Start time can't be set after end time."));
     }
 }

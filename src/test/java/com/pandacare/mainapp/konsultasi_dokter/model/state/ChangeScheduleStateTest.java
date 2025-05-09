@@ -1,6 +1,6 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -9,12 +9,12 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ChangeScheduleStateTest {
-    private JadwalKonsultasi jadwal;
+    private CaregiverSchedule jadwal;
     private ChangeScheduleState state;
 
     @BeforeEach
     void setUp() {
-        jadwal = new JadwalKonsultasi();
+        jadwal = new CaregiverSchedule();
         jadwal.setState(new ChangeScheduleState());
         state = new ChangeScheduleState();
     }
@@ -29,7 +29,7 @@ class ChangeScheduleStateTest {
     void testHandleApprove() {
         state.handleApprove(jadwal);
 
-        assertEquals("APPROVED", jadwal.getStatusDokter());
+        assertEquals("APPROVED", jadwal.getStatusCaregiver());
         assertFalse(jadwal.isChangeSchedule());
     }
 
@@ -37,7 +37,7 @@ class ChangeScheduleStateTest {
     void testHandleReject() {
         state.handleReject(jadwal, "Pasien tidak setuju");
 
-        assertEquals("REJECTED", jadwal.getStatusDokter());
+        assertEquals("REJECTED", jadwal.getStatusCaregiver());
         assertEquals("Pasien tidak setuju", jadwal.getMessage());
         assertFalse(jadwal.isChangeSchedule());
     }

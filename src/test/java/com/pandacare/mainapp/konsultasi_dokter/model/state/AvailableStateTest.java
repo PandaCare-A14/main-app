@@ -1,6 +1,6 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -9,12 +9,12 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AvailableStateTest {
-    private JadwalKonsultasi jadwal;
+    private CaregiverSchedule jadwal;
     private AvailableState state;
 
     @BeforeEach
     void setUp() {
-        jadwal = new JadwalKonsultasi();
+        jadwal = new CaregiverSchedule();
         state = new AvailableState();
     }
 
@@ -25,8 +25,8 @@ class AvailableStateTest {
 
         state.handleRequest(jadwal, pasienId, message);
 
-        assertEquals("REQUESTED", jadwal.getStatusDokter());
-        assertEquals(pasienId, jadwal.getIdPasien());
+        assertEquals("REQUESTED", jadwal.getStatusCaregiver());
+        assertEquals(pasienId, jadwal.getIdPacilian());
         assertEquals(message, jadwal.getMessage());
     }
 

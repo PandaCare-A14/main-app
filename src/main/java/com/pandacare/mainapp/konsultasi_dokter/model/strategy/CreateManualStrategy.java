@@ -1,30 +1,30 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.strategy;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.konsultasi_dokter.model.state.AvailableState;
 
 import java.time.LocalTime;
 import java.time.LocalDate;
 
-public class CreateManualStrategy implements CreateJadwalStrategy {
+public class CreateManualStrategy implements CreateScheduleStrategy {
 
     @Override
-    public JadwalKonsultasi create(String idDokter, LocalDate date, LocalTime startTime, LocalTime endTime) {
-        if (idDokter == null || idDokter.isBlank()
+    public CaregiverSchedule create(String idCaregiver, LocalDate date, LocalTime startTime, LocalTime endTime) {
+        if (idCaregiver == null || idCaregiver.isBlank()
                 || date == null
                 || startTime == null
                 || endTime == null) {
-            throw new IllegalArgumentException("Field tidak boleh null atau kosong.");
+            throw new IllegalArgumentException("Field can't be empty.");
         }
 
-        JadwalKonsultasi jadwal = new JadwalKonsultasi();
-        jadwal.setIdDokter(idDokter);
-        jadwal.setDate(date);
-        jadwal.setStartTime(startTime);
-        jadwal.setEndTime(endTime);
-        jadwal.setState(new AvailableState());
-        jadwal.setChangeSchedule(false);
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setIdCaregiver(idCaregiver);
+        schedule.setDate(date);
+        schedule.setStartTime(startTime);
+        schedule.setEndTime(endTime);
+        schedule.setState(new AvailableState());
+        schedule.setChangeSchedule(false);
 
-        return jadwal;
+        return schedule;
     }
 }

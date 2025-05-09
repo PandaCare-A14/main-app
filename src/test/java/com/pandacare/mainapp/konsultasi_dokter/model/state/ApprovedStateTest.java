@@ -1,6 +1,6 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -10,11 +10,11 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ApprovedStateTest {
-    private JadwalKonsultasi jadwal;
+    private CaregiverSchedule jadwal;
     private ApprovedState state;
     @BeforeEach
     void setUp() {
-        jadwal = new JadwalKonsultasi();
+        jadwal = new CaregiverSchedule();
         jadwal.setState(new ApprovedState());
         state = new ApprovedState();
     }

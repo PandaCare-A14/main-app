@@ -7,31 +7,31 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
-import com.pandacare.mainapp.konsultasi_dokter.model.state.StatusJadwalDokter;
+import com.pandacare.mainapp.konsultasi_dokter.model.state.StatusCaregiver;
 import com.pandacare.mainapp.konsultasi_dokter.model.state.AvailableState;
 
 @Setter
 @Getter
-public class JadwalKonsultasi {
+public class CaregiverSchedule {
     private String id;
     private String statusPacilian;
-    private String idDokter;
-    private String idPasien;
+    private String idCaregiver;
+    private String idPacilian;
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
     private String note;
     private String message;
     private boolean changeSchedule = false;
-    private StatusJadwalDokter currentState;
+    private StatusCaregiver currentState;
 
-    public JadwalKonsultasi() {
+    public CaregiverSchedule() {
         this.id = UUID.randomUUID().toString();
         this.currentState = new AvailableState();
     }
 
-    public void request(String idPasien, String message) {
-        currentState.handleRequest(this, idPasien, message);
+    public void request(String idPacilian, String message) {
+        currentState.handleRequest(this, idPacilian, message);
     }
 
     public void approve() {
@@ -46,12 +46,12 @@ public class JadwalKonsultasi {
         currentState.handleChangeSchedule(this, day, start, end, reason);
     }
 
-    public void setState(StatusJadwalDokter state) {
+    public void setState(StatusCaregiver state) {
         this.currentState = state;
     }
 
     @JsonIgnore
-    public String getStatusDokter() {
+    public String getStatusCaregiver() {
         return currentState.getStatusName();
     }
 

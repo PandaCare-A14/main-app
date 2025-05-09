@@ -9,13 +9,13 @@ import java.time.LocalTime;
 import static org.junit.jupiter.api.Assertions.*;
 
 class JadwalKonsultasiTest {
-    private JadwalKonsultasi jadwal;
+    private CaregiverSchedule jadwal;
 
     @BeforeEach
     void setUp() {
-        jadwal = new JadwalKonsultasi();
+        jadwal = new CaregiverSchedule();
         jadwal.setId("JADWAL001");
-        jadwal.setIdDokter("DOC-12345");
+        jadwal.setIdCaregiver("DOC-12345");
         jadwal.setDate(LocalDate.parse("2025-05-06"));
         jadwal.setStartTime(LocalTime.parse("10:00"));
         jadwal.setEndTime(LocalTime.parse("11:00"));
@@ -23,7 +23,7 @@ class JadwalKonsultasiTest {
 
     @Test
     void testDefaultState() {
-        assertEquals("AVAILABLE", jadwal.getStatusDokter());
+        assertEquals("AVAILABLE", jadwal.getStatusCaregiver());
         assertTrue(jadwal.isAvailable());
         assertInstanceOf(AvailableState.class, jadwal.getCurrentState());
     }
@@ -31,8 +31,8 @@ class JadwalKonsultasiTest {
     @Test
     void testGetterSetter() {
         assertEquals("JADWAL001", jadwal.getId());
-        assertEquals("DOC-12345", jadwal.getIdDokter());
-        assertNull(jadwal.getIdPasien());
+        assertEquals("DOC-12345", jadwal.getIdCaregiver());
+        assertNull(jadwal.getIdPacilian());
         assertEquals(LocalDate.parse("2025-05-06"), jadwal.getDate());
         assertEquals(LocalTime.parse("10:00"), jadwal.getStartTime());
         assertEquals(LocalTime.parse("11:00"), jadwal.getEndTime());
@@ -40,13 +40,13 @@ class JadwalKonsultasiTest {
         assertNull(jadwal.getMessage());
         assertFalse(jadwal.isChangeSchedule());
 
-        jadwal.setIdPasien("PAT-67890");
+        jadwal.setIdPacilian("PAT-67890");
         jadwal.setNote("Test note pasien");
         jadwal.setMessage("Test message dokter");
         jadwal.setChangeSchedule(true);
         jadwal.setStatusPacilian("URGENT");
 
-        assertEquals("PAT-67890", jadwal.getIdPasien());
+        assertEquals("PAT-67890", jadwal.getIdPacilian());
         assertEquals("Test note pasien", jadwal.getNote());
         assertEquals("Test message dokter", jadwal.getMessage());
         assertTrue(jadwal.isChangeSchedule());
@@ -60,9 +60,9 @@ class JadwalKonsultasiTest {
         jadwal.request("PAT-67890", "Ada benjolan di telinga");
 
         assertInstanceOf(RequestedState.class, jadwal.getCurrentState());
-        assertEquals("REQUESTED", jadwal.getStatusDokter());
+        assertEquals("REQUESTED", jadwal.getStatusCaregiver());
         assertFalse(jadwal.isAvailable());
-        assertEquals("PAT-67890", jadwal.getIdPasien());
+        assertEquals("PAT-67890", jadwal.getIdPacilian());
         assertEquals("Ada benjolan di telinga", jadwal.getMessage());
     }
 
@@ -74,7 +74,7 @@ class JadwalKonsultasiTest {
         jadwal.approve();
 
         assertInstanceOf(ApprovedState.class, jadwal.getCurrentState());
-        assertEquals("APPROVED", jadwal.getStatusDokter());
+        assertEquals("APPROVED", jadwal.getStatusCaregiver());
         assertFalse(jadwal.isAvailable());
     }
 
@@ -86,7 +86,7 @@ class JadwalKonsultasiTest {
         jadwal.reject("Jadwal nabrak");
 
         assertInstanceOf(RejectedState.class, jadwal.getCurrentState());
-        assertEquals("REJECTED", jadwal.getStatusDokter());
+        assertEquals("REJECTED", jadwal.getStatusCaregiver());
         assertFalse(jadwal.isAvailable());
         assertEquals("Jadwal nabrak", jadwal.getMessage());
     }
@@ -102,7 +102,7 @@ class JadwalKonsultasiTest {
         jadwal.changeSchedule(newDate, newStart, newEnd, "Ada urusan mendadak, mohon ganti jadwal");
 
         assertInstanceOf(ChangeScheduleState.class, jadwal.getCurrentState());
-        assertEquals("CHANGE_SCHEDULE", jadwal.getStatusDokter());
+        assertEquals("CHANGE_SCHEDULE", jadwal.getStatusCaregiver());
         assertFalse(jadwal.isAvailable());
         assertEquals(newDate, jadwal.getDate());
         assertEquals(newStart, jadwal.getStartTime());
@@ -113,11 +113,11 @@ class JadwalKonsultasiTest {
 
     @Test
     void testSetState() {
-        StatusJadwalDokter approvedState = new ApprovedState();
+        StatusCaregiver approvedState = new ApprovedState();
         jadwal.setState(approvedState);
 
         assertEquals(approvedState, jadwal.getCurrentState());
-        assertEquals("APPROVED", jadwal.getStatusDokter());
+        assertEquals("APPROVED", jadwal.getStatusCaregiver());
         assertFalse(jadwal.isAvailable());
     }
 
@@ -128,27 +128,27 @@ class JadwalKonsultasiTest {
                 () -> jadwal.approve()
         );
 
-        assertEquals("Belum ada permintaan.", exception.getMessage());
+        assertEquals("No request found.", exception.getMessage());
 
         assertInstanceOf(AvailableState.class, jadwal.getCurrentState());
-        assertEquals("AVAILABLE", jadwal.getStatusDokter());
+        assertEquals("AVAILABLE", jadwal.getStatusCaregiver());
     }
 
     @Test
     void testCompleteFlow() {
         assertTrue(jadwal.isAvailable());
         jadwal.request("PAT-67890", "");
-        assertEquals("REQUESTED", jadwal.getStatusDokter());
+        assertEquals("REQUESTED", jadwal.getStatusCaregiver());
 
         LocalDate newDate = LocalDate.parse("2025-05-08");
         LocalTime newStart = LocalTime.parse("09:00");
         LocalTime newEnd = LocalTime.parse("10:00");
         jadwal.changeSchedule(newDate, newStart, newEnd, "Mohon dimajukan waktunya, ada tindakan darurat");
-        assertEquals("CHANGE_SCHEDULE", jadwal.getStatusDokter());
+        assertEquals("CHANGE_SCHEDULE", jadwal.getStatusCaregiver());
         assertEquals(newDate, jadwal.getDate());
 
         jadwal.approve();
-        assertEquals("APPROVED", jadwal.getStatusDokter());
+        assertEquals("APPROVED", jadwal.getStatusCaregiver());
         assertFalse(jadwal.isAvailable());
     }
 }

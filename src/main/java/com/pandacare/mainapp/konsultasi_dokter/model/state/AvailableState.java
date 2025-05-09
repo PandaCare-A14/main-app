@@ -2,9 +2,9 @@ package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 
-public class AvailableState implements StatusJadwalDokter {
+public class AvailableState implements StatusCaregiver {
     @Override
     public String getStatusName() {
         return "AVAILABLE";
@@ -16,28 +16,28 @@ public class AvailableState implements StatusJadwalDokter {
     }
 
     @Override
-    public void handleRequest(JadwalKonsultasi jadwal, String idPasien, String message) {
-        if (idPasien == null) {
-            throw new IllegalArgumentException("ID pasien tidak boleh null.");
+    public void handleRequest(CaregiverSchedule jadwal, String idPacilian, String message) {
+        if (idPacilian == null) {
+            throw new IllegalArgumentException("Pacilian ID can't be null.");
         }
 
         jadwal.setState(new RequestedState());
-        jadwal.setIdPasien(idPasien);
+        jadwal.setIdPacilian(idPacilian);
         jadwal.setMessage(message);
     }
 
     @Override
-    public void handleApprove(JadwalKonsultasi ctx) {
-        throw new IllegalStateException("Belum ada permintaan.");
+    public void handleApprove(CaregiverSchedule ctx) {
+        throw new IllegalStateException("No request found.");
     }
 
     @Override
-    public void handleReject(JadwalKonsultasi ctx, String reason) {
-        throw new IllegalStateException("Belum ada permintaan.");
+    public void handleReject(CaregiverSchedule ctx, String reason) {
+        throw new IllegalStateException("No request found.");
     }
 
     @Override
-    public void handleChangeSchedule(JadwalKonsultasi context, LocalDate newDate, LocalTime newStartTime, LocalTime newEndTime, String reason) {
-        throw new IllegalStateException("Belum ada permintaan.");
+    public void handleChangeSchedule(CaregiverSchedule context, LocalDate newDate, LocalTime newStartTime, LocalTime newEndTime, String reason) {
+        throw new IllegalStateException("No request found.");
     }
 }

@@ -1,10 +1,10 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public class RequestedState implements StatusJadwalDokter {
+public class RequestedState implements StatusCaregiver {
     @Override
     public String getStatusName() {
         return "REQUESTED";
@@ -16,23 +16,23 @@ public class RequestedState implements StatusJadwalDokter {
     }
 
     @Override
-    public void handleRequest(JadwalKonsultasi context, String idPasien, String message) {
-        throw new IllegalStateException("Sudah ada permintaan.");
+    public void handleRequest(CaregiverSchedule context, String idPasien, String message) {
+        throw new IllegalStateException("Schedule is being requested.");
     }
 
     @Override
-    public void handleApprove(JadwalKonsultasi jadwal) {
+    public void handleApprove(CaregiverSchedule jadwal) {
         jadwal.setState(new ApprovedState());
     }
 
     @Override
-    public void handleReject(JadwalKonsultasi jadwal, String reason) {
+    public void handleReject(CaregiverSchedule jadwal, String reason) {
         jadwal.setState(new RejectedState());
         jadwal.setMessage(reason);
     }
 
     @Override
-    public void handleChangeSchedule(JadwalKonsultasi jadwal, LocalDate newDate, LocalTime newStartTime, LocalTime newEndTime, String reason) {
+    public void handleChangeSchedule(CaregiverSchedule jadwal, LocalDate newDate, LocalTime newStartTime, LocalTime newEndTime, String reason) {
         jadwal.setDate(newDate);
         jadwal.setStartTime(newStartTime);
         jadwal.setEndTime(newEndTime);

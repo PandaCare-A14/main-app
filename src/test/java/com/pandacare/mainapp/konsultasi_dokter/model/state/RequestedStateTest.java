@@ -1,6 +1,6 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.time.LocalTime;
@@ -9,12 +9,12 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RequestedStateTest {
-    private JadwalKonsultasi jadwal;
+    private CaregiverSchedule jadwal;
     private RequestedState state;
 
     @BeforeEach
     void setUp() {
-        jadwal = new JadwalKonsultasi();
+        jadwal = new CaregiverSchedule();
         jadwal.setState(new RequestedState());
         state = new RequestedState();
     }
@@ -22,14 +22,14 @@ class RequestedStateTest {
     @Test
     void testHandleApproveShouldSetStatusApproved() {
         state.handleApprove(jadwal);
-        assertEquals("APPROVED", jadwal.getStatusDokter());
+        assertEquals("APPROVED", jadwal.getStatusCaregiver());
     }
 
     @Test
     void testHandleRejectShouldSetStatusRejectedAndReason() {
         state.handleReject(jadwal, "Ada operasi dadakan");
 
-        assertEquals("REJECTED", jadwal.getStatusDokter());
+        assertEquals("REJECTED", jadwal.getStatusCaregiver());
         assertEquals("Ada operasi dadakan", jadwal.getMessage());
     }
 
@@ -42,7 +42,7 @@ class RequestedStateTest {
                 "Perubahan jadwal"
         );
 
-        assertEquals("CHANGE_SCHEDULE", jadwal.getStatusDokter());
+        assertEquals("CHANGE_SCHEDULE", jadwal.getStatusCaregiver());
         assertEquals(LocalDate.parse("2025-04-29"), jadwal.getDate());
         assertEquals(LocalTime.parse("14:00"), jadwal.getStartTime());
         assertEquals(LocalTime.parse("15:00"), jadwal.getEndTime());
@@ -56,6 +56,6 @@ class RequestedStateTest {
             state.handleRequest(jadwal, "PAT-002", "Mau ganti");
         });
 
-        assertEquals("Sudah ada permintaan.", ex.getMessage());
+        assertEquals("Schedule is being requested.", ex.getMessage());
     }
 }

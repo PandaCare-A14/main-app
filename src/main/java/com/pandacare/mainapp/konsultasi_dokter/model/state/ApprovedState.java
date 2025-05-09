@@ -2,9 +2,9 @@ package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 
-public class ApprovedState implements StatusJadwalDokter {
+public class ApprovedState implements StatusCaregiver {
 
     @Override
     public String getStatusName() {
@@ -17,22 +17,22 @@ public class ApprovedState implements StatusJadwalDokter {
     }
 
     @Override
-    public void handleRequest(JadwalKonsultasi context, String idPasien, String message) {
-        throw new IllegalStateException("Permintaan sudah disetujui.");
+    public void handleRequest(CaregiverSchedule context, String idPasien, String message) {
+        throw new IllegalStateException("Request has been approved.");
     }
 
     @Override
-    public void handleApprove(JadwalKonsultasi context) {
-        throw new IllegalStateException("Permintaan sudah disetujui.");
+    public void handleApprove(CaregiverSchedule context) {
+        throw new IllegalStateException("Request has been approved.");
     }
 
     @Override
-    public void handleReject(JadwalKonsultasi context, String reason) {
-        throw new IllegalStateException("Permintaan sudah disetujui.");
+    public void handleReject(CaregiverSchedule context, String reason) {
+        throw new IllegalStateException("Request has been approved.");
     }
 
     @Override
-    public void handleChangeSchedule(JadwalKonsultasi context, LocalDate newDate, LocalTime newStartTime, LocalTime newEndTime, String reason) {
-        throw new IllegalStateException("Permintaan sudah disetujui.");
+    public void handleChangeSchedule(CaregiverSchedule context, LocalDate newDate, LocalTime newStartTime, LocalTime newEndTime, String reason) {
+        throw new IllegalStateException("Request has been approved.");
     }
 }

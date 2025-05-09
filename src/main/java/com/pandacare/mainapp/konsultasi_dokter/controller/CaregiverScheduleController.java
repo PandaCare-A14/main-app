@@ -1,7 +1,7 @@
 package com.pandacare.mainapp.konsultasi_dokter.controller;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.JadwalKonsultasi;
-import com.pandacare.mainapp.konsultasi_dokter.service.JadwalDokterService;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
+import com.pandacare.mainapp.konsultasi_dokter.service.CaregiverScheduleService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,36 +13,36 @@ import java.util.*;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/doctors/")
-public class JadwalDokterController {
-    private final JadwalDokterService service;
+public class CaregiverScheduleController {
+    private final CaregiverScheduleService service;
 
     private static final Set<String> ALLOWED_STATUSES = Set.of(
             "AVAILABLE", "APPROVED", "REJECTED", "REQUESTED", "CHANGE_SCHEDULE"
     );
 
-    public JadwalDokterController(JadwalDokterService service) {
+    public CaregiverScheduleController(CaregiverScheduleService service) {
         this.service = service;
     }
 
-    @PostMapping("/{idDokter}/schedules")
-    public ResponseEntity<JadwalKonsultasi> createJadwal(
-            @PathVariable String idDokter,
+    @PostMapping("/{idCaregiver}/schedules")
+    public ResponseEntity<CaregiverSchedule> createSchedule(
+            @PathVariable String idCaregiver,
             @RequestBody Map<String, String> body
     ) {
         try {
             LocalDate date = LocalDate.parse(body.get("date"));
             LocalTime startTime = LocalTime.parse(body.get("startTime"));
             LocalTime endTime = LocalTime.parse(body.get("endTime"));
-            JadwalKonsultasi jadwal = service.createJadwal(idDokter, date, startTime, endTime);
-            return ResponseEntity.status(HttpStatus.CREATED).body(jadwal);
+            CaregiverSchedule schedule = service.createSchedule(idCaregiver, date, startTime, endTime);
+            return ResponseEntity.status(HttpStatus.CREATED).body(schedule);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 
-    @PostMapping("/{idDokter}/schedules/interval")
-    public ResponseEntity<List<JadwalKonsultasi>> createJadwalInterval(
-            @PathVariable String idDokter,
+    @PostMapping("/{idCaregiver}/schedules/interval")
+    public ResponseEntity<List<CaregiverSchedule>> createScheduleInterval(
+            @PathVariable String idCaregiver,
             @RequestBody Map<String, String> body
     ) {
         try {
@@ -50,37 +50,37 @@ public class JadwalDokterController {
             LocalTime startTime = LocalTime.parse(body.get("startTime"));
             LocalTime endTime = LocalTime.parse(body.get("endTime"));
 
-            List<JadwalKonsultasi> jadwals = service.createJadwalInterval(idDokter, date, startTime, endTime);
-            return ResponseEntity.status(HttpStatus.CREATED).body(jadwals);
+            List<CaregiverSchedule> schedules = service.createScheduleInterval(idCaregiver, date, startTime, endTime);
+            return ResponseEntity.status(HttpStatus.CREATED).body(schedules);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 
-    @GetMapping("/{idDokter}/schedules")
-    public ResponseEntity<List<JadwalKonsultasi>> getJadwalByDokter(
-            @PathVariable String idDokter,
+    @GetMapping("/{idCaregiver}/schedules")
+    public ResponseEntity<List<CaregiverSchedule>> getScheduleByCaregiver(
+            @PathVariable String idCaregiver,
             @RequestParam(required = false) String status
     ) {
         try {
-            List<JadwalKonsultasi> jadwals;
+            List<CaregiverSchedule> schedules;
             if (status != null && ALLOWED_STATUSES.contains(status.toUpperCase())) {
-                jadwals = service.findByIdDokterAndStatus(idDokter, status.toUpperCase());
+                schedules = service.findByIdCaregiverAndStatus(idCaregiver, status.toUpperCase());
             } else {
-                jadwals = service.findByIdDokter(idDokter);
+                schedules = service.findByIdCaregiver(idCaregiver);
             }
-            return ResponseEntity.ok(jadwals);
+            return ResponseEntity.ok(schedules);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @GetMapping("/schedules/{id}")
-    public ResponseEntity<JadwalKonsultasi> findById(@PathVariable String id) {
+    public ResponseEntity<CaregiverSchedule> findByScheduleId(@PathVariable String id) {
         try {
-            JadwalKonsultasi jadwal = service.findById(id);
-            if (jadwal != null) {
-                return ResponseEntity.ok(jadwal);
+            CaregiverSchedule schedule = service.findById(id);
+            if (schedule != null) {
+                return ResponseEntity.ok(schedule);
             } else {
                 return ResponseEntity.notFound().build();
             }
@@ -90,12 +90,12 @@ public class JadwalDokterController {
     }
 
     @PatchMapping("/schedules/{id}/status")
-    public ResponseEntity<JadwalKonsultasi> updateStatus(
+    public ResponseEntity<CaregiverSchedule> updateStatus(
             @PathVariable String id,
             @RequestBody Map<String, String> body
     ) {
         try {
-            String status = body.get("statusDokter");
+            String status = body.get("statusCaregiver");
             if (status == null) {
                 return ResponseEntity.badRequest().build();
             }
@@ -104,14 +104,14 @@ public class JadwalDokterController {
 
             switch (status) {
                 case "APPROVED":
-                    success = service.approveJadwal(id);
+                    success = service.approveSchedule(id);
                     if (success) {
                         return ResponseEntity.ok(service.findById(id));
                     } else {
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
                     }
                 case "REJECTED":
-                    success = service.rejectJadwal(id);
+                    success = service.rejectSchedule(id);
                     if (success) {
                         return ResponseEntity.ok(service.findById(id));
                     } else {
@@ -122,7 +122,7 @@ public class JadwalDokterController {
                     LocalDate date = LocalDate.parse(body.get("date"));
                     LocalTime startTime = LocalTime.parse(body.get("startTime"));
                     LocalTime endTime = LocalTime.parse(body.get("endTime"));
-                    success = service.changeJadwal(id, date, startTime, endTime, message);
+                    success = service.changeSchedule(id, date, startTime, endTime, message);
                     if (success) {
                         return ResponseEntity.ok(service.findById(id));
                     } else {
