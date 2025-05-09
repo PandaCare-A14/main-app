@@ -15,8 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -183,5 +182,28 @@ class ReservasiKonsultasiControllerTest {
                 .andExpect(jsonPath("$.message").value("Perubahan reservasi diterima"))
                 .andExpect(jsonPath("$.reservasi.day").value("THURSDAY"))
                 .andExpect(jsonPath("$.reservasi.startTime").value("15:00"));
+    }
+
+    @Test
+    void testRejectChangeReservasi_success() throws Exception {
+        doNothing().when(reservasiService).rejectChangeReservasi("RSV001");
+
+        mockMvc.perform(post("/api/reservasi-konsultasi/RSV001/reject-change"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Perubahan jadwal ditolak"));
+
+        verify(reservasiService).rejectChangeReservasi("RSV001");
+    }
+
+    @Test
+    void testRejectChangeReservasi_fail() throws Exception {
+        doThrow(new IllegalStateException("No change request exists for this schedule"))
+                .when(reservasiService).rejectChangeReservasi("RSV001");
+
+        mockMvc.perform(post("/api/reservasi-konsultasi/RSV001/reject-change"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("No change request exists for this schedule"));
+
+        verify(reservasiService).rejectChangeReservasi("RSV001");
     }
 }
