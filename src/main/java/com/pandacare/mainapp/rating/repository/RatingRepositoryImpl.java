@@ -1,7 +1,8 @@
-package com.pandacare.rating.repository;
+package com.pandacare.mainapp.rating.repository;
 
-import com.pandacare.rating.model.Rating;
 import org.springframework.stereotype.Repository;
+
+import com.pandacare.mainapp.rating.model.Rating;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

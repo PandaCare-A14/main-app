@@ -1,7 +1,5 @@
-package com.pandacare.rating.controller;
+package com.pandacare.mainapp.rating.controller;
 
-import com.pandacare.rating.model.Rating;
-import com.pandacare.rating.service.RatingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,6 +7,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import com.pandacare.mainapp.rating.controller.RatingController;
+import com.pandacare.mainapp.rating.model.Rating;
+import com.pandacare.mainapp.rating.service.RatingService;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;

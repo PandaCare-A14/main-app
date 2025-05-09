@@ -1,9 +1,11 @@
-package com.pandacare.rating.repository;
+package com.pandacare.mainapp.rating.repository;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.pandacare.mainapp.rating.repository.UserRepository;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;

@@ -1,8 +1,9 @@
-package com.pandacare.rating.repository;
+package com.pandacare.mainapp.rating.repository;
 
-import com.pandacare.rating.model.Rating;
 import java.util.List;
 import java.util.Optional;
+
+import com.pandacare.mainapp.rating.model.Rating;
 
 public interface RatingRepository {
     /**

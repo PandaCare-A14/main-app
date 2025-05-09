@@ -1,4 +1,4 @@
-package com.pandacare.rating.repository;
+package com.pandacare.mainapp.rating.repository;
 
 import org.springframework.stereotype.Repository;
 

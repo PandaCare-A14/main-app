@@ -1,6 +1,9 @@
-package com.pandacare.rating.model;
+package com.pandacare.mainapp.rating.model;
 
 import org.junit.jupiter.api.Test;
+
+import com.pandacare.mainapp.rating.model.Rating;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;

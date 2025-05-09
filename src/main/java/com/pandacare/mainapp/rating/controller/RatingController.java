@@ -1,10 +1,11 @@
-package com.pandacare.rating.controller;
+package com.pandacare.mainapp.rating.controller;
 
-import com.pandacare.rating.model.Rating;
-import com.pandacare.rating.service.RatingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.pandacare.mainapp.rating.model.Rating;
+import com.pandacare.mainapp.rating.service.RatingService;
 
 import java.util.List;
 

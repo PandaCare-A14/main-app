@@ -1,13 +1,15 @@
-package com.pandacare.rating.service;
+package com.pandacare.mainapp.rating.service;
 
-import com.pandacare.rating.model.Rating;
-import com.pandacare.rating.repository.RatingRepository;
-import com.pandacare.rating.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.pandacare.mainapp.rating.model.Rating;
+import com.pandacare.mainapp.rating.repository.RatingRepository;
+import com.pandacare.mainapp.rating.repository.UserRepository;
+import com.pandacare.mainapp.rating.service.RatingServiceImpl;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
