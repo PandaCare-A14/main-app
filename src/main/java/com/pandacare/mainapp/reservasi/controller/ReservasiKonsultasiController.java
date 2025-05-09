@@ -3,6 +3,7 @@ package com.pandacare.mainapp.reservasi.controller;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.service.ReservasiKonsultasiServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,5 +30,23 @@ public class ReservasiKonsultasiController {
                 "message", "Jadwal konsultasi berhasil diajukan",
                 "reservasi", result
         ));
+    }
+
+    @PostMapping("/{id}/edit")
+    public ResponseEntity<?> editReservasi(@PathVariable String id, @RequestBody Map<String, String> body) {
+        try {
+            String day = body.get("day");
+            String startTime = body.get("startTime");
+            String endTime = body.get("endTime");
+
+            ReservasiKonsultasi updated = reservasiService.editReservasi(id, day, startTime, endTime);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Jadwal berhasil diperbarui",
+                    "reservasi", updated
+            ));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
     }
 }
