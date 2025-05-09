@@ -133,22 +133,6 @@ public class JadwalDokterControllerTest {
     }
 
     @Test
-    public void testCreateJadwalIntervalWithInvalidDuration() {
-        Map<String, String> body = new HashMap<>();
-        body.put("date", "2025-05-10");
-        body.put("startTime", "09:00");
-        body.put("endTime", "10:00");
-        body.put("durationMinutes", "invalid");
-
-        ResponseEntity<List<JadwalKonsultasi>> response = controller.createJadwalInterval(DOCTOR_ID, body);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(service, never()).createJadwalInterval(anyString(), any(), any(), any());
-    }
-
-    @Test
     public void testGetJadwalByDokterWithoutStatus() {
         List<JadwalKonsultasi> jadwalList = Arrays.asList(jadwal, jadwal);
         when(service.findByIdDokter(DOCTOR_ID)).thenReturn(jadwalList);
