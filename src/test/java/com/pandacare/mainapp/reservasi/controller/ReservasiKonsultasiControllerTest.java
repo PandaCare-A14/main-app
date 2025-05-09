@@ -164,4 +164,24 @@ class ReservasiKonsultasiControllerTest {
 
         verify(reservasiService).findAllByPasien("pac123");
     }
+
+    @Test
+    void testAcceptChangeReservasi_success() throws Exception {
+        ReservasiKonsultasi updated = new ReservasiKonsultasi();
+        updated.setId("RSV001");
+        updated.setIdDokter("dok123");
+        updated.setIdPasien("pac123");
+        updated.setDay("THURSDAY");
+        updated.setStartTime("15:00");
+        updated.setEndTime("16:00");
+        updated.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+
+        when(reservasiService.acceptChangeReservasi("RSV001")).thenReturn(updated);
+
+        mockMvc.perform(post("/api/reservasi-konsultasi/RSV001/accept-change"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Perubahan reservasi diterima"))
+                .andExpect(jsonPath("$.reservasi.day").value("THURSDAY"))
+                .andExpect(jsonPath("$.reservasi.startTime").value("15:00"));
+    }
 }
