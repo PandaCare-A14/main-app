@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -165,5 +167,18 @@ public class ReservasiKonsultasiServiceTest {
 
         // Verify the deleteById method was called
         verify(repository).deleteById("jadwal127");
+    }
+
+    @Test
+    void findAllByPasien_shouldReturnAllReservasiForGivenUser() {
+        List<ReservasiKonsultasi> reservasiList = List.of(waitingReservasi, approvedReservasi);
+
+        when(repository.findAllByIdPasien("pac123")).thenReturn(reservasiList);
+
+        List<ReservasiKonsultasi> result = service.findAllByPasien("pac123");
+
+        assertEquals(2, result.size());
+        assertEquals("dok123", result.get(0).getIdDokter());
+        verify(repository).findAllByIdPasien("pac123");
     }
 }
