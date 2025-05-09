@@ -206,4 +206,61 @@ class ReservasiKonsultasiControllerTest {
 
         verify(reservasiService).rejectChangeReservasi("RSV001");
     }
+
+    @Test
+    void testRequestReservasi_invalidTime_shouldReturn400() throws Exception {
+        when(reservasiService.requestReservasi(any(), any(), any(), any(), any()))
+                .thenThrow(new IllegalArgumentException("Start time must be before end time"));
+
+        mockMvc.perform(post("/api/reservasi-konsultasi/request")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                        {
+                            "idDokter": "dok123",
+                            "idPasien": "pac123",
+                            "day": "MONDAY",
+                            "startTime": "10:00",
+                            "endTime": "09:00"
+                        }
+                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testAcceptChangeReservasi_notFound_shouldReturn400() throws Exception {
+        when(reservasiService.acceptChangeReservasi("not_found"))
+                .thenThrow(new IllegalArgumentException("Schedule not found"));
+
+        mockMvc.perform(post("/api/reservasi-konsultasi/not_found/accept-change"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Schedule not found"));
+    }
+
+    @Test
+    void testRejectChangeReservasi_notFound_shouldReturn400() throws Exception {
+        doThrow(new IllegalArgumentException("Schedule not found"))
+                .when(reservasiService).rejectChangeReservasi("not_found");
+
+        mockMvc.perform(post("/api/reservasi-konsultasi/not_found/reject-change"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Schedule not found"));
+    }
+
+    @Test
+    void testEditReservasi_notFound_shouldReturn400() throws Exception {
+        when(reservasiService.editReservasi(eq("not_found"), any(), any(), any()))
+                .thenThrow(new IllegalArgumentException("Schedule not found"));
+
+        mockMvc.perform(post("/api/reservasi-konsultasi/not_found/edit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                        {
+                            "day": "MONDAY",
+                            "startTime": "09:00",
+                            "endTime": "10:00"
+                        }
+                    """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Schedule not found"));
+    }
 }
