@@ -8,8 +8,10 @@ import java.time.LocalTime;
 
 public interface JadwalDokterService {
     JadwalKonsultasi createJadwal(String idDokter, LocalDate date, LocalTime startTime, LocalTime endTime);
+    List<JadwalKonsultasi> createJadwalInterval(String idDokter, LocalDate date,
+                                                       LocalTime startTime, LocalTime endTime);
 
-    boolean changeJadwal(String idJadwal, String newDay, String newStartTime, String newEndTime, String message);
+    boolean changeJadwal(String idJadwal, LocalDate newDate, LocalTime newStartTime, LocalTime newEndTime, String message);
 
     boolean approveJadwal(String idJadwal);
 
@@ -18,8 +20,6 @@ public interface JadwalDokterService {
     List<JadwalKonsultasi> findByIdDokter(String idDokter);
 
     List<JadwalKonsultasi> findByIdDokterAndStatus(String idDokter, String status);
-
-    List<JadwalKonsultasi> findByIdPasien(String idPasien);
 
     JadwalKonsultasi findById(String id);
 }

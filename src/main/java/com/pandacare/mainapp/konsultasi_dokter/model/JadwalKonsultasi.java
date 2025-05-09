@@ -2,6 +2,9 @@ package com.pandacare.mainapp.konsultasi_dokter.model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import com.pandacare.mainapp.konsultasi_dokter.model.state.StatusJadwalDokter;
@@ -23,6 +26,7 @@ public class JadwalKonsultasi {
     private StatusJadwalDokter currentState;
 
     public JadwalKonsultasi() {
+        this.id = UUID.randomUUID().toString();
         this.currentState = new AvailableState();
     }
 
@@ -46,10 +50,12 @@ public class JadwalKonsultasi {
         this.currentState = state;
     }
 
+    @JsonIgnore
     public String getStatusDokter() {
         return currentState.getStatusName();
     }
 
+    @JsonIgnore
     public boolean isAvailable() {
         return currentState.isAvailable();
     }
