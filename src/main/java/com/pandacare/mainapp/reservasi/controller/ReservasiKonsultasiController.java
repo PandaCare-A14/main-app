@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/jadwal-konsultasi")
+@RequestMapping("/api/reservasi-konsultasi")
 public class ReservasiKonsultasiController {
 
     @Autowired
@@ -31,4 +31,3 @@ public class ReservasiKonsultasiController {
         ));
     }
 }
-
