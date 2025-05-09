@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,7 +27,6 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
 
         CreateScheduleStrategy strategy = new CreateManualStrategy();
         CaregiverSchedule schedule = strategy.create(idCaregiver, date, startTime, endTime);
-        schedule.setId(UUID.randomUUID().toString());
 
         return repository.save(schedule);
     }

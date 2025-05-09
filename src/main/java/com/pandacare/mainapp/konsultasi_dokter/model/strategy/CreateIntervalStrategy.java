@@ -6,7 +6,6 @@ import java.time.LocalTime;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class CreateIntervalStrategy implements CreateScheduleStrategy {
     private static final int DURATION_MINUTES = 30;
@@ -33,7 +32,6 @@ public class CreateIntervalStrategy implements CreateScheduleStrategy {
         }
 
         CaregiverSchedule schedule = new CaregiverSchedule();
-        schedule.setId(UUID.randomUUID().toString());
         schedule.setIdCaregiver(idCaregiver);
         schedule.setDate(date);
         schedule.setStartTime(startTime);
