@@ -50,10 +50,6 @@ public class JadwalDokterController {
             LocalTime startTime = LocalTime.parse(body.get("startTime"));
             LocalTime endTime = LocalTime.parse(body.get("endTime"));
 
-            int durationMinutes = body.containsKey("durationMinutes")
-                    ? Integer.parseInt(body.get("durationMinutes"))
-                    : 30;
-
             List<JadwalKonsultasi> jadwals = service.createJadwalInterval(idDokter, date, startTime, endTime);
             return ResponseEntity.status(HttpStatus.CREATED).body(jadwals);
         } catch (Exception e) {
