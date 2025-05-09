@@ -9,52 +9,73 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+/**
+ * In-memory implementation of RatingRepository
+ */
 @Repository
 public class RatingRepositoryImpl implements RatingRepository {
 
-    private final Map<Long, Rating> ratingDatabase = new ConcurrentHashMap<>();
+    private final Map<String, Rating> ratingDatabase = new ConcurrentHashMap<>();
     private final AtomicLong idCounter = new AtomicLong(1);
 
     @Override
-    public Optional<List<Rating>> findByOwnerId(String idPacillian) {
-        List<Rating> result = ratingDatabase.values().stream()
-                .filter(rating -> rating.getIdPacillian().equals(idPacillian))
+    public List<Rating> findByIdPasien(String idPasien) {
+        return ratingDatabase.values().stream()
+                .filter(rating -> rating.getIdPasien().equals(idPasien))
                 .collect(Collectors.toList());
-        
-        return result.isEmpty() ? Optional.empty() : Optional.of(result);
     }
 
     @Override
-    public Optional<List<Rating>> findByIdDokter(String idDokter) {
-        List<Rating> result = ratingDatabase.values().stream()
+    public List<Rating> findByIdDokter(String idDokter) {
+        return ratingDatabase.values().stream()
                 .filter(rating -> rating.getIdDokter().equals(idDokter))
                 .collect(Collectors.toList());
-        
-        return result.isEmpty() ? Optional.empty() : Optional.of(result);
     }
 
     @Override
-    public Optional<Rating> deleteById(String idPacillian, String idDokter) {
-        Optional<Rating> ratingToDelete = ratingDatabase.values().stream()
-                .filter(rating -> rating.getIdPacillian().equals(idPacillian) 
-                              && rating.getIdDokter().equals(idDokter))
+    public Optional<Rating> findByIdPasienAndIdDokter(String idPasien, String idDokter) {
+        return ratingDatabase.values().stream()
+                .filter(rating -> rating.getIdPasien().equals(idPasien)
+                        && rating.getIdDokter().equals(idDokter))
                 .findFirst();
-        
-        ratingToDelete.ifPresent(rating -> ratingDatabase.remove(rating.getId()));
-        
-        return ratingToDelete;
+    }
+
+    @Override
+    public Double calculateAverageRatingByDokter(String idDokter) {
+        List<Rating> doctorRatings = findByIdDokter(idDokter);
+        if (doctorRatings.isEmpty()) {
+            return null;
+        }
+
+        return doctorRatings.stream()
+                .mapToInt(Rating::getRatingScore)
+                .average()
+                .orElse(0.0);
+    }
+
+    @Override
+    public long countByIdDokter(String idDokter) {
+        return findByIdDokter(idDokter).size();
     }
 
     @Override
     public Rating save(Rating rating) {
         if (rating.getId() == null) {
-            // Buat rating baru
-            rating.setId(idCounter.getAndIncrement());
+            // Create a new unique ID for new ratings
+            String newId = "RTG" + idCounter.getAndIncrement();
+            rating.setId(newId);
         }
-        
+
         // Save or update
         ratingDatabase.put(rating.getId(), rating);
-        
+
         return rating;
+    }
+
+    @Override
+    public void deleteByIdPasienAndIdDokter(String idPasien, String idDokter) {
+        Optional<Rating> ratingToDelete = findByIdPasienAndIdDokter(idPasien, idDokter);
+
+        ratingToDelete.ifPresent(rating -> ratingDatabase.remove(rating.getId()));
     }
 }

@@ -5,33 +5,58 @@ import java.util.Optional;
 
 import com.pandacare.mainapp.rating.model.Rating;
 
+/**
+ * Repository interface for Rating entity
+ */
 public interface RatingRepository {
+
     /**
-     * Mencari rating berdasarkan ID pemilik (Pacillian)
-     * @param idPacillian ID dari Pacillian
-     * @return Optional berisi daftar rating atau kosong jika tidak ditemukan
+     * Find ratings by patient ID
+     * @param idPasien patient ID
+     * @return list of ratings
      */
-    Optional<List<Rating>> findByOwnerId(String idPacillian);
-    
+    List<Rating> findByIdPasien(String idPasien);
+
     /**
-     * Mencari rating berdasarkan ID Dokter
-     * @param idDokter ID dari Dokter
-     * @return Optional berisi daftar rating atau kosong jika tidak ditemukan
+     * Find ratings by doctor ID
+     * @param idDokter doctor ID
+     * @return list of ratings
      */
-    Optional<List<Rating>> findByIdDokter(String idDokter);
-    
+    List<Rating> findByIdDokter(String idDokter);
+
     /**
-     * Menghapus rating berdasarkan ID Pacillian dan ID Dokter
-     * @param idPacillian ID dari Pacillian
-     * @param idDokter ID dari Dokter
-     * @return Optional berisi rating yang dihapus atau kosong jika tidak ditemukan
+     * Find rating by patient ID and doctor ID
+     * @param idPasien patient ID
+     * @param idDokter doctor ID
+     * @return optional rating
      */
-    Optional<Rating> deleteById(String idPacillian, String idDokter);
-    
+    Optional<Rating> findByIdPasienAndIdDokter(String idPasien, String idDokter);
+
     /**
-     * Menyimpan atau memperbarui rating
-     * @param rating Rating yang akan disimpan
-     * @return Rating yang telah disimpan dengan ID yang diperbarui jika baru
+     * Calculate average rating score for a doctor
+     * @param idDokter doctor ID
+     * @return average rating score
+     */
+    Double calculateAverageRatingByDokter(String idDokter);
+
+    /**
+     * Count ratings for a doctor
+     * @param idDokter doctor ID
+     * @return number of ratings
+     */
+    long countByIdDokter(String idDokter);
+
+    /**
+     * Save or update a rating
+     * @param rating the rating to save
+     * @return the saved rating
      */
     Rating save(Rating rating);
+
+    /**
+     * Delete rating by patient ID and doctor ID
+     * @param idPasien patient ID
+     * @param idDokter doctor ID
+     */
+    void deleteByIdPasienAndIdDokter(String idPasien, String idDokter);
 }
