@@ -7,7 +7,6 @@ import java.util.Optional;
 
 import com.pandacare.mainapp.rating.model.Rating;
 import com.pandacare.mainapp.rating.repository.RatingRepository;
-import com.pandacare.mainapp.rating.repository.UserRepository;
 
 public class RatingServiceImpl implements RatingService {
 
@@ -26,15 +25,15 @@ public class RatingServiceImpl implements RatingService {
     protected final Rating processRating(Rating rating, boolean isNew) {
         // Validasi data rating
         validateRating(rating);
-        
+
         // Validasi pengguna
         if (isNew) {
             validateUsers(rating);
         }
-        
+
         // Set tanggal sesuai status
         prepareRatingDates(rating, isNew);
-        
+
         // Jika update, pastikan rating sudah ada
         if (!isNew) {
             Rating existingRating = findExistingRating(rating);
@@ -42,34 +41,34 @@ public class RatingServiceImpl implements RatingService {
             rating.setId(existingRating.getId());
             rating.setCreatedAt(existingRating.getCreatedAt());
         }
-        
+
         // Simpan rating
         return saveRating(rating);
     }
-    
+
     // Hook methods yang dapat dioverride oleh subclass
     protected void validateRating(Rating rating) {
         if (rating.getRatingScore() < 1 || rating.getRatingScore() > 5) {
             throw new IllegalArgumentException("Rating score harus di antara 1 dan 5");
         }
-        
+
         if (rating.getUlasan() == null || rating.getUlasan().trim().isEmpty()) {
             throw new IllegalArgumentException("Ulasan tidak boleh kosong");
         }
     }
-    
+
     protected void validateUsers(Rating rating) {
         // Validasi dokter ada
         if (!userRepository.existsById(rating.getIdDokter())) {
             throw new IllegalArgumentException("Dokter dengan ID " + rating.getIdDokter() + " tidak ditemukan");
         }
-        
+
         // Validasi pacillian ada
         if (!userRepository.existsById(rating.getIdPacillian())) {
             throw new IllegalArgumentException("Pacillian dengan ID " + rating.getIdPacillian() + " tidak ditemukan");
         }
     }
-    
+
     protected void prepareRatingDates(Rating rating, boolean isNew) {
         LocalDateTime now = LocalDateTime.now();
         if (isNew) {
@@ -77,10 +76,10 @@ public class RatingServiceImpl implements RatingService {
         }
         rating.setUpdatedAt(now);
     }
-    
+
     protected Rating findExistingRating(Rating rating) {
         Optional<List<Rating>> ratingsByOwner = ratingRepository.findByOwnerId(rating.getIdPacillian());
-        
+
         if (ratingsByOwner.isPresent()) {
             return ratingsByOwner.get().stream()
                 .filter(r -> r.getIdDokter().equals(rating.getIdDokter()))
@@ -88,11 +87,11 @@ public class RatingServiceImpl implements RatingService {
                 .orElseThrow(() -> new IllegalArgumentException(
                     "Rating untuk dokter dengan ID " + rating.getIdDokter() + " tidak ditemukan"));
         } else {
-            throw new IllegalArgumentException("Tidak ada rating yang dimiliki oleh pacillian dengan ID " 
+            throw new IllegalArgumentException("Tidak ada rating yang dimiliki oleh pacillian dengan ID "
                 + rating.getIdPacillian());
         }
     }
-    
+
     protected Rating saveRating(Rating rating) {
         return ratingRepository.save(rating);
     }
