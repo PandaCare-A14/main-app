@@ -5,7 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import com.pandacare.mainapp.common.dto.ApiResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Global exception handler for all controllers
@@ -14,26 +15,24 @@ import com.pandacare.mainapp.common.dto.ApiResponse;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ApiResponse<Object>> handleBusinessException(BusinessException ex) {
-        ApiResponse<Object> response = ApiResponse.error(ex.getMessage());
-        return ResponseEntity.status(ex.getStatusCode()).body(response);
+    public ResponseEntity<String> handleBusinessException(BusinessException ex) {
+        return ResponseEntity.status(ex.getStatusCode()).body(ex.getMessage());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse<Object>> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        ApiResponse<Object> response = ApiResponse.error(ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiResponse<Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
-        ApiResponse<Object> response = ApiResponse.error(ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Object>> handleGlobalException(Exception ex) {
-        ApiResponse<Object> response = ApiResponse.error("Terjadi kesalahan pada server: " + ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    public ResponseEntity<Object> handleGlobalException(Exception ex) {
+        System.out.println("Unexpected error: " + ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

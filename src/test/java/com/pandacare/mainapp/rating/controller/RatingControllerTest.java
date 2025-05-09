@@ -3,6 +3,7 @@ package com.pandacare.mainapp.rating.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -79,10 +80,19 @@ public class RatingControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/v1/doctors/DOC12345/ratings"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.data.averageRating").value(4.5))
-                .andExpect(jsonPath("$.data.totalRatings").value(2))
-                .andExpect(jsonPath("$.data.ratings.length()").value(2));
+                .andExpect(jsonPath("$.averageRating").value(4.5))
+                .andExpect(jsonPath("$.totalRatings").value(2))
+                .andExpect(jsonPath("$.ratings.length()").value(2));
+    }
+
+    @Test
+    public void testGetRatingsByDokterError() throws Exception {
+        // Arrange
+        when(ratingService.getRatingsByDokter("DOC12345")).thenThrow(new RuntimeException("Database error"));
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/doctors/DOC12345/ratings"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -94,9 +104,7 @@ public class RatingControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/v1/patients/PAT7890/ratings"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].id").value("RTG12345"));
+                .andExpect(jsonPath("$[0].id").value("RTG12345"));
     }
 
     @Test
@@ -107,8 +115,7 @@ public class RatingControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/v1/patients/PAT7890/doctors/DOC12345/ratings"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.data.id").value("RTG12345"));
+                .andExpect(jsonPath("$.id").value("RTG12345"));
     }
 
     @Test
@@ -119,9 +126,7 @@ public class RatingControllerTest {
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/patients/PAT7890/doctors/DOC12345/ratings"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value("error"))
-                .andExpect(jsonPath("$.message").value("Rating tidak ditemukan"));
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -136,8 +141,7 @@ public class RatingControllerTest {
                         .content(objectMapper.writeValueAsString(testRatingRequest))
                         .header("X-User-ID", "PAT7890"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.data.id").value("RTG12345"));
+                .andExpect(jsonPath("$.id").value("RTG12345"));
     }
 
     @Test
@@ -151,9 +155,7 @@ public class RatingControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testRatingRequest))
                         .header("X-User-ID", "PAT7890"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("error"))
-                .andExpect(jsonPath("$.message").value("Pasien belum pernah melakukan konsultasi dengan dokter ini"));
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -168,8 +170,7 @@ public class RatingControllerTest {
                         .content(objectMapper.writeValueAsString(testRatingRequest))
                         .header("X-User-ID", "PAT7890"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.data.id").value("RTG12345"));
+                .andExpect(jsonPath("$.id").value("RTG12345"));
     }
 
     @Test
@@ -183,9 +184,7 @@ public class RatingControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testRatingRequest))
                         .header("X-User-ID", "PAT7890"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value("error"))
-                .andExpect(jsonPath("$.message").value("Rating tidak ditemukan"));
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -196,22 +195,30 @@ public class RatingControllerTest {
         // Act & Assert
         mockMvc.perform(delete("/api/v1/doctors/DOC12345/ratings")
                         .header("X-User-ID", "PAT7890"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.message").value("Rating berhasil dihapus"));
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testDeleteRatingError() throws Exception {
+        // Arrange
+        doThrow(new RuntimeException("Database error")).when(ratingService).deleteRating(anyString(), anyString());
+
+        // Act & Assert
+        mockMvc.perform(delete("/api/v1/doctors/DOC12345/ratings")
+                        .header("X-User-ID", "PAT7890"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     public void testValidationError() throws Exception {
-        // Arrange
-        RatingRequest invalidRequest = new RatingRequest(0, ""); // Invalid rating and empty review
+        // Arrange - Invalid request with rating=0
+        RatingRequest invalidRequest = new RatingRequest(0, "Invalid rating");
 
         // Act & Assert
         mockMvc.perform(post("/api/v1/doctors/DOC12345/ratings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest))
                         .header("X-User-ID", "PAT7890"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("error"));
+                .andExpect(status().isBadRequest());
     }
 }

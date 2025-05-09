@@ -5,17 +5,13 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pandacare.mainapp.common.dto.ApiResponse;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.dto.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
@@ -27,7 +23,6 @@ import com.pandacare.mainapp.rating.service.RatingService;
  * This controller implements REST API with unary RPC pattern for rating operations
  */
 @RestController
-@RequestMapping("/api/v1")
 public class RatingController {
 
     @Autowired
@@ -38,10 +33,17 @@ public class RatingController {
      * @param idDokter doctor ID
      * @return list of ratings with average and total count
      */
-    @GetMapping("/doctors/{idDokter}/ratings")
-    public ResponseEntity<ApiResponse<RatingListResponse>> getRatingsByDokter(@PathVariable String idDokter) {
-        RatingListResponse ratings = ratingService.getRatingsByDokter(idDokter);
-        return ResponseEntity.ok(ApiResponse.success(ratings));
+    @RequestMapping(value = "/api/v1/doctors/{idDokter}/ratings", method = RequestMethod.GET)
+    public ResponseEntity getRatingsByDokter(@PathVariable String idDokter) {
+        ResponseEntity responseEntity = null;
+        try {
+            RatingListResponse ratings = ratingService.getRatingsByDokter(idDokter);
+            responseEntity = ResponseEntity.ok(ratings);
+        } catch (Exception e) {
+            System.out.println("Error getting ratings for doctor: " + e.getMessage());
+            responseEntity = ResponseEntity.badRequest().body(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return responseEntity;
     }
 
     /**
@@ -49,10 +51,17 @@ public class RatingController {
      * @param idPasien patient ID
      * @return list of ratings
      */
-    @GetMapping("/patients/{idPasien}/ratings")
-    public ResponseEntity<ApiResponse<List<RatingResponse>>> getRatingsByPasien(@PathVariable String idPasien) {
-        List<RatingResponse> ratings = ratingService.getRatingsByPasien(idPasien);
-        return ResponseEntity.ok(ApiResponse.success(ratings));
+    @RequestMapping(value = "/api/v1/patients/{idPasien}/ratings", method = RequestMethod.GET)
+    public ResponseEntity getRatingsByPasien(@PathVariable String idPasien) {
+        ResponseEntity responseEntity = null;
+        try {
+            List<RatingResponse> ratings = ratingService.getRatingsByPasien(idPasien);
+            responseEntity = ResponseEntity.ok(ratings);
+        } catch (Exception e) {
+            System.out.println("Error getting ratings by patient: " + e.getMessage());
+            responseEntity = ResponseEntity.badRequest().body(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return responseEntity;
     }
 
     /**
@@ -61,11 +70,17 @@ public class RatingController {
      * @param idDokter doctor ID
      * @return rating response
      */
-    @GetMapping("/patients/{idPasien}/doctors/{idDokter}/ratings")
-    public ResponseEntity<ApiResponse<RatingResponse>> getRatingByPasienAndDokter(
-            @PathVariable String idPasien, @PathVariable String idDokter) {
-        RatingResponse rating = ratingService.getRatingByPasienAndDokter(idPasien, idDokter);
-        return ResponseEntity.ok(ApiResponse.success(rating));
+    @RequestMapping(value = "/api/v1/patients/{idPasien}/doctors/{idDokter}/ratings", method = RequestMethod.GET)
+    public ResponseEntity getRatingByPasienAndDokter(@PathVariable String idPasien, @PathVariable String idDokter) {
+        ResponseEntity responseEntity = null;
+        try {
+            RatingResponse rating = ratingService.getRatingByPasienAndDokter(idPasien, idDokter);
+            responseEntity = ResponseEntity.ok(rating);
+        } catch (Exception e) {
+            System.out.println("Error getting specific rating: " + e.getMessage());
+            responseEntity = ResponseEntity.badRequest().body(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return responseEntity;
     }
 
     /**
@@ -75,20 +90,25 @@ public class RatingController {
      * @param request rating data
      * @return created rating
      */
-    @PostMapping("/doctors/{idDokter}/ratings")
-    public ResponseEntity<ApiResponse<RatingResponse>> addRating(
-            @PathVariable String idDokter,
-            @RequestHeader("X-User-ID") String userId,
-            @RequestBody RatingRequest request) {
-        // Manual validation
+    @RequestMapping(value = "/api/v1/doctors/{idDokter}/ratings", method = RequestMethod.POST)
+    public ResponseEntity addRating(@PathVariable String idDokter,
+                                    @RequestHeader("X-User-ID") String userId,
+                                    @RequestBody RatingRequest request) {
+        ResponseEntity responseEntity = null;
         try {
+            // Manual validation
             request.validate();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
 
-        RatingResponse rating = ratingService.addRating(userId, idDokter, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(rating));
+            RatingResponse rating = ratingService.addRating(userId, idDokter, request);
+            responseEntity = ResponseEntity.status(HttpStatus.CREATED).body(rating);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Validation error: " + e.getMessage());
+            responseEntity = ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error adding rating: " + e.getMessage());
+            responseEntity = ResponseEntity.badRequest().body(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return responseEntity;
     }
 
     /**
@@ -98,20 +118,25 @@ public class RatingController {
      * @param request rating data
      * @return updated rating
      */
-    @PutMapping("/doctors/{idDokter}/ratings")
-    public ResponseEntity<ApiResponse<RatingResponse>> updateRating(
-            @PathVariable String idDokter,
-            @RequestHeader("X-User-ID") String userId,
-            @RequestBody RatingRequest request) {
-        // Manual validation
+    @RequestMapping(value = "/api/v1/doctors/{idDokter}/ratings", method = RequestMethod.PUT)
+    public ResponseEntity updateRating(@PathVariable String idDokter,
+                                       @RequestHeader("X-User-ID") String userId,
+                                       @RequestBody RatingRequest request) {
+        ResponseEntity responseEntity = null;
         try {
+            // Manual validation
             request.validate();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
 
-        RatingResponse rating = ratingService.updateRating(userId, idDokter, request);
-        return ResponseEntity.ok(ApiResponse.success(rating));
+            RatingResponse rating = ratingService.updateRating(userId, idDokter, request);
+            responseEntity = ResponseEntity.ok(rating);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Validation error: " + e.getMessage());
+            responseEntity = ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error updating rating: " + e.getMessage());
+            responseEntity = ResponseEntity.badRequest().body(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return responseEntity;
     }
 
     /**
@@ -120,11 +145,17 @@ public class RatingController {
      * @param userId user ID from header
      * @return success message
      */
-    @DeleteMapping("/doctors/{idDokter}/ratings")
-    public ResponseEntity<ApiResponse<Object>> deleteRating(
-            @PathVariable String idDokter,
-            @RequestHeader("X-User-ID") String userId) {
-        ratingService.deleteRating(userId, idDokter);
-        return ResponseEntity.ok(ApiResponse.success("Rating berhasil dihapus"));
+    @RequestMapping(value = "/api/v1/doctors/{idDokter}/ratings", method = RequestMethod.DELETE)
+    public ResponseEntity deleteRating(@PathVariable String idDokter,
+                                       @RequestHeader("X-User-ID") String userId) {
+        ResponseEntity responseEntity = null;
+        try {
+            ratingService.deleteRating(userId, idDokter);
+            responseEntity = ResponseEntity.ok().build();
+        } catch (Exception e) {
+            System.out.println("Error deleting rating: " + e.getMessage());
+            responseEntity = ResponseEntity.badRequest().body(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return responseEntity;
     }
 }
