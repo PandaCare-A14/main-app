@@ -181,4 +181,15 @@ public class ReservasiKonsultasiServiceTest {
         assertEquals("dok123", result.get(0).getIdDokter());
         verify(repository).findAllByIdPasien("pac123");
     }
+
+    @Test
+    void editReservasi_shouldThrowException_ifReservasiNotFound() {
+        when(repository.findById("unknown")).thenReturn(Optional.empty());
+
+        Exception ex = assertThrows(IllegalArgumentException.class, () ->
+                service.editReservasi("unknown", "Senin", "09:00", "10:00")
+        );
+
+        assertEquals("Schedule not found", ex.getMessage());
+    }
 }
