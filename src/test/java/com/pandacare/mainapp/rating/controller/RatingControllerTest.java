@@ -1,146 +1,217 @@
 package com.pandacare.mainapp.rating.controller;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
-import com.pandacare.mainapp.rating.controller.RatingController;
-import com.pandacare.mainapp.rating.model.Rating;
-import com.pandacare.mainapp.rating.service.RatingService;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 
-@ExtendWith(MockitoExtension.class)
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pandacare.mainapp.common.exception.BusinessException;
+import com.pandacare.mainapp.common.exception.ResourceNotFoundException;
+import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
+import com.pandacare.mainapp.rating.dto.RatingRequest;
+import com.pandacare.mainapp.rating.dto.response.RatingResponse;
+import com.pandacare.mainapp.rating.service.RatingService;
+
+@WebMvcTest(RatingController.class)
 public class RatingControllerTest {
 
-    @Mock
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
     private RatingService ratingService;
-    
-    private RatingController ratingController;
-    
+
+    private RatingResponse testRatingResponse;
+    private RatingRequest testRatingRequest;
+    private RatingListResponse testRatingListResponse;
+
     @BeforeEach
-    void setUp() {
-        ratingController = new RatingController(ratingService);
+    public void setup() {
+        // Setup test data
+        testRatingResponse = new RatingResponse();
+        testRatingResponse.setId("RTG12345");
+        testRatingResponse.setIdDokter("DOC12345");
+        testRatingResponse.setIdPasien("PAT7890");
+        testRatingResponse.setRatingScore(4);
+        testRatingResponse.setUlasan("Dokter sangat ramah");
+        testRatingResponse.setCreatedAt(LocalDateTime.now().minusDays(1));
+        testRatingResponse.setUpdatedAt(LocalDateTime.now().minusDays(1));
+
+        RatingResponse testRatingResponse2 = new RatingResponse();
+        testRatingResponse2.setId("RTG12346");
+        testRatingResponse2.setIdDokter("DOC12345");
+        testRatingResponse2.setIdPasien("PAT7891");
+        testRatingResponse2.setRatingScore(5);
+        testRatingResponse2.setUlasan("Pelayanan memuaskan");
+        testRatingResponse2.setCreatedAt(LocalDateTime.now().minusDays(2));
+        testRatingResponse2.setUpdatedAt(LocalDateTime.now().minusDays(2));
+
+        List<RatingResponse> testRatingResponses = Arrays.asList(testRatingResponse, testRatingResponse2);
+
+        testRatingListResponse = new RatingListResponse(4.5, 2, testRatingResponses);
+
+        testRatingRequest = new RatingRequest(5, "Updated review");
     }
-    
+
     @Test
-    void testAddRating_Success() {
+    public void testGetRatingsByDokter() throws Exception {
         // Arrange
-        Rating newRating = new Rating(null, "DOK001", "PAC001", 4, "Pelayanan baik", null, null);
-        Rating savedRating = new Rating(1L, "DOK001", "PAC001", 4, "Pelayanan baik", 
-                                        LocalDateTime.now(), LocalDateTime.now());
-        
-        when(ratingService.addRating(newRating)).thenReturn(savedRating);
-        
-        // Act
-        ResponseEntity<Rating> response = ratingController.addRating(newRating);
-        
-        // Assert
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(savedRating, response.getBody());
-        verify(ratingService).addRating(newRating);
+        when(ratingService.getRatingsByDokter("DOC12345")).thenReturn(testRatingListResponse);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/doctors/DOC12345/ratings"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.averageRating").value(4.5))
+                .andExpect(jsonPath("$.data.totalRatings").value(2))
+                .andExpect(jsonPath("$.data.ratings.length()").value(2));
     }
-    
+
     @Test
-    void testAddRating_Failure() {
+    public void testGetRatingsByPasien() throws Exception {
         // Arrange
-        Rating newRating = new Rating(null, "DOK001", "PAC001", 4, "Pelayanan baik", null, null);
-        
-        when(ratingService.addRating(newRating)).thenThrow(new IllegalArgumentException("Validasi gagal"));
-        
-        // Act
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            ratingController.addRating(newRating);
-        });
-        
-        // Assert
-        assertEquals("Validasi gagal", exception.getMessage());
-        verify(ratingService).addRating(newRating);
+        List<RatingResponse> ratings = Arrays.asList(testRatingResponse);
+        when(ratingService.getRatingsByPasien("PAT7890")).thenReturn(ratings);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/patients/PAT7890/ratings"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].id").value("RTG12345"));
     }
-    
+
     @Test
-    void testUpdateRating_Success() {
+    public void testGetRatingByPasienAndDokter() throws Exception {
         // Arrange
-        Rating updateRating = new Rating(1L, "DOK001", "PAC001", 5, "Pelayanan sangat baik", null, null);
-        Rating updatedRating = new Rating(1L, "DOK001", "PAC001", 5, "Pelayanan sangat baik", 
-                                         LocalDateTime.now(), LocalDateTime.now());
-        
-        when(ratingService.updateRating(updateRating)).thenReturn(updatedRating);
-        
-        // Act
-        ResponseEntity<Rating> response = ratingController.updateRating(updateRating);
-        
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(updatedRating, response.getBody());
-        verify(ratingService).updateRating(updateRating);
+        when(ratingService.getRatingByPasienAndDokter("PAT7890", "DOC12345")).thenReturn(testRatingResponse);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/patients/PAT7890/doctors/DOC12345/ratings"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.id").value("RTG12345"));
     }
-    
+
     @Test
-    void testDeleteRating_Success() {
+    public void testGetRatingByPasienAndDokterNotFound() throws Exception {
         // Arrange
-        String idPacillian = "PAC001";
-        String idDokter = "DOK001";
-        Rating deletedRating = new Rating(1L, idDokter, idPacillian, 4, "Pelayanan baik", 
-                                         LocalDateTime.now(), LocalDateTime.now());
-        
-        when(ratingService.deleteRating(idPacillian, idDokter)).thenReturn(deletedRating);
-        
-        // Act
-        ResponseEntity<Rating> response = ratingController.deleteRating(idPacillian, idDokter);
-        
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(deletedRating, response.getBody());
-        verify(ratingService).deleteRating(idPacillian, idDokter);
+        when(ratingService.getRatingByPasienAndDokter("PAT7890", "DOC12345"))
+                .thenThrow(new ResourceNotFoundException("Rating tidak ditemukan"));
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/patients/PAT7890/doctors/DOC12345/ratings"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("error"))
+                .andExpect(jsonPath("$.message").value("Rating tidak ditemukan"));
     }
-    
+
     @Test
-    void testGetRatingsByOwnerId_Success() {
+    public void testAddRating() throws Exception {
         // Arrange
-        String idPacillian = "PAC001";
-        List<Rating> expectedRatings = Arrays.asList(
-            new Rating(1L, "DOK001", idPacillian, 4, "Pelayanan baik", LocalDateTime.now(), LocalDateTime.now()),
-            new Rating(2L, "DOK002", idPacillian, 5, "Sangat puas", LocalDateTime.now(), LocalDateTime.now())
-        );
-        
-        when(ratingService.getRatingsByOwnerId(idPacillian)).thenReturn(expectedRatings);
-        
-        // Act
-        ResponseEntity<List<Rating>> response = ratingController.getRatingsByOwnerId(idPacillian);
-        
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(2, response.getBody().size());
-        verify(ratingService).getRatingsByOwnerId(idPacillian);
+        when(ratingService.addRating(anyString(), anyString(), any(RatingRequest.class)))
+                .thenReturn(testRatingResponse);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/doctors/DOC12345/ratings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testRatingRequest))
+                        .header("X-User-ID", "PAT7890"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.id").value("RTG12345"));
     }
-    
+
     @Test
-    void testGetRatingsByIdDokter_Success() {
+    public void testAddRatingNoConsultation() throws Exception {
         // Arrange
-        String idDokter = "DOK001";
-        List<Rating> expectedRatings = Arrays.asList(
-            new Rating(1L, idDokter, "PAC001", 4, "Pelayanan baik", LocalDateTime.now(), LocalDateTime.now()),
-            new Rating(2L, idDokter, "PAC002", 5, "Sangat puas", LocalDateTime.now(), LocalDateTime.now())
-        );
-        
-        when(ratingService.getRatingsByIdDokter(idDokter)).thenReturn(expectedRatings);
-        
-        // Act
-        ResponseEntity<List<Rating>> response = ratingController.getRatingsByIdDokter(idDokter);
-        
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(2, response.getBody().size());
-        verify(ratingService).getRatingsByIdDokter(idDokter);
+        when(ratingService.addRating(anyString(), anyString(), any(RatingRequest.class)))
+                .thenThrow(new BusinessException("Pasien belum pernah melakukan konsultasi dengan dokter ini"));
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/doctors/DOC12345/ratings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testRatingRequest))
+                        .header("X-User-ID", "PAT7890"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("error"))
+                .andExpect(jsonPath("$.message").value("Pasien belum pernah melakukan konsultasi dengan dokter ini"));
+    }
+
+    @Test
+    public void testUpdateRating() throws Exception {
+        // Arrange
+        when(ratingService.updateRating(anyString(), anyString(), any(RatingRequest.class)))
+                .thenReturn(testRatingResponse);
+
+        // Act & Assert
+        mockMvc.perform(put("/api/v1/doctors/DOC12345/ratings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testRatingRequest))
+                        .header("X-User-ID", "PAT7890"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.id").value("RTG12345"));
+    }
+
+    @Test
+    public void testUpdateRatingNotFound() throws Exception {
+        // Arrange
+        when(ratingService.updateRating(anyString(), anyString(), any(RatingRequest.class)))
+                .thenThrow(new ResourceNotFoundException("Rating tidak ditemukan"));
+
+        // Act & Assert
+        mockMvc.perform(put("/api/v1/doctors/DOC12345/ratings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testRatingRequest))
+                        .header("X-User-ID", "PAT7890"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("error"))
+                .andExpect(jsonPath("$.message").value("Rating tidak ditemukan"));
+    }
+
+    @Test
+    public void testDeleteRating() throws Exception {
+        // Arrange
+        doNothing().when(ratingService).deleteRating(anyString(), anyString());
+
+        // Act & Assert
+        mockMvc.perform(delete("/api/v1/doctors/DOC12345/ratings")
+                        .header("X-User-ID", "PAT7890"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.message").value("Rating berhasil dihapus"));
+    }
+
+    @Test
+    public void testValidationError() throws Exception {
+        // Arrange
+        RatingRequest invalidRequest = new RatingRequest(0, ""); // Invalid rating and empty review
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/doctors/DOC12345/ratings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest))
+                        .header("X-User-ID", "PAT7890"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("error"));
     }
 }
