@@ -10,11 +10,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -67,19 +70,18 @@ class ReservasiKonsultasiControllerTest {
         originalReservasi.setDay("MONDAY");
         originalReservasi.setStartTime("09:00");
         originalReservasi.setEndTime("10:00");
-        originalReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);  // Status awal
+        originalReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
 
         // Membuat objek untuk reservasi setelah diedit
         ReservasiKonsultasi updatedReservasi = new ReservasiKonsultasi();
         updatedReservasi.setId("RSV001");
         updatedReservasi.setIdDokter("dok123");
         updatedReservasi.setIdPasien("pac123");
-        updatedReservasi.setDay("TUESDAY");       // Updated value
-        updatedReservasi.setStartTime("10:00");   // Updated value
-        updatedReservasi.setEndTime("11:00");     // Updated value
+        updatedReservasi.setDay("TUESDAY");
+        updatedReservasi.setStartTime("10:00");
+        updatedReservasi.setEndTime("11:00");
         updatedReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
 
-        // Mock service untuk mengedit reservasi dengan detail yang lebih spesifik
         when(reservasiService.editReservasi(
                 eq("RSV001"),
                 eq("TUESDAY"),
@@ -87,7 +89,6 @@ class ReservasiKonsultasiControllerTest {
                 eq("11:00")
         )).thenReturn(updatedReservasi);
 
-        // Melakukan request POST ke endpoint /{id}/edit
         mockMvc.perform(post("/api/reservasi-konsultasi/{id}/edit", "RSV001")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -103,7 +104,6 @@ class ReservasiKonsultasiControllerTest {
                 .andExpect(jsonPath("$.reservasi.startTime").value("10:00"))
                 .andExpect(jsonPath("$.reservasi.endTime").value("11:00"));
 
-        // Verifikasi bahwa metode service dipanggil dengan parameter yang benar
         verify(reservasiService).editReservasi("RSV001", "TUESDAY", "10:00", "11:00");
     }
 
@@ -131,5 +131,37 @@ class ReservasiKonsultasiControllerTest {
                         """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Hanya jadwal dengan status WAITING yang bisa diedit"));
+    }
+
+    @Test
+    void testGetAllReservasiByIdPasien_success() throws Exception {
+        ReservasiKonsultasi reservasi1 = new ReservasiKonsultasi();
+        reservasi1.setId("RSV001");
+        reservasi1.setIdDokter("dokA");
+        reservasi1.setIdPasien("pac123");
+        reservasi1.setDay("MONDAY");
+        reservasi1.setStartTime("09:00");
+        reservasi1.setEndTime("10:00");
+        reservasi1.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+
+        ReservasiKonsultasi reservasi2 = new ReservasiKonsultasi();
+        reservasi2.setId("RSV002");
+        reservasi2.setIdDokter("dokB");
+        reservasi2.setIdPasien("pac123");
+        reservasi2.setDay("TUESDAY");
+        reservasi2.setStartTime("11:00");
+        reservasi2.setEndTime("12:00");
+        reservasi2.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
+
+        when(reservasiService.findAllByPasien("pac123")).thenReturn(List.of(reservasi1, reservasi2));
+
+        mockMvc.perform(get("/api/reservasi-konsultasi/pac123"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("RSV001"))
+                .andExpect(jsonPath("$[1].id").value("RSV002"))
+                .andExpect(jsonPath("$[0].idPasien").value("pac123"))
+                .andExpect(jsonPath("$.length()").value(2));
+
+        verify(reservasiService).findAllByPasien("pac123");
     }
 }
