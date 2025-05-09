@@ -12,5 +12,5 @@ public abstract class ReservasiKonsultasiTemplate {
 
     protected abstract void validate();
     protected abstract ReservasiKonsultasi prepare();
-    protected abstract ReservasiKonsultasi save(ReservasiKonsultasi jadwal);
+    protected abstract ReservasiKonsultasi save(ReservasiKonsultasi reservasi);
 }

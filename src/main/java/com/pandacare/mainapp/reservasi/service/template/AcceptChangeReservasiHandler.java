@@ -19,7 +19,7 @@ public class AcceptChangeReservasiHandler extends ReservasiKonsultasiTemplate {
         reservasi = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
 
-        if (!reservasi.isChangeSchedule()) {
+        if (!reservasi.isChangeReservasi()) {
             throw new IllegalStateException("No change request exists for this schedule");
         }
     }
@@ -33,13 +33,13 @@ public class AcceptChangeReservasiHandler extends ReservasiKonsultasiTemplate {
         reservasi.setNewDay(null);
         reservasi.setNewStartTime(null);
         reservasi.setNewEndTime(null);
-        reservasi.setChangeSchedule(false);
+        reservasi.setChangeReservasi(false);
 
         return reservasi;
     }
 
     @Override
-    protected ReservasiKonsultasi save(ReservasiKonsultasi jadwal) {
-        return repository.save(jadwal);
+    protected ReservasiKonsultasi save(ReservasiKonsultasi reservasi) {
+        return repository.save(reservasi);
     }
 }

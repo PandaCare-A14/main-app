@@ -10,6 +10,8 @@ import com.pandacare.mainapp.reservasi.service.template.RequestReservasiHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ReservasiKonsultasiServiceImpl {
 
@@ -26,6 +28,15 @@ public class ReservasiKonsultasiServiceImpl {
         return handler.handle();
     }
 
+    public ReservasiKonsultasi acceptChangeReservasi(String id) {
+        AcceptChangeReservasiHandler handler = new AcceptChangeReservasiHandler(id, repository);
+        return handler.handle();
+    }
+
+    public void rejectChangeReservasi(String id) {
+        new RejectChangeReservasiHandler(id, repository).handle();
+    }
+
     public ReservasiKonsultasi findById(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
@@ -35,12 +46,7 @@ public class ReservasiKonsultasiServiceImpl {
         repository.deleteById(id);
     }
 
-    public ReservasiKonsultasi acceptChangeSchedule(String id) {
-        AcceptChangeReservasiHandler handler = new AcceptChangeReservasiHandler(id, repository);
-        return handler.handle();
-    }
-
-    public void rejectChangeSchedule(String id) {
-        new RejectChangeReservasiHandler(id, repository).handle();
+    public List<ReservasiKonsultasi> findAllByPasien(String idPasien) {
+        return repository.findAllByIdPasien(idPasien);
     }
 }

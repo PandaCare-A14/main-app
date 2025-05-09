@@ -22,7 +22,7 @@ public class EditReservasiHandler extends ReservasiKonsultasiTemplate {
     protected void validate() {
         reservasi = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
 
-        if (reservasi.getStatusPacilian() != StatusReservasiKonsultasi.WAITING) {
+        if (reservasi.getStatusReservasi() != StatusReservasiKonsultasi.WAITING) {
             throw new IllegalStateException("Only schedules with status WAITING can be edited");
         }
 
@@ -40,8 +40,8 @@ public class EditReservasiHandler extends ReservasiKonsultasiTemplate {
     }
 
     @Override
-    protected ReservasiKonsultasi save(ReservasiKonsultasi jadwal) {
-        return repository.save(jadwal);
+    protected ReservasiKonsultasi save(ReservasiKonsultasi reservasi) {
+        return repository.save(reservasi);
     }
 }
 
