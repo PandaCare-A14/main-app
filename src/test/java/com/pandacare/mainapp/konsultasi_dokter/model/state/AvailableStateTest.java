@@ -4,46 +4,102 @@ import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.time.LocalDate;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class AvailableStateTest {
-    private CaregiverSchedule jadwal;
+    private CaregiverSchedule schedule;
     private AvailableState state;
 
     @BeforeEach
     void setUp() {
-        jadwal = new CaregiverSchedule();
+        schedule = new CaregiverSchedule();
         state = new AvailableState();
+        schedule.setState(state);
     }
 
     @Test
-    void testHandleRequest() {
-        String pasienId = "PAT-12345";
-        String message = "Saya ingin konsultasi";
-
-        state.handleRequest(jadwal, pasienId, message);
-
-        assertEquals("REQUESTED", jadwal.getStatusCaregiver());
-        assertEquals(pasienId, jadwal.getIdPacilian());
-        assertEquals(message, jadwal.getMessage());
+    void testGetStatusName() {
+        assertEquals("AVAILABLE", state.getStatusName());
     }
 
     @Test
-    void testHandleApprove() {
-        assertThrows(IllegalStateException.class, () -> state.handleApprove(jadwal));
+    void testIsAvailable() {
+        assertTrue(state.isAvailable());
     }
 
     @Test
-    void testHandleReject() {
-        assertThrows(IllegalStateException.class, () -> state.handleReject(jadwal, null));
+    void testHandleRequestSuccess() {
+        String idPacilian = "PAT-123";
+        String message = "Konsultasi tentang penyakit jantung";
+
+        state.handleRequest(schedule, idPacilian, message);
+
+        assertInstanceOf(RequestedState.class, schedule.getCurrentState());
+        assertEquals("REQUESTED", schedule.getStatusCaregiver());
+        assertEquals(idPacilian, schedule.getIdPacilian());
+        assertEquals(message, schedule.getMessage());
+        assertFalse(schedule.isAvailable());
     }
 
     @Test
-    void testHandleChangeSchedule() {
-        assertThrows(IllegalStateException.class,
-                () -> state.handleChangeSchedule(jadwal, LocalDate.parse("2025-05-06"), LocalTime.parse("09:00"), LocalTime.parse("10:00"),
-                        "ada urusan mendadak, mohon diganti"));
+    void testHandleRequestWithNullId() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                state.handleRequest(schedule, null, "Konsultasi"));
+
+        assertEquals("Pacilian ID can't be null.", exception.getMessage());
+
+        assertInstanceOf(AvailableState.class, schedule.getCurrentState());
+        assertEquals("AVAILABLE", schedule.getStatusCaregiver());
+        assertTrue(schedule.isAvailable());
+    }
+
+    @Test
+    void testHandleRequestWithNullMessage() {
+        String idPacilian = "PAT-123";
+
+        state.handleRequest(schedule, idPacilian, null);
+
+        assertInstanceOf(RequestedState.class, schedule.getCurrentState());
+        assertEquals("REQUESTED", schedule.getStatusCaregiver());
+        assertEquals(idPacilian, schedule.getIdPacilian());
+        assertNull(schedule.getMessage());
+    }
+
+    @Test
+    void testHandleApproveUnsuccessful() {
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                state.handleApprove(schedule));
+
+        assertEquals("No request found.", exception.getMessage());
+
+        assertInstanceOf(AvailableState.class, schedule.getCurrentState());
+        assertEquals("AVAILABLE", schedule.getStatusCaregiver());
+    }
+
+    @Test
+    void testHandleRejectUnsuccessful() {
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                state.handleReject(schedule, "Alasan penolakan"));
+
+        assertEquals("No request found.", exception.getMessage());
+
+        assertInstanceOf(AvailableState.class, schedule.getCurrentState());
+        assertEquals("AVAILABLE", schedule.getStatusCaregiver());
+    }
+
+    @Test
+    void testHandleChangeScheduleUnsuccessful() {
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                state.handleChangeSchedule(schedule, DayOfWeek.FRIDAY,
+                        LocalTime.of(14, 0), LocalTime.of(15, 0),
+                        "Alasan perubahan"));
+
+        assertEquals("No request found.", exception.getMessage());
+
+        assertInstanceOf(AvailableState.class, schedule.getCurrentState());
+        assertEquals("AVAILABLE", schedule.getStatusCaregiver());
     }
 }

@@ -4,47 +4,66 @@ import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ChangeScheduleStateTest {
-    private CaregiverSchedule jadwal;
+    private CaregiverSchedule schedule;
     private ChangeScheduleState state;
 
     @BeforeEach
     void setUp() {
-        jadwal = new CaregiverSchedule();
-        jadwal.setState(new ChangeScheduleState());
+        schedule = new CaregiverSchedule();
         state = new ChangeScheduleState();
+        schedule.setChangeSchedule(true);
     }
 
     @Test
-    void testHandleRequest() {
-        assertThrows(IllegalStateException.class, () ->
-                state.handleRequest(jadwal, "PAT-003", "Reschedule lagi"));
+    void testGetStatusName() {
+        assertEquals("CHANGE_SCHEDULE", state.getStatusName());
+    }
+
+    @Test
+    void testIsAvailable() {
+        assertFalse(state.isAvailable());
+    }
+
+    @Test
+    void testHandleRequest_ThrowsException() {
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                state.handleRequest(schedule, "PAT-123", null));
+
+        assertEquals("Request on changing process.", exception.getMessage());
     }
 
     @Test
     void testHandleApprove() {
-        state.handleApprove(jadwal);
+        state.handleApprove(schedule);
 
-        assertEquals("APPROVED", jadwal.getStatusCaregiver());
-        assertFalse(jadwal.isChangeSchedule());
+        assertEquals("APPROVED", schedule.getStatusCaregiver());
+        assertFalse(schedule.isChangeSchedule());
+        assertTrue(schedule.getCurrentState() instanceof ApprovedState);
     }
 
     @Test
     void testHandleReject() {
-        state.handleReject(jadwal, "Pasien tidak setuju");
+        String rejectionReason = "Pasien tidak setuju dengan perubahan jadwal";
+        state.handleReject(schedule, rejectionReason);
 
-        assertEquals("REJECTED", jadwal.getStatusCaregiver());
-        assertEquals("Pasien tidak setuju", jadwal.getMessage());
-        assertFalse(jadwal.isChangeSchedule());
+        assertEquals("REJECTED", schedule.getStatusCaregiver());
+        assertEquals(rejectionReason, schedule.getMessage());
+        assertFalse(schedule.isChangeSchedule());
+        assertTrue(schedule.getCurrentState() instanceof RejectedState);
     }
 
     @Test
-    void testHandleChangeSchedule() {
-        assertThrows(IllegalStateException.class, () ->
-                state.handleChangeSchedule(jadwal, LocalDate.parse("2025-05-01"), LocalTime.parse("15:00"), LocalTime.parse("16:00"), "Ubah lagi"));
+    void testHandleChangeScheduleThrowsException() {
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                state.handleChangeSchedule(schedule, DayOfWeek.FRIDAY,
+                        LocalTime.of(14, 0), LocalTime.of(15, 0),
+                        "Coba ubah lagi"));
+
+        assertEquals("Request on changing process.", exception.getMessage());
     }
 }

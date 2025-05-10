@@ -3,59 +3,79 @@ package com.pandacare.mainapp.konsultasi_dokter.model.state;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import java.time.LocalTime;
-import java.time.LocalDate;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RequestedStateTest {
-    private CaregiverSchedule jadwal;
+    private CaregiverSchedule schedule;
     private RequestedState state;
+    private final DayOfWeek INITIAL_DAY = DayOfWeek.MONDAY;
+    private final LocalTime INITIAL_START_TIME = LocalTime.of(9, 0);
+    private final LocalTime INITIAL_END_TIME = LocalTime.of(10, 0);
 
     @BeforeEach
     void setUp() {
-        jadwal = new CaregiverSchedule();
-        jadwal.setState(new RequestedState());
+        schedule = new CaregiverSchedule();
+        schedule.setDay(INITIAL_DAY);
+        schedule.setStartTime(INITIAL_START_TIME);
+        schedule.setEndTime(INITIAL_END_TIME);
         state = new RequestedState();
+        schedule.setState(state);
     }
 
     @Test
-    void testHandleApproveShouldSetStatusApproved() {
-        state.handleApprove(jadwal);
-        assertEquals("APPROVED", jadwal.getStatusCaregiver());
+    void testGetStatusName() {
+        assertEquals("REQUESTED", state.getStatusName());
     }
 
     @Test
-    void testHandleRejectShouldSetStatusRejectedAndReason() {
-        state.handleReject(jadwal, "Ada operasi dadakan");
-
-        assertEquals("REJECTED", jadwal.getStatusCaregiver());
-        assertEquals("Ada operasi dadakan", jadwal.getMessage());
+    void testIsAvailable() {
+        assertFalse(state.isAvailable());
     }
 
     @Test
-    void testHandleChangeScheduleShouldSetStatusChangeSchedule() {
-        state.handleChangeSchedule(jadwal,
-                LocalDate.parse("2025-04-29"),
-                LocalTime.parse("14:00"),
-                LocalTime.parse("15:00"),
-                "Perubahan jadwal"
-        );
+    void testHandleRequest_ThrowsException() {
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                state.handleRequest(schedule, "PAT-456", "Request ulang"));
 
-        assertEquals("CHANGE_SCHEDULE", jadwal.getStatusCaregiver());
-        assertEquals(LocalDate.parse("2025-04-29"), jadwal.getDate());
-        assertEquals(LocalTime.parse("14:00"), jadwal.getStartTime());
-        assertEquals(LocalTime.parse("15:00"), jadwal.getEndTime());
-        assertEquals("Perubahan jadwal", jadwal.getMessage());
-        assertTrue(jadwal.isChangeSchedule());
+        assertEquals("Schedule is being requested.", exception.getMessage());
     }
 
     @Test
-    void testHandleRequestShouldThrowException() {
-        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {
-            state.handleRequest(jadwal, "PAT-002", "Mau ganti");
-        });
+    void testHandleApprove_TransitionsToApprovedState() {
+        state.handleApprove(schedule);
 
-        assertEquals("Schedule is being requested.", ex.getMessage());
+        assertEquals("APPROVED", schedule.getStatusCaregiver());
+        assertTrue(schedule.getCurrentState() instanceof ApprovedState);
+    }
+
+    @Test
+    void testHandleReject() {
+        String rejectionReason = "Ada operasi besar harus ditangani";
+        state.handleReject(schedule, rejectionReason);
+
+        assertEquals("REJECTED", schedule.getStatusCaregiver());
+        assertEquals(rejectionReason, schedule.getMessage());
+        assertTrue(schedule.getCurrentState() instanceof RejectedState);
+    }
+
+    @Test
+    void testHandleChangeSchedule() {
+        DayOfWeek newDay = DayOfWeek.WEDNESDAY;
+        LocalTime newStartTime = LocalTime.of(14, 0);
+        LocalTime newEndTime = LocalTime.of(15, 0);
+        String changeReason = "Ada urgensi mendadak";
+
+        state.handleChangeSchedule(schedule, newDay, newStartTime, newEndTime, changeReason);
+
+        assertEquals("CHANGE_SCHEDULE", schedule.getStatusCaregiver());
+        assertEquals(newDay, schedule.getDay());
+        assertEquals(newStartTime, schedule.getStartTime());
+        assertEquals(newEndTime, schedule.getEndTime());
+        assertEquals(changeReason, schedule.getMessage());
+        assertTrue(schedule.isChangeSchedule());
+        assertTrue(schedule.getCurrentState() instanceof ChangeScheduleState);
     }
 }

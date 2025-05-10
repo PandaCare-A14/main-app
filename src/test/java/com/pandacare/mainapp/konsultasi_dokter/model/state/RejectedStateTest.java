@@ -4,43 +4,67 @@ import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDate;
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class RejectedStateTest {
-    private CaregiverSchedule jadwal;
+    private CaregiverSchedule schedule;
     private RejectedState state;
 
     @BeforeEach
     void setUp() {
-        jadwal = new CaregiverSchedule();
-        jadwal.setState(new RejectedState());
+        schedule = new CaregiverSchedule();
         state = new RejectedState();
+        schedule.setState(state);
+    }
+
+    @Test
+    void testGetStatusName() {
+        assertEquals("REJECTED", state.getStatusName());
+    }
+
+    @Test
+    void testIsAvailable() {
+        assertFalse(state.isAvailable());
     }
 
     @Test
     void testHandleRequest() {
-        assertThrows(IllegalStateException.class, () ->
-                state.handleRequest(jadwal, "PAT-009", "Saya banding"));
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                state.handleRequest(schedule, "PAT-009", "Saya banding"));
+
+        assertEquals("Request has been rejected.", exception.getMessage());
+        assertInstanceOf(RejectedState.class, schedule.getCurrentState());
     }
 
     @Test
     void testHandleApprove() {
-        assertThrows(IllegalStateException.class, () ->
-                state.handleApprove(jadwal));
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                state.handleApprove(schedule));
+
+        assertEquals("Request has been rejected.", exception.getMessage());
+        assertInstanceOf(RejectedState.class, schedule.getCurrentState());
     }
 
     @Test
     void testHandleReject() {
-        assertThrows(IllegalStateException.class, () ->
-                state.handleReject(jadwal, "Masih ditolak"));
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                state.handleReject(schedule, "Masih ditolak"));
+
+        assertEquals("Request has been rejected.", exception.getMessage());
+        assertInstanceOf(RejectedState.class, schedule.getCurrentState());
     }
 
     @Test
     void testHandleChangeSchedule() {
-        assertThrows(IllegalStateException.class, () ->
-                state.handleChangeSchedule(jadwal, LocalDate.parse("2025-05-01"), LocalTime.parse("13:00"), LocalTime.parse("14:00"), "Coba reschedule"));
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                state.handleChangeSchedule(schedule, DayOfWeek.WEDNESDAY,
+                        LocalTime.of(13, 0), LocalTime.of(14, 0),
+                        "Coba reschedule"));
+
+        assertEquals("Request has been rejected.", exception.getMessage());
+        assertInstanceOf(RejectedState.class, schedule.getCurrentState());
     }
 }
