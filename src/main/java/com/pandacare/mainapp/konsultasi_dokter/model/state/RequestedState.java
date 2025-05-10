@@ -1,7 +1,7 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
-import java.time.LocalDate;
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 public class RequestedState implements StatusCaregiver {
@@ -32,8 +32,8 @@ public class RequestedState implements StatusCaregiver {
     }
 
     @Override
-    public void handleChangeSchedule(CaregiverSchedule jadwal, LocalDate newDate, LocalTime newStartTime, LocalTime newEndTime, String reason) {
-        jadwal.setDate(newDate);
+    public void handleChangeSchedule(CaregiverSchedule jadwal, DayOfWeek newDay, LocalTime newStartTime, LocalTime newEndTime, String reason) {
+        jadwal.setDay(newDay);
         jadwal.setStartTime(newStartTime);
         jadwal.setEndTime(newEndTime);
         jadwal.setMessage(reason);

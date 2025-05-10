@@ -1,6 +1,6 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
-import java.time.LocalDate;
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 
@@ -37,7 +37,7 @@ public class AvailableState implements StatusCaregiver {
     }
 
     @Override
-    public void handleChangeSchedule(CaregiverSchedule context, LocalDate newDate, LocalTime newStartTime, LocalTime newEndTime, String reason) {
+    public void handleChangeSchedule(CaregiverSchedule context, DayOfWeek newDay, LocalTime newStartTime, LocalTime newEndTime, String reason) {
         throw new IllegalStateException("No request found.");
     }
 }

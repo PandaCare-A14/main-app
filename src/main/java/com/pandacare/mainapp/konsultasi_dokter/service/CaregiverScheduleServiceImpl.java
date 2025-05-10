@@ -7,10 +7,9 @@ import com.pandacare.mainapp.konsultasi_dokter.model.strategy.CreateIntervalStra
 import com.pandacare.mainapp.konsultasi_dokter.repository.CaregiverScheduleRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
@@ -21,25 +20,25 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
     }
 
     @Override
-    public CaregiverSchedule createSchedule(String idCaregiver, LocalDate date, LocalTime startTime, LocalTime endTime) {
+    public CaregiverSchedule createSchedule(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
         validateScheduleTime(startTime, endTime);
-        validateNoOverlap(idCaregiver, date, startTime, endTime);
+        validateNoOverlap(idCaregiver, day, startTime, endTime);
 
         CreateScheduleStrategy strategy = new CreateManualStrategy();
-        CaregiverSchedule schedule = strategy.create(idCaregiver, date, startTime, endTime);
+        CaregiverSchedule schedule = strategy.create(idCaregiver, day, startTime, endTime);
 
         return repository.save(schedule);
     }
 
     @Override
-    public List<CaregiverSchedule> createScheduleInterval(String idCaregiver, LocalDate date,
-                                                        LocalTime startTime, LocalTime endTime) {
+    public List<CaregiverSchedule> createScheduleInterval(String idCaregiver, DayOfWeek day,
+                                                          LocalTime startTime, LocalTime endTime) {
         validateScheduleTime(startTime, endTime);
-        validateNoOverlap(idCaregiver, date, startTime, endTime);
+        validateNoOverlap(idCaregiver, day, startTime, endTime);
 
         CreateIntervalStrategy strategy = new CreateIntervalStrategy();
         List<CaregiverSchedule> scheduleList = strategy.createMultipleSlots(
-                idCaregiver, date, startTime, endTime);
+                idCaregiver, day, startTime, endTime);
 
         return scheduleList.stream()
                 .map(repository::save)
@@ -55,8 +54,8 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
         }
     }
 
-    private void validateNoOverlap(String idCaregiver, LocalDate date, LocalTime startTime, LocalTime endTime) {
-        List<CaregiverSchedule> overlappingSchedule = repository.findOverlappingSchedule(idCaregiver, date, startTime, endTime);
+    private void validateNoOverlap(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
+        List<CaregiverSchedule> overlappingSchedule = repository.findOverlappingSchedule(idCaregiver, day, startTime, endTime);
 
         if (!overlappingSchedule.isEmpty()) {
             throw new IllegalArgumentException("A schedule at the same time already exists.");
@@ -64,13 +63,13 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
     }
 
     @Override
-    public boolean changeSchedule(String idSchedule, LocalDate newDate, LocalTime newStartTime, LocalTime newEndTime, String message) {
+    public boolean changeSchedule(String idSchedule, DayOfWeek newDay, LocalTime newStartTime, LocalTime newEndTime, String message) {
         validateScheduleTime(newStartTime, newEndTime);
 
         CaregiverSchedule schedule = repository.findById(idSchedule);
         if (schedule == null) return false;
 
-        schedule.changeSchedule(newDate, newStartTime, newEndTime, message);
+        schedule.changeSchedule(newDay, newStartTime, newEndTime, message);
 
         repository.save(schedule);
         return true;
@@ -100,10 +99,18 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
     }
 
     @Override
+    public List<CaregiverSchedule> findByIdCaregiverAndDay(String idCaregiver, DayOfWeek day) {
+        return repository.findByIdCaregiverAndDay(idCaregiver, day);
+    }
+
+    @Override
+    public List<CaregiverSchedule> findOverlappingSchedule(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
+        return repository.findOverlappingSchedule(idCaregiver, day, startTime, endTime);
+    }
+
+    @Override
     public List<CaregiverSchedule> findByIdCaregiverAndStatus(String idCaregiver, String status) {
-        return repository.findByIdCaregiver(idCaregiver).stream()
-                .filter(j -> status.equals(j.getStatusCaregiver()))
-                .collect(Collectors.toList());
+        return repository.findByIdCaregiverAndStatus(idCaregiver, status);
     }
 
     @Override

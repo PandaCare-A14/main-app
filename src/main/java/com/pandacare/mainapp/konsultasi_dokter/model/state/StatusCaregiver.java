@@ -1,7 +1,8 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.state;
 
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
-import java.time.LocalDate;
+
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 public interface StatusCaregiver {
@@ -15,6 +16,6 @@ public interface StatusCaregiver {
 
     void handleReject(CaregiverSchedule context, String reason);
 
-    void handleChangeSchedule(CaregiverSchedule context, LocalDate newDay, LocalTime newStartTime, LocalTime newEndTime,
+    void handleChangeSchedule(CaregiverSchedule context, DayOfWeek newDay, LocalTime newStartTime, LocalTime newEndTime,
                               String reason);
 }

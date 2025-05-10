@@ -1,7 +1,7 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.strategy;
 
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
-import java.time.LocalDate;
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -11,17 +11,17 @@ public class CreateIntervalStrategy implements CreateScheduleStrategy {
     private static final int DURATION_MINUTES = 30;
 
     @Override
-    public CaregiverSchedule create(String idCaregiver, LocalDate date, LocalTime startTime, LocalTime endTime) {
+    public CaregiverSchedule create(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
         LocalTime calculatedEndTime = startTime.plusMinutes(DURATION_MINUTES);
 
         if (calculatedEndTime.isAfter(endTime)) {
             calculatedEndTime = endTime;
         }
 
-        return createScheduleWithStartTime(idCaregiver, date, startTime, calculatedEndTime);
+        return createScheduleWithStartTime(idCaregiver, day, startTime, calculatedEndTime);
     }
 
-    private CaregiverSchedule createScheduleWithStartTime(String idCaregiver, LocalDate date,
+    private CaregiverSchedule createScheduleWithStartTime(String idCaregiver, DayOfWeek day,
                                                         LocalTime startTime, LocalTime endTime) {
         if (startTime.equals(endTime)) {
             throw new IllegalArgumentException("Start time can't be equal to end time.");
@@ -33,13 +33,13 @@ public class CreateIntervalStrategy implements CreateScheduleStrategy {
 
         CaregiverSchedule schedule = new CaregiverSchedule();
         schedule.setIdCaregiver(idCaregiver);
-        schedule.setDate(date);
+        schedule.setDay(day);
         schedule.setStartTime(startTime);
         schedule.setEndTime(endTime);
         return schedule;
     }
 
-    public List<CaregiverSchedule> createMultipleSlots(String idCaregiver, LocalDate date,
+    public List<CaregiverSchedule> createMultipleSlots(String idCaregiver, DayOfWeek day,
                                                        LocalTime startTime, LocalTime endTime) {
         if (startTime.equals(endTime)) {
             throw new IllegalArgumentException("Start time can't be equal to end time.");
@@ -61,7 +61,7 @@ public class CreateIntervalStrategy implements CreateScheduleStrategy {
                 currentStartTime.plus(Duration.ofMinutes(DURATION_MINUTES)).equals(endTime)) {
 
             LocalTime slotEndTime = currentStartTime.plusMinutes(DURATION_MINUTES);
-            CaregiverSchedule schedule = createScheduleWithStartTime(idCaregiver, date, currentStartTime, slotEndTime);
+            CaregiverSchedule schedule = createScheduleWithStartTime(idCaregiver, day, currentStartTime, slotEndTime);
             scheduleList.add(schedule);
 
             currentStartTime = currentStartTime.plusMinutes(DURATION_MINUTES);

@@ -2,13 +2,16 @@ package com.pandacare.mainapp.konsultasi_dokter.controller;
 
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.konsultasi_dokter.service.CaregiverScheduleService;
+import com.pandacare.mainapp.konsultasi_dokter.dto.CreateScheduleDTO;
+import com.pandacare.mainapp.konsultasi_dokter.dto.UpdateScheduleStatusDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.*;
+import jakarta.validation.Valid;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -27,13 +30,14 @@ public class CaregiverScheduleController {
     @PostMapping("/{idCaregiver}/schedules")
     public ResponseEntity<CaregiverSchedule> createSchedule(
             @PathVariable String idCaregiver,
-            @RequestBody Map<String, String> body
+            @RequestBody @Valid CreateScheduleDTO dto
     ) {
         try {
-            LocalDate date = LocalDate.parse(body.get("date"));
-            LocalTime startTime = LocalTime.parse(body.get("startTime"));
-            LocalTime endTime = LocalTime.parse(body.get("endTime"));
-            CaregiverSchedule schedule = service.createSchedule(idCaregiver, date, startTime, endTime);
+            DayOfWeek day = DayOfWeek.valueOf(dto.getDay().toUpperCase());
+            LocalTime startTime = LocalTime.parse(dto.getStartTime());
+            LocalTime endTime = LocalTime.parse(dto.getEndTime());
+
+            CaregiverSchedule schedule = service.createSchedule(idCaregiver, day, startTime, endTime);
             return ResponseEntity.status(HttpStatus.CREATED).body(schedule);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -43,14 +47,14 @@ public class CaregiverScheduleController {
     @PostMapping("/{idCaregiver}/schedules/interval")
     public ResponseEntity<List<CaregiverSchedule>> createScheduleInterval(
             @PathVariable String idCaregiver,
-            @RequestBody Map<String, String> body
+            @RequestBody @Valid CreateScheduleDTO dto
     ) {
         try {
-            LocalDate date = LocalDate.parse(body.get("date"));
-            LocalTime startTime = LocalTime.parse(body.get("startTime"));
-            LocalTime endTime = LocalTime.parse(body.get("endTime"));
+            DayOfWeek day = DayOfWeek.valueOf(dto.getDay().toUpperCase());
+            LocalTime startTime = LocalTime.parse(dto.getStartTime());
+            LocalTime endTime = LocalTime.parse(dto.getEndTime());
 
-            List<CaregiverSchedule> schedules = service.createScheduleInterval(idCaregiver, date, startTime, endTime);
+            List<CaregiverSchedule> schedules = service.createScheduleInterval(idCaregiver, day, startTime, endTime);
             return ResponseEntity.status(HttpStatus.CREATED).body(schedules);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -92,48 +96,35 @@ public class CaregiverScheduleController {
     @PatchMapping("/schedules/{id}/status")
     public ResponseEntity<CaregiverSchedule> updateStatus(
             @PathVariable String id,
-            @RequestBody Map<String, String> body
+            @RequestBody @Valid UpdateScheduleStatusDTO dto
     ) {
         try {
-            String status = body.get("statusCaregiver");
-            if (status == null) {
-                return ResponseEntity.badRequest().build();
-            }
-
+            String status = dto.getStatusCaregiver();
             boolean success;
 
             switch (status) {
                 case "APPROVED":
                     success = service.approveSchedule(id);
-                    if (success) {
-                        return ResponseEntity.ok(service.findById(id));
-                    } else {
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                    }
+                    break;
                 case "REJECTED":
                     success = service.rejectSchedule(id);
-                    if (success) {
-                        return ResponseEntity.ok(service.findById(id));
-                    } else {
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                    }
+                    break;
                 case "CHANGE_SCHEDULE":
-                    String message = body.get("message");
-                    LocalDate date = LocalDate.parse(body.get("date"));
-                    LocalTime startTime = LocalTime.parse(body.get("startTime"));
-                    LocalTime endTime = LocalTime.parse(body.get("endTime"));
-                    success = service.changeSchedule(id, date, startTime, endTime, message);
-                    if (success) {
-                        return ResponseEntity.ok(service.findById(id));
-                    } else {
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                    }
+                    DayOfWeek day = DayOfWeek.valueOf(dto.getDay().toUpperCase());
+                    LocalTime startTime = LocalTime.parse(dto.getStartTime());
+                    LocalTime endTime = LocalTime.parse(dto.getEndTime());
+                    success = service.changeSchedule(id, day, startTime, endTime, dto.getMessage());
+                    break;
                 default:
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body(null);
+                    return ResponseEntity.badRequest().build();
             }
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+            if (success) {
+                return ResponseEntity.ok(service.findById(id));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

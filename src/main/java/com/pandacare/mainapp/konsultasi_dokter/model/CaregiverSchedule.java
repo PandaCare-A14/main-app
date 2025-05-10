@@ -1,5 +1,6 @@
 package com.pandacare.mainapp.konsultasi_dokter.model;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
@@ -17,7 +18,7 @@ public class CaregiverSchedule {
     private String statusPacilian;
     private String idCaregiver;
     private String idPacilian;
-    private LocalDate date;
+    private DayOfWeek day;
     private LocalTime startTime;
     private LocalTime endTime;
     private String note;
@@ -42,7 +43,7 @@ public class CaregiverSchedule {
         currentState.handleReject(this, reason);
     }
 
-    public void changeSchedule(LocalDate day, LocalTime start, LocalTime end, String reason) {
+    public void changeSchedule(DayOfWeek day, LocalTime start, LocalTime end, String reason) {
         currentState.handleChangeSchedule(this, day, start, end, reason);
     }
 
