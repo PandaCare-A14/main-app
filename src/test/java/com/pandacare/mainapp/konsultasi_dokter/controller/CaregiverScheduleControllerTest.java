@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -64,6 +65,43 @@ public class CaregiverScheduleControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("SCHED12345"))
                 .andExpect(jsonPath("$.idCaregiver").value(idCaregiver));
+
+        verify(service).createSchedule(eq(idCaregiver), eq(DayOfWeek.MONDAY),
+                eq(LocalTime.of(9, 0)), eq(LocalTime.of(10, 0)));
+    }
+
+    @Test
+    public void testCreateScheduleWithWeeks() throws Exception {
+        String idCaregiver = "DOC12345";
+        CreateScheduleDTO dto = new CreateScheduleDTO();
+        dto.setDay("MONDAY");
+        dto.setStartTime("09:00");
+        dto.setEndTime("10:00");
+        dto.setWeeks(4);
+
+        List<CaregiverSchedule> schedules = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            CaregiverSchedule schedule = new CaregiverSchedule();
+            schedule.setId("SCHED" + (12345 + i));
+            schedule.setIdCaregiver(idCaregiver);
+            schedule.setDay(DayOfWeek.MONDAY);
+            schedule.setStartTime(LocalTime.of(9, 0));
+            schedule.setEndTime(LocalTime.of(10, 0));
+            schedules.add(schedule);
+        }
+
+        when(service.createRepeatedSchedules(anyString(), any(DayOfWeek.class), any(LocalTime.class), any(LocalTime.class), anyInt()))
+                .thenReturn(schedules);
+
+        mockMvc.perform(post("/api/doctors/{idCaregiver}/schedules", idCaregiver)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$[0].id").value("SCHED12345"))
+                .andExpect(jsonPath("$[1].id").value("SCHED12346"))
+                .andExpect(jsonPath("$[2].id").value("SCHED12347"))
+                .andExpect(jsonPath("$[3].id").value("SCHED12348"))
+                .andExpect(jsonPath("$[0].idCaregiver").value(idCaregiver));
     }
 
     @Test
@@ -103,6 +141,67 @@ public class CaregiverScheduleControllerTest {
                 .andExpect(jsonPath("$[1].id").value("SCHED12346"))
                 .andExpect(jsonPath("$[0].idCaregiver").value(idCaregiver))
                 .andExpect(jsonPath("$[1].idCaregiver").value(idCaregiver));
+
+        verify(service).createMultipleSchedules(eq(idCaregiver), eq(DayOfWeek.MONDAY),
+                eq(LocalTime.of(9, 0)), eq(LocalTime.of(10, 0)));
+    }
+
+    @Test
+    public void testCreateScheduleIntervalWithWeeks() throws Exception {
+        String idCaregiver = "DOC12345";
+        CreateScheduleDTO dto = new CreateScheduleDTO();
+        dto.setDay("MONDAY");
+        dto.setStartTime("09:00");
+        dto.setEndTime("10:00");
+        dto.setWeeks(2);
+
+        List<CaregiverSchedule> schedules = new ArrayList<>();
+        CaregiverSchedule schedule1 = new CaregiverSchedule();
+        schedule1.setId("SCHED12345");
+        schedule1.setIdCaregiver(idCaregiver);
+        schedule1.setDay(DayOfWeek.MONDAY);
+        schedule1.setStartTime(LocalTime.of(9, 0));
+        schedule1.setEndTime(LocalTime.of(9, 30));
+
+        CaregiverSchedule schedule2 = new CaregiverSchedule();
+        schedule2.setId("SCHED12346");
+        schedule2.setIdCaregiver(idCaregiver);
+        schedule2.setDay(DayOfWeek.MONDAY);
+        schedule2.setStartTime(LocalTime.of(9, 30));
+        schedule2.setEndTime(LocalTime.of(10, 0));
+
+        CaregiverSchedule schedule3 = new CaregiverSchedule();
+        schedule3.setId("SCHED12347");
+        schedule3.setIdCaregiver(idCaregiver);
+        schedule3.setDay(DayOfWeek.MONDAY);
+        schedule3.setStartTime(LocalTime.of(9, 0));
+        schedule3.setEndTime(LocalTime.of(9, 30));
+
+        CaregiverSchedule schedule4 = new CaregiverSchedule();
+        schedule4.setId("SCHED12348");
+        schedule4.setIdCaregiver(idCaregiver);
+        schedule4.setDay(DayOfWeek.MONDAY);
+        schedule4.setStartTime(LocalTime.of(9, 30));
+        schedule4.setEndTime(LocalTime.of(10, 0));
+
+        schedules.add(schedule1);
+        schedules.add(schedule2);
+        schedules.add(schedule3);
+        schedules.add(schedule4);
+
+        when(service.createRepeatedMultipleSchedules(anyString(), any(DayOfWeek.class), any(LocalTime.class), any(LocalTime.class), anyInt()))
+                .thenReturn(schedules);
+
+        mockMvc.perform(post("/api/doctors/{idCaregiver}/schedules/interval", idCaregiver)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$[0].id").value("SCHED12345"))
+                .andExpect(jsonPath("$[1].id").value("SCHED12346"))
+                .andExpect(jsonPath("$[2].id").value("SCHED12347"))
+                .andExpect(jsonPath("$[3].id").value("SCHED12348"))
+                .andExpect(jsonPath("$[0].idCaregiver").value(idCaregiver))
+                .andExpect(jsonPath("$[3].idCaregiver").value(idCaregiver));
     }
 
     @Test
