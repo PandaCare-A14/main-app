@@ -1,10 +1,9 @@
 package com.pandacare.mainapp.konsultasi_dokter.service;
 
+import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
-import com.pandacare.mainapp.konsultasi_dokter.model.state.RequestedState;
-import com.pandacare.mainapp.konsultasi_dokter.model.state.ChangeScheduleState;
 import com.pandacare.mainapp.konsultasi_dokter.repository.CaregiverScheduleRepository;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,11 +12,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,218 +28,182 @@ class CaregiverScheduleServiceImplTest {
     @InjectMocks
     private CaregiverScheduleServiceImpl service;
 
-    private final String DOCTOR_ID = "DOC12345";
-    private final String SCHEDULE_ID = "SCHED12345";
-    private final DayOfWeek TEST_DAY = DayOfWeek.MONDAY;
-    private final LocalTime START_TIME = LocalTime.of(9, 0);
-    private final LocalTime END_TIME = LocalTime.of(10, 0);
-    private CaregiverSchedule testSchedule;
-
-    @BeforeEach
-    void setUp() {
-        testSchedule = new CaregiverSchedule();
-        testSchedule.setId(SCHEDULE_ID);
-        testSchedule.setIdCaregiver(DOCTOR_ID);
-        testSchedule.setDay(TEST_DAY);
-        testSchedule.setStartTime(START_TIME);
-        testSchedule.setEndTime(END_TIME);
-    }
-
     @Test
     void testCreateScheduleSuccess() {
-        when(repository.findOverlappingSchedule(DOCTOR_ID, TEST_DAY, START_TIME, END_TIME))
-                .thenReturn(Collections.emptyList());
-        when(repository.save(any(CaregiverSchedule.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        String caregiverId = "DOCTOR1";
+        DayOfWeek day = DayOfWeek.MONDAY;
+        LocalTime startTime = LocalTime.of(9, 0);
+        LocalTime endTime = LocalTime.of(10, 0);
 
-        CaregiverSchedule result = service.createSchedule(DOCTOR_ID, TEST_DAY, START_TIME, END_TIME);
+        CaregiverSchedule schedule = new CaregiverSchedule();
+
+        when(repository.existsOverlappingSchedule(caregiverId, day, startTime, endTime)).thenReturn(false);
+        when(repository.save(any(CaregiverSchedule.class))).thenReturn(schedule);
+
+        CaregiverSchedule result = service.createSchedule(caregiverId, day, startTime, endTime);
 
         assertNotNull(result);
-        assertEquals(DOCTOR_ID, result.getIdCaregiver());
-        assertEquals(TEST_DAY, result.getDay());
-        assertEquals(START_TIME, result.getStartTime());
-        assertEquals(END_TIME, result.getEndTime());
-        assertEquals("AVAILABLE", result.getStatusCaregiver());
-
-        verify(repository).findOverlappingSchedule(DOCTOR_ID, TEST_DAY, START_TIME, END_TIME);
+        verify(repository).existsOverlappingSchedule(caregiverId, day, startTime, endTime);
         verify(repository).save(any(CaregiverSchedule.class));
     }
 
     @Test
-    void testCreateScheduleWithOverlap() {
-        when(repository.findOverlappingSchedule(DOCTOR_ID, TEST_DAY, START_TIME, END_TIME))
-                .thenReturn(Collections.singletonList(testSchedule));
+    void testCreateScheduleThrowsWhenOverlapping() {
+        String caregiverId = "DOCTOR1";
+        DayOfWeek day = DayOfWeek.MONDAY;
+        LocalTime startTime = LocalTime.of(9, 0);
+        LocalTime endTime = LocalTime.of(10, 0);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                service.createSchedule(DOCTOR_ID, TEST_DAY, START_TIME, END_TIME));
+        when(repository.existsOverlappingSchedule(caregiverId, day, startTime, endTime)).thenReturn(true);
 
-        assertEquals("A schedule at the same time already exists.", exception.getMessage());
+        Exception exception = assertThrows(RuntimeException.class, () ->
+                service.createSchedule(caregiverId, day, startTime, endTime)
+        );
 
-        verify(repository).findOverlappingSchedule(DOCTOR_ID, TEST_DAY, START_TIME, END_TIME);
-        verify(repository, never()).save(any(CaregiverSchedule.class));
+        assertEquals("Schedule already exists.", exception.getMessage());
+        verify(repository).existsOverlappingSchedule(caregiverId, day, startTime, endTime);
+        verify(repository, never()).save(any());
     }
 
     @Test
-    void testCreateScheduleIntervalSuccess() {
-        when(repository.findOverlappingSchedule(DOCTOR_ID, TEST_DAY, START_TIME, END_TIME))
-                .thenReturn(Collections.emptyList());
-        when(repository.save(any(CaregiverSchedule.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    void testCreateMultipleSchedulesSuccess() {
+        String caregiverId = "DOCTOR1";
+        DayOfWeek day = DayOfWeek.MONDAY;
+        LocalTime startTime = LocalTime.of(9, 0);
+        LocalTime endTime = LocalTime.of(11, 0);
 
-        LocalTime intervalEndTime = LocalTime.of(10, 0);
+        List<CaregiverSchedule> nonOverlappingSlots = new ArrayList<>();
+        nonOverlappingSlots.add(new CaregiverSchedule());
 
-        List<CaregiverSchedule> results = service.createScheduleInterval(DOCTOR_ID, TEST_DAY, START_TIME, intervalEndTime);
+        when(repository.existsOverlappingSchedule(any(), any(), any(), any())).thenReturn(false);
 
-        assertNotNull(results);
-        assertEquals(2, results.size());
+        when(repository.saveAll(any())).thenReturn(nonOverlappingSlots);
 
-        assertEquals(DOCTOR_ID, results.get(0).getIdCaregiver());
-        assertEquals(TEST_DAY, results.get(0).getDay());
-        assertEquals(START_TIME, results.get(0).getStartTime());
-        assertEquals(LocalTime.of(9, 30), results.get(0).getEndTime());
+        List<CaregiverSchedule> result = service.createMultipleSchedules(caregiverId, day, startTime, endTime);
 
-        assertEquals(DOCTOR_ID, results.get(1).getIdCaregiver());
-        assertEquals(TEST_DAY, results.get(1).getDay());
-        assertEquals(LocalTime.of(9, 30), results.get(1).getStartTime());
-        assertEquals(intervalEndTime, results.get(1).getEndTime());
-
-        verify(repository).findOverlappingSchedule(DOCTOR_ID, TEST_DAY, START_TIME, intervalEndTime);
-        verify(repository, times(2)).save(any(CaregiverSchedule.class));
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        verify(repository, atLeastOnce()).existsOverlappingSchedule(any(), any(), any(), any());
+        verify(repository).saveAll(any());
     }
 
     @Test
-    void testCreateScheduleIntervalInvalidTimeDuration() {
-        LocalTime invalidEndTime = LocalTime.of(9, 45);
+    void testCreateMultipleSchedulesThrowsWhenAllOverlap() {
+        String caregiverId = "DOCTOR1";
+        DayOfWeek day = DayOfWeek.MONDAY;
+        LocalTime startTime = LocalTime.of(9, 0);
+        LocalTime endTime = LocalTime.of(11, 0);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                service.createScheduleInterval(DOCTOR_ID, TEST_DAY, START_TIME, invalidEndTime));
+        when(repository.existsOverlappingSchedule(any(), any(), any(), any())).thenReturn(true);
 
-        assertTrue(exception.getMessage().contains("Time is not valid") ||
-                exception.getMessage().contains("Start time can't be set after end time"));
+        Exception exception = assertThrows(RuntimeException.class, () ->
+                service.createMultipleSchedules(caregiverId, day, startTime, endTime)
+        );
 
-        verify(repository).findOverlappingSchedule(DOCTOR_ID, TEST_DAY, START_TIME, invalidEndTime);
-        verify(repository, never()).save(any(CaregiverSchedule.class));
+        assertEquals("All requested slots overlap with existing schedules.", exception.getMessage());
+        verify(repository, atLeastOnce()).existsOverlappingSchedule(any(), any(), any(), any());
+        verify(repository, never()).saveAll(any());
     }
 
     @Test
-    void testChangeScheduleSuccess() {
-        testSchedule.setIdPacilian("PAT12345");
-        testSchedule.setState(new RequestedState());
+    void testGetSchedulesByCaregiver() {
+        String caregiverId = "DOCTOR1";
+        List<CaregiverSchedule> schedules = new ArrayList<>();
+        schedules.add(new CaregiverSchedule());
 
-        when(repository.findById(SCHEDULE_ID)).thenReturn(testSchedule);
-        when(repository.save(any(CaregiverSchedule.class))).thenReturn(testSchedule);
+        when(repository.findByIdCaregiver(caregiverId)).thenReturn(schedules);
 
-        DayOfWeek newDay = DayOfWeek.WEDNESDAY;
-        LocalTime newStartTime = LocalTime.of(14, 0);
-        LocalTime newEndTime = LocalTime.of(15, 0);
-        String message = "Jadwal diganti karena ada operasi";
+        List<CaregiverSchedule> result = service.getSchedulesByCaregiver(caregiverId);
 
-        boolean result = service.changeSchedule(SCHEDULE_ID, newDay, newStartTime, newEndTime, message);
-
-        assertTrue(result);
-        assertEquals(newDay, testSchedule.getDay());
-        assertEquals(newStartTime, testSchedule.getStartTime());
-        assertEquals(newEndTime, testSchedule.getEndTime());
-        assertEquals(message, testSchedule.getMessage());
-        assertTrue(testSchedule.isChangeSchedule());
-        assertTrue(testSchedule.getCurrentState() instanceof ChangeScheduleState);
-
-        verify(repository).findById(SCHEDULE_ID);
-        verify(repository).save(testSchedule);
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(repository).findByIdCaregiver(caregiverId);
     }
 
     @Test
-    void testChangeScheduleWhereScheduleNotFound() {
-        when(repository.findById(SCHEDULE_ID)).thenReturn(null);
-        boolean result = service.changeSchedule(SCHEDULE_ID, TEST_DAY, START_TIME, END_TIME, "");
-        assertFalse(result);
-        verify(repository).findById(SCHEDULE_ID);
-        verify(repository, never()).save(any(CaregiverSchedule.class));
+    void testGetSchedulesByCaregiverAndDay() {
+        String caregiverId = "DOCTOR1";
+        DayOfWeek day = DayOfWeek.MONDAY;
+        List<CaregiverSchedule> schedules = new ArrayList<>();
+        schedules.add(new CaregiverSchedule());
+
+        when(repository.findByIdCaregiverAndDay(caregiverId, day)).thenReturn(schedules);
+
+        List<CaregiverSchedule> result = service.getSchedulesByCaregiverAndDay(caregiverId, day);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(repository).findByIdCaregiverAndDay(caregiverId, day);
     }
 
     @Test
-    void testApproveScheduleSuccess() {
-        when(repository.findById(SCHEDULE_ID)).thenReturn(testSchedule);
-        when(repository.save(any(CaregiverSchedule.class))).thenReturn(testSchedule);
-        testSchedule.request("PAT12345", "");
-        boolean result = service.approveSchedule(SCHEDULE_ID);
-        assertTrue(result);
-        assertEquals("APPROVED", testSchedule.getStatusCaregiver());
-        verify(repository).findById(SCHEDULE_ID);
-        verify(repository).save(testSchedule);
+    void testGetSchedulesByCaregiverAndStatus() {
+        String caregiverId = "DOCTOR1";
+        ScheduleStatus status = ScheduleStatus.AVAILABLE;
+        List<CaregiverSchedule> schedules = new ArrayList<>();
+        schedules.add(new CaregiverSchedule());
+
+        when(repository.findByIdCaregiverAndStatus(caregiverId, status)).thenReturn(schedules);
+
+        List<CaregiverSchedule> result = service.getSchedulesByCaregiverAndStatus(caregiverId, status);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(repository).findByIdCaregiverAndStatus(caregiverId, status);
     }
 
     @Test
-    void testApproveScheduleWhereScheduleNotFound() {
-        when(repository.findById(SCHEDULE_ID)).thenReturn(null);
-        boolean result = service.approveSchedule(SCHEDULE_ID);
-        assertFalse(result);
-        verify(repository).findById(SCHEDULE_ID);
-        verify(repository, never()).save(any(CaregiverSchedule.class));
+    void testGetSchedulesByCaregiverAndIdScheduleFound() {
+        String caregiverId = "DOCTOR1";
+        String scheduleId = "SCHEDULE1";
+        CaregiverSchedule schedule = new CaregiverSchedule();
+
+        when(repository.findByIdCaregiverAndIdSchedule(caregiverId, scheduleId)).thenReturn(Optional.of(schedule));
+
+        CaregiverSchedule result = service.getSchedulesByCaregiverAndIdSchedule(caregiverId, scheduleId);
+
+        assertNotNull(result);
+        verify(repository).findByIdCaregiverAndIdSchedule(caregiverId, scheduleId);
     }
 
     @Test
-    void testRejectScheduleSuccess() {
-        when(repository.findById(SCHEDULE_ID)).thenReturn(testSchedule);
-        when(repository.save(any(CaregiverSchedule.class))).thenReturn(testSchedule);
-        testSchedule.request("PAT12345", "");
-        boolean result = service.rejectSchedule(SCHEDULE_ID);
-        assertTrue(result);
-        assertEquals("REJECTED", testSchedule.getStatusCaregiver());
-        assertEquals("Jadwal tidak sesuai", testSchedule.getMessage());
-        verify(repository).findById(SCHEDULE_ID);
-        verify(repository).save(testSchedule);
+    void testGetSchedulesByCaregiverAndIdScheduleNotFound() {
+        String caregiverId = "DOCTOR1";
+        String scheduleId = "SCHEDULE1";
+
+        when(repository.findByIdCaregiverAndIdSchedule(caregiverId, scheduleId)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(EntityNotFoundException.class, () ->
+                service.getSchedulesByCaregiverAndIdSchedule(caregiverId, scheduleId)
+        );
+
+        assertEquals("Schedule not found with id: " + scheduleId + " and caregiver: " + caregiverId, exception.getMessage());
+        verify(repository).findByIdCaregiverAndIdSchedule(caregiverId, scheduleId);
     }
 
     @Test
-    void testRejectScheduleWhereScheduleNotFound() {
-        when(repository.findById(SCHEDULE_ID)).thenReturn(null);
-        boolean result = service.rejectSchedule(SCHEDULE_ID);
-        assertFalse(result);
-        verify(repository).findById(SCHEDULE_ID);
-        verify(repository, never()).save(any(CaregiverSchedule.class));
-    }
+    void testDeleteScheduleSuccess(){
+        String scheduleId = "SCHED1";
 
-    @Test
-    void testFindByIdCaregiver() {
-        List<CaregiverSchedule> expectedSchedules = Arrays.asList(testSchedule);
-        when(repository.findByIdCaregiver(DOCTOR_ID)).thenReturn(expectedSchedules);
-        List<CaregiverSchedule> result = service.findByIdCaregiver(DOCTOR_ID);
-        assertEquals(expectedSchedules, result);
-        verify(repository).findByIdCaregiver(DOCTOR_ID);
-    }
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId(scheduleId);
+        schedule.setIdCaregiver("DOC1");
+        schedule.setDay(DayOfWeek.MONDAY);
+        schedule.setStartTime(LocalTime.of(9, 0));
+        schedule.setEndTime(LocalTime.of(10, 0));
+        schedule.setStatus(ScheduleStatus.AVAILABLE);
 
-    @Test
-    void testFindByIdCaregiverAndDay() {
-        List<CaregiverSchedule> expectedSchedules = Arrays.asList(testSchedule);
-        when(repository.findByIdCaregiverAndDay(DOCTOR_ID, TEST_DAY)).thenReturn(expectedSchedules);
-        List<CaregiverSchedule> result = service.findByIdCaregiverAndDay(DOCTOR_ID, TEST_DAY);
-        assertEquals(expectedSchedules, result);
-        verify(repository).findByIdCaregiverAndDay(DOCTOR_ID, TEST_DAY);
-    }
+        when(repository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+        when(repository.save(any(CaregiverSchedule.class))).thenAnswer(invocation -> {
+            CaregiverSchedule savedSchedule = invocation.getArgument(0);
+            return savedSchedule;
+        });
 
-    @Test
-    void testFindOverlappingSchedule() {
-        List<CaregiverSchedule> expectedSchedules = Arrays.asList(testSchedule);
-        when(repository.findOverlappingSchedule(DOCTOR_ID, TEST_DAY, START_TIME, END_TIME))
-                .thenReturn(expectedSchedules);
-        List<CaregiverSchedule> result = service.findOverlappingSchedule(DOCTOR_ID, TEST_DAY, START_TIME, END_TIME);
-        assertEquals(expectedSchedules, result);
-        verify(repository).findOverlappingSchedule(DOCTOR_ID, TEST_DAY, START_TIME, END_TIME);
-    }
+        CaregiverSchedule result = service.deleteSchedule(scheduleId);
 
-    @Test
-    void testFindByIdCaregiverAndStatus() {
-        List<CaregiverSchedule> expectedSchedules = Arrays.asList(testSchedule);
-        when(repository.findByIdCaregiverAndStatus(DOCTOR_ID, "AVAILABLE")).thenReturn(expectedSchedules);
-        List<CaregiverSchedule> result = service.findByIdCaregiverAndStatus(DOCTOR_ID, "AVAILABLE");
-        assertEquals(expectedSchedules, result);
-        verify(repository).findByIdCaregiverAndStatus(DOCTOR_ID, "AVAILABLE");
-    }
-
-    @Test
-    void testFindById() {
-        when(repository.findById(SCHEDULE_ID)).thenReturn(testSchedule);
-        CaregiverSchedule result = service.findById(SCHEDULE_ID);
-        assertEquals(testSchedule, result);
-        verify(repository).findById(SCHEDULE_ID);
+        assertEquals(scheduleId, result.getId());
+        assertEquals(ScheduleStatus.INACTIVE, result.getStatus());
+        verify(repository).findById(scheduleId);
+        verify(repository).save(schedule);
     }
 }

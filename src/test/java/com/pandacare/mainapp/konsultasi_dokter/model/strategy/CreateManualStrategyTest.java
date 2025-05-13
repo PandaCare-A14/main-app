@@ -1,5 +1,6 @@
 package com.pandacare.mainapp.konsultasi_dokter.model.strategy;
 
+import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,15 +35,12 @@ class CreateManualStrategyTest {
         assertEquals(TEST_DAY, schedule.getDay());
         assertEquals(START_TIME, schedule.getStartTime());
         assertEquals(END_TIME, schedule.getEndTime());
-        assertEquals("AVAILABLE", schedule.getStatusCaregiver());
-        assertFalse(schedule.isChangeSchedule());
+        assertEquals(ScheduleStatus.AVAILABLE, schedule.getStatus());
     }
 
     @ParameterizedTest
     @MethodSource("provideInvalidParameters")
-    void testCreateWithInvalidParameters(String idCaregiver, DayOfWeek day,
-                                          LocalTime startTime, LocalTime endTime,
-                                          String expectedErrorMessage) {
+    void testCreateWithInvalidParameters(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, String expectedErrorMessage) {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 strategy.create(idCaregiver, day, startTime, endTime));
 
@@ -64,20 +62,5 @@ class CreateManualStrategyTest {
                 Arguments.of("DOC12345", DayOfWeek.MONDAY, LocalTime.of(9, 0), null,
                         "Field can't be empty.")
         );
-    }
-
-    @Test
-    void testCreateCreatesNewStateInstance() {
-        CaregiverSchedule schedule1 = strategy.create(DOCTOR_ID, TEST_DAY, START_TIME, END_TIME);
-        CaregiverSchedule schedule2 = strategy.create(DOCTOR_ID, TEST_DAY, START_TIME, END_TIME);
-        assertNotSame(schedule1.getCurrentState(), schedule2.getCurrentState());
-    }
-
-    @Test
-    void testCreateSetsChangeScheduleFalse() {
-        CaregiverSchedule schedule = new CaregiverSchedule();
-        schedule.setChangeSchedule(true);
-        CaregiverSchedule newSchedule = strategy.create(DOCTOR_ID, TEST_DAY, START_TIME, END_TIME);
-        assertFalse(newSchedule.isChangeSchedule());
     }
 }

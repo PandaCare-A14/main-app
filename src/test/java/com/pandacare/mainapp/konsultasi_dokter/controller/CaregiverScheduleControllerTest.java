@@ -1,29 +1,27 @@
 package com.pandacare.mainapp.konsultasi_dokter.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
-import com.pandacare.mainapp.konsultasi_dokter.service.CaregiverScheduleService;
 import com.pandacare.mainapp.konsultasi_dokter.dto.CreateScheduleDTO;
-import com.pandacare.mainapp.konsultasi_dokter.dto.UpdateScheduleStatusDTO;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
+import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
+import com.pandacare.mainapp.konsultasi_dokter.service.CaregiverScheduleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -34,291 +32,155 @@ public class CaregiverScheduleControllerTest {
     private CaregiverScheduleService service;
     @InjectMocks
     private CaregiverScheduleController controller;
-
-    private final String DOCTOR_ID = "DOC12345";
-    private final String SCHEDULE_ID = "SCHED12345";
-    private final String PATIENT_ID = "PAT12345";
-
-    private CaregiverSchedule schedule;
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     public void setup() {
-        schedule = new CaregiverSchedule();
-        schedule.setId(SCHEDULE_ID);
-        schedule.setIdCaregiver(DOCTOR_ID);
-        schedule.setIdPacilian(PATIENT_ID);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        objectMapper.findAndRegisterModules();
+    }
+
+    @Test
+    public void testCreateSchedule() throws Exception {
+        String idCaregiver = "DOC12345";
+        CreateScheduleDTO dto = new CreateScheduleDTO();
+        dto.setDay("MONDAY");
+        dto.setStartTime("09:00");
+        dto.setEndTime("10:00");
+
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId("SCHED12345");
+        schedule.setIdCaregiver(idCaregiver);
         schedule.setDay(DayOfWeek.MONDAY);
         schedule.setStartTime(LocalTime.of(9, 0));
-        schedule.setEndTime(LocalTime.of(9, 30));
+        schedule.setEndTime(LocalTime.of(10, 0));
 
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        when(service.createSchedule(anyString(), any(DayOfWeek.class), any(LocalTime.class), any(LocalTime.class)))
+                .thenReturn(schedule);
 
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-    }
-
-    @Test
-    public void testCreateSchedule() {
-        CreateScheduleDTO dto = new CreateScheduleDTO();
-        dto.setDay("MONDAY");
-        dto.setStartTime("09:00");
-        dto.setEndTime("09:30");
-
-        when(service.createSchedule(DOCTOR_ID,
-                DayOfWeek.MONDAY,
-                LocalTime.of(9, 0),
-                LocalTime.of(9, 30))).thenReturn(schedule);
-
-        ResponseEntity<CaregiverSchedule> response = controller.createSchedule(DOCTOR_ID, dto);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(SCHEDULE_ID, response.getBody().getId());
-        verify(service).createSchedule(DOCTOR_ID,
-                DayOfWeek.MONDAY,
-                LocalTime.of(9, 0),
-                LocalTime.of(9, 30));
-    }
-
-    @Test
-    public void testCreateScheduleWithInvalidInput() {
-        CreateScheduleDTO dto = new CreateScheduleDTO();
-        dto.setDay("invalid");
-        dto.setStartTime("09:00");
-        dto.setEndTime("09:30");
-
-        ResponseEntity<CaregiverSchedule> response = controller.createSchedule(DOCTOR_ID, dto);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(service, never()).createSchedule(anyString(), any(), any(), any());
-    }
-
-    @Test
-    public void testCreateScheduleIntervalWithDefaultDuration() {
-        CreateScheduleDTO dto = new CreateScheduleDTO();
-        dto.setDay("MONDAY");
-        dto.setStartTime("09:00");
-        dto.setEndTime("10:00");
-
-        List<CaregiverSchedule> scheduleList = Arrays.asList(schedule, schedule);
-        when(service.createScheduleInterval(DOCTOR_ID,
-                DayOfWeek.MONDAY,
-                LocalTime.of(9, 0),
-                LocalTime.of(10, 0))).thenReturn(scheduleList);
-
-        ResponseEntity<List<CaregiverSchedule>> response = controller.createScheduleInterval(DOCTOR_ID, dto);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(2, response.getBody().size());
-        verify(service).createScheduleInterval(DOCTOR_ID,
-                DayOfWeek.MONDAY,
-                LocalTime.of(9, 0),
-                LocalTime.of(10, 0));
-    }
-
-    @Test
-    public void testCreateScheduleIntervalWithInvalidInput() {
-        CreateScheduleDTO dto = new CreateScheduleDTO();
-        dto.setDay("MONDAY");
-        dto.setStartTime("invalid");
-        dto.setEndTime("10:00");
-
-        ResponseEntity<List<CaregiverSchedule>> response = controller.createScheduleInterval(DOCTOR_ID, dto);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(service, never()).createScheduleInterval(anyString(), any(), any(), any());
-    }
-
-    @Test
-    public void testGetScheduleByCaregiverWithoutStatus() {
-        List<CaregiverSchedule> scheduleList = Arrays.asList(schedule, schedule);
-        when(service.findByIdCaregiver(DOCTOR_ID)).thenReturn(scheduleList);
-
-        ResponseEntity<List<CaregiverSchedule>> response = controller.getScheduleByCaregiver(DOCTOR_ID, null);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(2, response.getBody().size());
-        verify(service).findByIdCaregiver(DOCTOR_ID);
-        verify(service, never()).findByIdCaregiverAndStatus(anyString(), anyString());
-    }
-
-    @Test
-    public void testGetScheduleByCaregiverWithValidStatus() {
-        List<CaregiverSchedule> scheduleList = Arrays.asList(schedule, schedule);
-        when(service.findByIdCaregiverAndStatus(DOCTOR_ID, "AVAILABLE")).thenReturn(scheduleList);
-
-        ResponseEntity<List<CaregiverSchedule>> response = controller.getScheduleByCaregiver(DOCTOR_ID, "available");
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(2, response.getBody().size());
-        verify(service).findByIdCaregiverAndStatus(DOCTOR_ID, "AVAILABLE");
-        verify(service, never()).findByIdCaregiver(anyString());
-    }
-
-    @Test
-    public void testFindById() {
-        when(service.findById(SCHEDULE_ID)).thenReturn(schedule);
-
-        ResponseEntity<CaregiverSchedule> response = controller.findByScheduleId(SCHEDULE_ID);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(SCHEDULE_ID, response.getBody().getId());
-        verify(service).findById(SCHEDULE_ID);
-    }
-
-    @Test
-    public void testUpdateStatusApproved() {
-        UpdateScheduleStatusDTO dto = new UpdateScheduleStatusDTO();
-        dto.setStatusCaregiver("APPROVED");
-
-        when(service.approveSchedule(SCHEDULE_ID)).thenReturn(true);
-        when(service.findById(SCHEDULE_ID)).thenReturn(schedule);
-
-        ResponseEntity<CaregiverSchedule> response = controller.updateStatus(SCHEDULE_ID, dto);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(SCHEDULE_ID, response.getBody().getId());
-        verify(service).approveSchedule(SCHEDULE_ID);
-        verify(service).findById(SCHEDULE_ID);
-    }
-
-    @Test
-    public void testUpdateStatusRejected() {
-        UpdateScheduleStatusDTO dto = new UpdateScheduleStatusDTO();
-        dto.setStatusCaregiver("REJECTED");
-
-        when(service.rejectSchedule(SCHEDULE_ID)).thenReturn(true);
-        when(service.findById(SCHEDULE_ID)).thenReturn(schedule);
-
-        ResponseEntity<CaregiverSchedule> response = controller.updateStatus(SCHEDULE_ID, dto);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(SCHEDULE_ID, response.getBody().getId());
-        verify(service).rejectSchedule(SCHEDULE_ID);
-        verify(service).findById(SCHEDULE_ID);
-    }
-
-    @Test
-    public void testUpdateStatusChangeSchedule() {
-        UpdateScheduleStatusDTO dto = new UpdateScheduleStatusDTO();
-        dto.setStatusCaregiver("CHANGE_SCHEDULE");
-        dto.setDay("TUESDAY");
-        dto.setStartTime("14:00");
-        dto.setEndTime("14:30");
-        dto.setMessage(null);
-
-        when(service.changeSchedule(
-                SCHEDULE_ID,
-                DayOfWeek.TUESDAY,
-                LocalTime.of(14, 0),
-                LocalTime.of(14, 30),
-                null)).thenReturn(true);
-        when(service.findById(SCHEDULE_ID)).thenReturn(schedule);
-
-        ResponseEntity<CaregiverSchedule> response = controller.updateStatus(SCHEDULE_ID, dto);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(SCHEDULE_ID, response.getBody().getId());
-        verify(service).changeSchedule(
-                SCHEDULE_ID,
-                DayOfWeek.TUESDAY,
-                LocalTime.of(14, 0),
-                LocalTime.of(14, 30),
-                null);
-        verify(service).findById(SCHEDULE_ID);
-    }
-
-    @Test
-    public void testUpdateStatusInvalid() {
-        UpdateScheduleStatusDTO dto = new UpdateScheduleStatusDTO();
-        dto.setStatusCaregiver("INVALID");
-
-        ResponseEntity<CaregiverSchedule> response = controller.updateStatus(SCHEDULE_ID, dto);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(service, never()).approveSchedule(anyString());
-        verify(service, never()).rejectSchedule(anyString());
-        verify(service, never()).changeSchedule(anyString(), any(), any(), any(), anyString());
-        verify(service, never()).findById(anyString());
-    }
-
-    @Test
-    public void testUpdateStatusChangeScheduleInvalidParams() {
-        UpdateScheduleStatusDTO dto = new UpdateScheduleStatusDTO();
-        dto.setStatusCaregiver("CHANGE_SCHEDULE");
-        dto.setDay("TUESDAY");
-        dto.setStartTime("invalid");
-        dto.setEndTime("14:30");
-        dto.setMessage("Mohon reschedule, jadwal tabrakan dengan jadwal saya di RS.");
-
-        ResponseEntity<CaregiverSchedule> response = controller.updateStatus(SCHEDULE_ID, dto);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(service, never()).changeSchedule(anyString(), any(), any(), any(), anyString());
-    }
-
-    @Test
-    public void testMockMvcCreateSchedule() throws Exception {
-        CreateScheduleDTO requestBody = new CreateScheduleDTO();
-        requestBody.setDay("WEDNESDAY");
-        requestBody.setStartTime("09:00");
-        requestBody.setEndTime("09:30");
-
-        when(service.createSchedule(
-                DOCTOR_ID,
-                DayOfWeek.WEDNESDAY,
-                LocalTime.of(9, 0),
-                LocalTime.of(9, 30)
-        )).thenReturn(schedule);
-
-        mockMvc.perform(post("/doctors/" + DOCTOR_ID + "/schedules")
+        mockMvc.perform(post("/api/doctors/{idCaregiver}/schedules", idCaregiver)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody)))
+                        .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(SCHEDULE_ID));
+                .andExpect(jsonPath("$.id").value("SCHED12345"))
+                .andExpect(jsonPath("$.idCaregiver").value(idCaregiver));
     }
 
     @Test
-    public void testMockMvcCreateScheduleWithInvalidDate() throws Exception {
-        CreateScheduleDTO requestBody = new CreateScheduleDTO();
-        requestBody.setDay("invalid");
-        requestBody.setStartTime("09:00");
-        requestBody.setEndTime("09:30");
+    public void testCreateScheduleInterval() throws Exception {
+        String idCaregiver = "DOC12345";
+        CreateScheduleDTO dto = new CreateScheduleDTO();
+        dto.setDay("MONDAY");
+        dto.setStartTime("09:00");
+        dto.setEndTime("10:00");
 
-        mockMvc.perform(post("/doctors/" + DOCTOR_ID + "/schedules")
+        List<CaregiverSchedule> schedules = new ArrayList<>();
+        CaregiverSchedule schedule1 = new CaregiverSchedule();
+        schedule1.setId("SCHED12345");
+        schedule1.setIdCaregiver(idCaregiver);
+        schedule1.setDay(DayOfWeek.MONDAY);
+        schedule1.setStartTime(LocalTime.of(9, 0));
+        schedule1.setEndTime(LocalTime.of(9, 30));
+
+        CaregiverSchedule schedule2 = new CaregiverSchedule();
+        schedule2.setId("SCHED12346");
+        schedule2.setIdCaregiver(idCaregiver);
+        schedule2.setDay(DayOfWeek.MONDAY);
+        schedule2.setStartTime(LocalTime.of(9, 30));
+        schedule2.setEndTime(LocalTime.of(10, 0));
+
+        schedules.add(schedule1);
+        schedules.add(schedule2);
+
+        when(service.createMultipleSchedules(anyString(), any(DayOfWeek.class), any(LocalTime.class), any(LocalTime.class)))
+                .thenReturn(schedules);
+
+        mockMvc.perform(post("/api/doctors/{idCaregiver}/schedules/interval", idCaregiver)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody)))
-                .andExpect(status().isBadRequest());
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$[0].id").value("SCHED12345"))
+                .andExpect(jsonPath("$[1].id").value("SCHED12346"))
+                .andExpect(jsonPath("$[0].idCaregiver").value(idCaregiver))
+                .andExpect(jsonPath("$[1].idCaregiver").value(idCaregiver));
     }
 
     @Test
-    public void testMockMvcUpdateStatus() throws Exception {
-        UpdateScheduleStatusDTO requestBody = new UpdateScheduleStatusDTO();
-        requestBody.setStatusCaregiver("APPROVED");
+    public void testGetScheduleByCaregiver() throws Exception {
+        String idCaregiver = "DOC4567";
 
-        when(service.approveSchedule(SCHEDULE_ID)).thenReturn(true);
-        when(service.findById(SCHEDULE_ID)).thenReturn(schedule);
+        List<CaregiverSchedule> schedules = new ArrayList<>();
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId("SCHED4567");
+        schedule.setIdCaregiver(idCaregiver);
+        schedule.setDay(DayOfWeek.MONDAY);
+        schedule.setStartTime(LocalTime.of(9, 0));
+        schedule.setEndTime(LocalTime.of(10, 0));
+        schedules.add(schedule);
 
-        mockMvc.perform(patch("/doctors/schedules/" + SCHEDULE_ID + "/status")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody)))
+        when(service.getSchedulesByCaregiver(idCaregiver)).thenReturn(schedules);
+
+        mockMvc.perform(get("/api/doctors/{idCaregiver}/schedules", idCaregiver))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(SCHEDULE_ID));
+                .andExpect(jsonPath("$[0].id").value("SCHED4567"))
+                .andExpect(jsonPath("$[0].idCaregiver").value(idCaregiver));
+    }
+
+    @Test
+    public void testGetScheduleByCaregiverAndStatus() throws Exception {
+        String idCaregiver = "DOC4567";
+        String statusStr = "AVAILABLE";
+        ScheduleStatus status = ScheduleStatus.AVAILABLE;
+
+        List<CaregiverSchedule> schedules = new ArrayList<>();
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId("SCHED4567");
+        schedule.setIdCaregiver(idCaregiver);
+        schedules.add(schedule);
+
+        when(service.getSchedulesByCaregiverAndStatus(idCaregiver, status)).thenReturn(schedules);
+
+        mockMvc.perform(get("/api/doctors/{idCaregiver}/schedules", idCaregiver)
+                        .param("status", statusStr))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("SCHED4567"));
+    }
+
+    @Test
+    public void testGetScheduleByCaregiverAndDay() throws Exception {
+        String idCaregiver = "DOC1111";
+        String day = "MONDAY";
+
+        List<CaregiverSchedule> schedules = new ArrayList<>();
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId("SCHED1111");
+        schedule.setIdCaregiver(idCaregiver);
+        schedule.setDay(DayOfWeek.MONDAY);
+        schedules.add(schedule);
+
+        when(service.getSchedulesByCaregiverAndDay(anyString(), any(DayOfWeek.class))).thenReturn(schedules);
+
+        mockMvc.perform(get("/api/doctors/{idCaregiver}/schedules", idCaregiver)
+                        .param("day", day))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("SCHED1111"));
+    }
+
+    @Test
+    public void testGetScheduleByCaregiverAndIdSchedule() throws Exception {
+        String idCaregiver = "DOC1111";
+        String idSchedule = "SCHED1111";
+
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId(idSchedule);
+        schedule.setIdCaregiver(idCaregiver);
+        schedule.setDay(DayOfWeek.MONDAY);
+
+        when(service.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule)).thenReturn(schedule);
+
+        mockMvc.perform(get("/api/doctors/{idCaregiver}/schedules", idCaregiver)
+                        .param("idSchedule", idSchedule))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(idSchedule));
     }
 }
