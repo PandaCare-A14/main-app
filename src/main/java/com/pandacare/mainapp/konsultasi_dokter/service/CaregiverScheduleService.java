@@ -1,6 +1,7 @@
 package com.pandacare.mainapp.konsultasi_dokter.service;
 
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
+import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 
 import java.util.List;
 import java.time.DayOfWeek;
@@ -8,13 +9,12 @@ import java.time.LocalTime;
 
 public interface CaregiverScheduleService {
     CaregiverSchedule createSchedule(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime);
-    List<CaregiverSchedule> createScheduleInterval(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime);
-    boolean changeSchedule(String idSchedule, DayOfWeek newDay, LocalTime newStartTime, LocalTime newEndTime, String message);
-    boolean approveSchedule(String idSchedule);
-    boolean rejectSchedule(String idSchedule);
-    List<CaregiverSchedule> findByIdCaregiver(String idCaregiver);
-    List<CaregiverSchedule> findByIdCaregiverAndDay(String idCaregiver, DayOfWeek day);
-    List<CaregiverSchedule> findOverlappingSchedule(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime);
-    List<CaregiverSchedule> findByIdCaregiverAndStatus(String idCaregiver, String status);
-    CaregiverSchedule findById(String id);
+    List<CaregiverSchedule> createMultipleSchedules(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime);
+    List<CaregiverSchedule> createRepeatedSchedules(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int weeks);
+    List<CaregiverSchedule> createRepeatedMultipleSchedules(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int weeks);
+    List<CaregiverSchedule> getSchedulesByCaregiver(String idCaregiver);
+    List<CaregiverSchedule> getSchedulesByCaregiverAndDay(String idCaregiver, DayOfWeek day);
+    List<CaregiverSchedule> getSchedulesByCaregiverAndStatus(String idCaregiver, ScheduleStatus status);
+    CaregiverSchedule getSchedulesByCaregiverAndIdSchedule(String idCaregiver, String idSchedule);
+    CaregiverSchedule deleteSchedule(String idSchedule);
 }

@@ -1,55 +1,42 @@
 package com.pandacare.mainapp.konsultasi_dokter.repository;
 
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
+import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
-import java.util.stream.Collectors;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
-public class CaregiverScheduleRepository {
-    private final Map<String, CaregiverSchedule> data = new HashMap<>();
-
-    public CaregiverSchedule save(CaregiverSchedule schedule) {
-        if (schedule.getId() == null) {
-            schedule.setId(UUID.randomUUID().toString());
-        }
-        data.put(schedule.getId(), schedule);
-        return schedule;
-    }
-
-    public CaregiverSchedule findById(String id) {
-        return data.get(id);
-    }
-
-    public List<CaregiverSchedule> findByIdCaregiver(String idCaregiver) {
-        return data.values().stream()
-                .filter(j -> idCaregiver.equals(j.getIdCaregiver()))
-                .collect(Collectors.toList());
-    }
-
-    public List<CaregiverSchedule> findByIdCaregiverAndDay(String idCaregiver, DayOfWeek day) {
-        return data.values().stream()
-                .filter(schedule -> idCaregiver.equals(schedule.getIdCaregiver()) && day.equals(schedule.getDay()))
-                .collect(Collectors.toList());
-    }
-
-    public List<CaregiverSchedule> findOverlappingSchedule(String idCaregiver, DayOfWeek day,
-                                                           LocalTime startTime, LocalTime endTime) {
-        return data.values().stream()
-                .filter(schedule -> idCaregiver.equals(schedule.getIdCaregiver())
-                        && day.equals(schedule.getDay())
-                        && schedule.getStartTime().isBefore(endTime)
-                        && schedule.getEndTime().isAfter(startTime))
-                .collect(Collectors.toList());
-    }
-
-    public List<CaregiverSchedule> findByIdCaregiverAndStatus(String idCaregiver, String statusCaregiver) {
-        return data.values().stream()
-                .filter(schedule -> idCaregiver.equals(schedule.getIdCaregiver())
-                        && statusCaregiver.equals(schedule.getStatusCaregiver()))
-                .collect(Collectors.toList());
-    }
+public interface CaregiverScheduleRepository extends JpaRepository<CaregiverSchedule, String> {
+    List<CaregiverSchedule> findByIdCaregiver(String idCaregiver);
+    @Query("SELECT s FROM CaregiverSchedule s WHERE s.idCaregiver = :caregiverId AND s.id = :scheduleId")
+    Optional<CaregiverSchedule> findByIdCaregiverAndIdSchedule(
+            @Param("caregiverId") String caregiverId,
+            @Param("scheduleId") String scheduleId);
+    List<CaregiverSchedule> findByIdCaregiverAndStatus(String idCaregiver, ScheduleStatus status);
+    List<CaregiverSchedule> findByIdCaregiverAndDay(String idCaregiver,DayOfWeek day);
+    @Query("SELECT COUNT(c) > 0 FROM CaregiverSchedule c " + "WHERE c.idCaregiver = :caregiverId " +
+            "AND c.day = :day " + "AND c.startTime < :endTime " + "AND c.endTime > :startTime")
+    boolean existsOverlappingSchedule(
+            @Param("caregiverId") String caregiverId,
+            @Param("day") DayOfWeek day,
+            @Param("startTime") LocalTime startTime,
+            @Param("endTime") LocalTime endTime);
+    @Query("SELECT COUNT(s) > 0 FROM CaregiverSchedule s " +
+            "WHERE s.idCaregiver = :idCaregiver AND s.day = :day AND s.date = :date AND s.status != 'INACTIVE' AND " +
+            "((s.startTime <= :endTime AND s.endTime >= :startTime))")
+    boolean existsOverlappingScheduleWithDate(
+            @Param("idCaregiver") String idCaregiver,
+            @Param("day") DayOfWeek day,
+            @Param("date") LocalDate date,
+            @Param("startTime") LocalTime startTime,
+            @Param("endTime") LocalTime endTime);
 }
