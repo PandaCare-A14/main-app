@@ -13,4 +13,5 @@ public class CreateScheduleDTO {
     private String startTime;
     @NotNull
     private String endTime;
+    private Integer weeks;
 }

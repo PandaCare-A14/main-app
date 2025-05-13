@@ -32,7 +32,7 @@ public class CaregiverScheduleController {
     }
 
     @PostMapping("/{idCaregiver}/schedules")
-    public ResponseEntity<CaregiverSchedule> createSchedule(
+    public ResponseEntity<?> createSchedule(
             @PathVariable String idCaregiver,
             @Valid @RequestBody CreateScheduleDTO dto
     ) {
@@ -41,8 +41,14 @@ public class CaregiverScheduleController {
             LocalTime startTime = LocalTime.parse(dto.getStartTime());
             LocalTime endTime = LocalTime.parse(dto.getEndTime());
 
-            CaregiverSchedule schedule = scheduleService.createSchedule(idCaregiver, day, startTime, endTime);
-            return ResponseEntity.status(HttpStatus.CREATED).body(schedule);
+            if (dto.getWeeks() != null && dto.getWeeks() > 0) {
+                List<CaregiverSchedule> schedules = scheduleService.createRepeatedSchedules(
+                        idCaregiver, day, startTime, endTime, dto.getWeeks());
+                return ResponseEntity.status(HttpStatus.CREATED).body(schedules);
+            } else {
+                CaregiverSchedule schedule = scheduleService.createSchedule(idCaregiver, day, startTime, endTime);
+                return ResponseEntity.status(HttpStatus.CREATED).body(schedule);
+            }
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
@@ -60,9 +66,15 @@ public class CaregiverScheduleController {
             LocalTime startTime = LocalTime.parse(dto.getStartTime());
             LocalTime endTime = LocalTime.parse(dto.getEndTime());
 
-            List<CaregiverSchedule> schedules = scheduleService.createMultipleSchedules(
-                    idCaregiver, day, startTime, endTime);
-            return ResponseEntity.status(HttpStatus.CREATED).body(schedules);
+            if (dto.getWeeks() != null && dto.getWeeks() > 0) {
+                List<CaregiverSchedule> schedules = scheduleService.createRepeatedMultipleSchedules(
+                        idCaregiver, day, startTime, endTime, dto.getWeeks());
+                return ResponseEntity.status(HttpStatus.CREATED).body(schedules);
+            } else {
+                List<CaregiverSchedule> schedules = scheduleService.createMultipleSchedules(
+                        idCaregiver, day, startTime, endTime);
+                return ResponseEntity.status(HttpStatus.CREATED).body(schedules);
+            }
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
