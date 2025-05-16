@@ -45,6 +45,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation ("jakarta.validation:jakarta.validation-api:3.0.2")
 	implementation ("org.hibernate.validator:hibernate-validator:7.0.1.Final")
+	implementation ("org.postgresql:postgresql:42.7.2")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
 	compileOnly("org.projectlombok:lombok")
 
@@ -58,6 +60,7 @@ dependencies {
 	testImplementation("io.github.bonigarcia:selenium-jupiter:$seleniumJupiterVersion")
 	testImplementation("io.github.bonigarcia:webdrivermanager:$webdrivermanagerVersion")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
+	testImplementation("com.h2database:h2")
 
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")

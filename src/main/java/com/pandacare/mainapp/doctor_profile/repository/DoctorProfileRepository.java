@@ -2,119 +2,32 @@ package com.pandacare.mainapp.doctor_profile.repository;
 
 import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-import java.time.Duration;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
 
 @Repository
-public class DoctorProfileRepository {
-    private final List<DoctorProfile> doctorProfiles = new ArrayList<>();
+public interface DoctorProfileRepository extends JpaRepository<DoctorProfile, String> {
 
-    public DoctorProfile save(DoctorProfile doctorProfile) {
-        if (doctorProfile == null) {
-            return null;
-        }
-        if (doctorProfile.getId() == null) {
-            return null;
-        }
-        int i = 0;
-        for (DoctorProfile savedDoctorProfile : doctorProfiles) {
-            if (savedDoctorProfile.getId().equals(doctorProfile.getId())) {
-                doctorProfiles.remove(i);
-                doctorProfiles.add(i, doctorProfile);
-                return doctorProfile;
-            }
-            i += 1;
-        }
-        doctorProfiles.add(doctorProfile);
-        return doctorProfile;
-    }
+    List<DoctorProfile> findByNameContainingIgnoreCase(String name);
+    List<DoctorProfile> findBySpecialityContainingIgnoreCase(String speciality);
 
-    public DoctorProfile delete(DoctorProfile doctorProfile) {
-        System.out.println(doctorProfile.getId());
-        Iterator<DoctorProfile> iterator = doctorProfiles.iterator();
-        while (iterator.hasNext()) {
-            DoctorProfile d = iterator.next();
-            if (d.getId().equals(doctorProfile.getId())) {
-                iterator.remove();
-                return doctorProfile;
-            }
-        }
-        return null;
-    }
-
-
-    public List<DoctorProfile> findAll() {
-        return doctorProfiles;
-    }
-
-    public DoctorProfile findById(String id) {
-        for (DoctorProfile savedDoctorProfile : doctorProfiles) {
-            if (savedDoctorProfile.getId().equals(id)) {
-                return savedDoctorProfile;
-            }
-        }
-        return null;
-    }
-
-    public List<DoctorProfile> findByName(String name) {
-        List<DoctorProfile> matchedDoctors = new ArrayList<>();
-
-        for (DoctorProfile savedDoctorProfile : doctorProfiles) {
-            if (savedDoctorProfile.getName().toLowerCase().contains(name.toLowerCase())) {
-                matchedDoctors.add(savedDoctorProfile);
-            }
-        }
-
-        return matchedDoctors;
-    }
-
-    public List<DoctorProfile> findBySpeciality(String speciality) {
-        List<DoctorProfile> matchedDoctors = new ArrayList<>();
-
-        for (DoctorProfile savedDoctorProfile : doctorProfiles) {
-            if (savedDoctorProfile.getSpeciality().toLowerCase().contains(speciality.toLowerCase())) {
-                matchedDoctors.add(savedDoctorProfile);
-            }
-        }
-        return matchedDoctors;
-    }
-
-    public List<DoctorProfile> findByWorkSchedule(String workSchedule) {
-        List<DoctorProfile> matchedDoctors = new ArrayList<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-
-        String[] schedule = workSchedule.split(" ");
-        String day = schedule[0];
-        String[] timeRange = schedule[1].split("-");
-        LocalTime searchStart = LocalTime.parse(timeRange[0], formatter);
-        LocalTime searchEnd = LocalTime.parse(timeRange[1], formatter);
-
-        for (DoctorProfile savedDoctorProfile : doctorProfiles) {
-            Map<String, String> doctorSchedule = savedDoctorProfile.getWorkSchedule();
-            if (doctorSchedule.containsKey(day)) {
-                String doctorWorkHour = doctorSchedule.get(day);
-
-                String[] doctorTimeRange = doctorWorkHour.split("-");
-                LocalTime doctorStart = LocalTime.parse(doctorTimeRange[0].trim(), formatter);
-                LocalTime doctorEnd = LocalTime.parse(doctorTimeRange[1].trim(), formatter);
-
-                if (searchStart.isAfter(doctorStart) && searchStart.isBefore(doctorEnd)) {
-                    if (Duration.between(searchStart, doctorEnd).toMinutes() >= 30) {
-                        matchedDoctors.add(savedDoctorProfile);
-                        continue;
-                    }
-                }
-                if (searchEnd.isAfter(doctorStart) && searchEnd.isBefore(doctorEnd)) {
-                    if (Duration.between(doctorStart, searchEnd).toMinutes() >= 30) {
-                        matchedDoctors.add(savedDoctorProfile);
-                    }
-                }
-            }
-        }
-
-        return matchedDoctors;
-    }
+    @Query("SELECT d FROM DoctorProfile d WHERE " +
+            "FUNCTION('JSON_EXTRACT', d.workSchedule, :day) IS NOT NULL AND " +
+            "( " +
+            "  (FUNCTION('PARSE_TIME', FUNCTION('JSON_EXTRACT', d.workSchedule, :day, 'start')) <= :searchStart AND " +
+            "  (FUNCTION('PARSE_TIME', FUNCTION('JSON_EXTRACT', d.workSchedule, :day, 'end')) >= :searchStart) AND " +
+            "  FUNCTION('TIMESTAMPDIFF', MINUTE, :searchStart, FUNCTION('PARSE_TIME', FUNCTION('JSON_EXTRACT', d.workSchedule, :day, 'end'))) >= 30 " +
+            ") OR ( " +
+            "  (FUNCTION('PARSE_TIME', FUNCTION('JSON_EXTRACT', d.workSchedule, :day, 'start')) <= :searchEnd AND " +
+            "  (FUNCTION('PARSE_TIME', FUNCTION('JSON_EXTRACT', d.workSchedule, :day, 'end')) >= :searchEnd) AND " +
+            "  FUNCTION('TIMESTAMPDIFF', MINUTE, FUNCTION('PARSE_TIME', FUNCTION('JSON_EXTRACT', d.workSchedule, :day, 'start')), :searchEnd) >= 30 " +
+            ")")
+    List<DoctorProfile> findByWorkScheduleAvailable(
+        @Param("day") String day,
+        @Param("searchStart") LocalTime searchStart,
+        @Param("searchEnd") LocalTime searchEnd);
 }

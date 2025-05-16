@@ -97,12 +97,10 @@ public class DoctorProfileApiController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDoctor(@PathVariable String id) {
-        DoctorProfile doctor = doctorProfileService.findById(id);
-        if (doctor == null) {
-            return ResponseEntity.notFound().build();
+        if (doctorProfileService.deleteProfile(id)) {
+            return ResponseEntity.noContent().build();
         }
-        doctorProfileService.deleteProfile(doctor);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.notFound().build();
     }
 
     // Conversion methods

@@ -221,30 +221,22 @@ class DoctorProfileApiControllerTest {
     class DeleteDoctorTests {
         @Test
         void shouldDeleteDoctorWhenIdExists() {
-            // Arrange
-            when(doctorProfileService.findById("doc1")).thenReturn(doctor1);
+            when(doctorProfileService.deleteProfile("doc1")).thenReturn(true);
 
-            // Act
             ResponseEntity<Void> response = doctorProfileApiController.deleteDoctor("doc1");
 
-            // Assert
             assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-            verify(doctorProfileService).findById("doc1");
-            verify(doctorProfileService).deleteProfile(doctor1);
+            verify(doctorProfileService).deleteProfile("doc1");
         }
 
         @Test
         void shouldReturnNotFoundWhenIdDoesNotExist() {
-            // Arrange
-            when(doctorProfileService.findById("nonexistent")).thenReturn(null);
+            when(doctorProfileService.deleteProfile("nonexistent")).thenReturn(false);
 
-            // Act
             ResponseEntity<Void> response = doctorProfileApiController.deleteDoctor("nonexistent");
 
-            // Assert
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-            verify(doctorProfileService).findById("nonexistent");
-            verify(doctorProfileService, never()).deleteProfile(any());
+            verify(doctorProfileService).deleteProfile("nonexistent");
         }
     }
 

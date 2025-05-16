@@ -2,7 +2,6 @@ package com.pandacare.mainapp.doctor_profile.service;
 
 import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
-import com.pandacare.mainapp.doctor_profile.strategy.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,10 +9,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -22,27 +20,13 @@ import static org.mockito.Mockito.*;
 class DoctorProfileServiceImplTest {
 
     @InjectMocks
-    DoctorProfileServiceImpl doctorProfileService;
+    private DoctorProfileServiceImpl doctorProfileService;
 
     @Mock
-    DoctorProfileRepository doctorProfileRepository;
+    private DoctorProfileRepository doctorProfileRepository;
 
-    @Mock
-    Map<String, SearchStrategy> strategies;
-
-    @Mock
-    SearchByName nameSearchStrategy;
-
-    @Mock
-    SearchBySpeciality specialitySearchStrategy;
-
-    @Mock
-    SearchBySchedule scheduleSearchStrategy;
-
-    @Mock
-    DoctorSearchContext doctorSearchContext;
-
-    List<DoctorProfile> doctorProfileList;
+    private List<DoctorProfile> doctorProfileList;
+    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
     @BeforeEach
     void setUp() {
@@ -65,18 +49,8 @@ class DoctorProfileServiceImplTest {
                 workSchedule2, "Orthopedic", 4.8);
         doctorProfile2.setId("eb558e9f-1c39-460e-8860-71af6af63ds2");
         doctorProfileList.add(doctorProfile2);
-
-        // Initialize strategies map
-        strategies = new HashMap<>();
-        strategies.put("nameSearchStrategy", nameSearchStrategy);
-        strategies.put("specialitySearchStrategy", specialitySearchStrategy);
-        strategies.put("scheduleSearchStrategy", scheduleSearchStrategy);
-
-        // Inject strategies map into service
-        doctorProfileService = new DoctorProfileServiceImpl(doctorProfileRepository, strategies);
     }
 
-    // Utility method
     private void assertDoctorProfilesEqual(DoctorProfile expected, DoctorProfile actual) {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getName(), actual.getName());
@@ -89,207 +63,131 @@ class DoctorProfileServiceImplTest {
     }
 
     @Test
-    void createDoctorProfile() {
-        DoctorProfile expected = doctorProfileList.getFirst();
-        doReturn(expected).when(doctorProfileRepository).save(expected);
+    void createProfile_ShouldCreateNewProfile_WhenValidInput() {
+        DoctorProfile newProfile = doctorProfileList.get(0);
+        when(doctorProfileRepository.existsById(newProfile.getId())).thenReturn(false);
+        when(doctorProfileRepository.save(newProfile)).thenReturn(newProfile);
 
-        DoctorProfile result = doctorProfileService.createProfile(expected);
+        DoctorProfile result = doctorProfileService.createProfile(newProfile);
 
-        assertDoctorProfilesEqual(expected, result);
-        verify(doctorProfileRepository, times(1)).save(expected);
+        assertNotNull(result);
+        assertDoctorProfilesEqual(newProfile, result);
+        verify(doctorProfileRepository).existsById(newProfile.getId());
+        verify(doctorProfileRepository).save(newProfile);
     }
 
     @Test
-    void createNullDoctorProfile() {
-        DoctorProfile result = doctorProfileService.createProfile(null);
+    void createProfile_ShouldReturnNull_WhenProfileExists() {
+        DoctorProfile existingProfile = doctorProfileList.get(0);
+        when(doctorProfileRepository.existsById(existingProfile.getId())).thenReturn(true);
+
+        DoctorProfile result = doctorProfileService.createProfile(existingProfile);
 
         assertNull(result);
+        verify(doctorProfileRepository).existsById(existingProfile.getId());
+        verify(doctorProfileRepository, never()).save(existingProfile);
     }
 
     @Test
-    void createDoctorProfileWithNullId() {
-        DoctorProfile expected = doctorProfileList.getFirst();
-        expected.setId(null);
-        DoctorProfile result = doctorProfileService.createProfile(expected);
+    void updateProfile_ShouldUpdateExistingProfile() {
+        DoctorProfile existing = doctorProfileList.get(0);
+        DoctorProfile updated = new DoctorProfile(
+                "Dr. Hafiz Updated", "updated@email.com", "08123456789",
+                "New Address", existing.getWorkSchedule(), "Updated Speciality", 5.0);
+        updated.setId(existing.getId());
 
-        assertNull(result);
+        when(doctorProfileRepository.findById(existing.getId())).thenReturn(Optional.of(existing));
+        when(doctorProfileRepository.save(updated)).thenReturn(updated);
+
+        DoctorProfile result = doctorProfileService.updateProfile(updated);
+
+        assertNotNull(result);
+        assertEquals(updated.getName(), result.getName());
+        verify(doctorProfileRepository).findById(existing.getId());
+        verify(doctorProfileRepository).save(updated);
     }
 
     @Test
-    void testCreateDoctorProfileIfAlreadyExists() {
-        DoctorProfile doctorProfile = doctorProfileList.getFirst();
-        doReturn(doctorProfile).when(doctorProfileRepository).findById(doctorProfile.getId());
+    void deleteProfile_ShouldReturnTrue_WhenProfileExists() {
+        String id = doctorProfileList.get(0).getId();
+        when(doctorProfileRepository.existsById(id)).thenReturn(true);
 
-        assertNull(doctorProfileService.createProfile(doctorProfile));
-        verify(doctorProfileRepository, times(0)).save(doctorProfile);
+        boolean result = doctorProfileService.deleteProfile(id);
+
+        assertTrue(result);
+        verify(doctorProfileRepository).existsById(id);
+        verify(doctorProfileRepository).deleteById(id);
     }
 
     @Test
-    void testUpdateDoctorProfileIfExists() {
-        DoctorProfile doctorProfile = doctorProfileList.get(1);
-
-        Map<String, String> workSchedule = new HashMap<>();
-        workSchedule.put("Selasa", "15:00-18:00");
-        workSchedule.put("Jumat", "19:00-21:00");
-
-        DoctorProfile newDoctorProfile = new DoctorProfile(doctorProfile.getName(), "hafiz@premierebintaro.com", "082723726789", "RS Premiere Bintaro",
-                workSchedule, doctorProfile.getSpeciality(), 4.95);
-        newDoctorProfile.setId(doctorProfile.getId());
-
-        doReturn(doctorProfile).when(doctorProfileRepository).findById(doctorProfile.getId());
-        doReturn(newDoctorProfile).when(doctorProfileRepository).save(any(DoctorProfile.class));
-
-        DoctorProfile result = doctorProfileService.updateProfile(newDoctorProfile);
-
-        assertEquals(doctorProfile.getId(), result.getId());
-        assertEquals(doctorProfile.getName(), result.getName());
-        assertEquals(doctorProfile.getSpeciality(), result.getSpeciality());
-        assertEquals(newDoctorProfile.getEmail(), result.getEmail());
-        assertEquals(newDoctorProfile.getPhoneNumber(), result.getPhoneNumber());
-        assertEquals(newDoctorProfile.getWorkAddress(), result.getWorkAddress());
-        assertEquals(newDoctorProfile.getWorkSchedule(), result.getWorkSchedule());
-        assertEquals(newDoctorProfile.getRating(), result.getRating());
-        verify(doctorProfileRepository, times(1)).save(any(DoctorProfile.class));
-    }
-
-    @Test
-    void testUpdateDoctorProfileIfNotExist() {
-        DoctorProfile doctorProfile = doctorProfileList.getFirst();
-        doReturn(null).when(doctorProfileRepository).findById(doctorProfile.getId());
-
-        assertNull(doctorProfileService.updateProfile(doctorProfile));
-        verify(doctorProfileRepository, times(0)).save(doctorProfile);
-    }
-
-    @Test
-    void testDeleteDoctorProfileIfExists() {
-        DoctorProfile expected = doctorProfileList.getFirst();
-        doReturn(expected).when(doctorProfileRepository).delete(expected);
-
-        DoctorProfile result = doctorProfileService.deleteProfile(expected);
-
-        assertDoctorProfilesEqual(expected, result);
-        verify(doctorProfileRepository, times(1)).delete(expected);
-    }
-
-    @Test
-    void testDeleteDoctorProfileIfNotExist() {
-        DoctorProfile doctorProfile = doctorProfileList.getFirst();
-        doReturn(null).when(doctorProfileRepository).delete(doctorProfile);
-
-        assertNull(doctorProfileService.deleteProfile(doctorProfile));
-        verify(doctorProfileRepository, times(1)).delete(doctorProfile);
-    }
-
-    @Test
-    void testFindAllDoctorProfiles() {
-        doReturn(doctorProfileList).when(doctorProfileRepository).findAll();
+    void findAll_ShouldReturnAllProfiles() {
+        when(doctorProfileRepository.findAll()).thenReturn(doctorProfileList);
 
         List<DoctorProfile> result = doctorProfileService.findAll();
-        assertEquals(doctorProfileList.size(), result.size());
+
+        assertEquals(2, result.size());
+        verify(doctorProfileRepository).findAll();
     }
 
     @Test
-    void testFindByIdIfFound() {
-        DoctorProfile expected = doctorProfileList.get(1);
-        doReturn(expected).when(doctorProfileRepository).findById(expected.getId());
+    void findById_ShouldReturnProfile_WhenExists() {
+        DoctorProfile expected = doctorProfileList.get(0);
+        when(doctorProfileRepository.findById(expected.getId())).thenReturn(Optional.of(expected));
 
         DoctorProfile result = doctorProfileService.findById(expected.getId());
+
+        assertNotNull(result);
         assertDoctorProfilesEqual(expected, result);
+        verify(doctorProfileRepository).findById(expected.getId());
     }
 
     @Test
-    void testFindByIdIfIdNotFound() {
-        doReturn(null).when(doctorProfileRepository).findById("nonExistentId");
-        DoctorProfile result = doctorProfileService.findById("nonExistentId");
-        assertNull(result);
+    void findByName_ShouldReturnMatchingProfiles() {
+        String name = "Hafiz";
+        List<DoctorProfile> expected = Collections.singletonList(doctorProfileList.get(0));
+        when(doctorProfileRepository.findByNameContainingIgnoreCase(name)).thenReturn(expected);
+
+        List<DoctorProfile> result = doctorProfileService.findByName(name);
+
+        assertEquals(1, result.size());
+        assertDoctorProfilesEqual(expected.get(0), result.get(0));
+        verify(doctorProfileRepository).findByNameContainingIgnoreCase(name);
     }
 
     @Test
-    void testFindByNameIfFound() {
-        DoctorProfile expected = doctorProfileList.get(1);
-        List<DoctorProfile> matchingNames = new ArrayList<>();
-        matchingNames.add(expected);
+    void findBySpeciality_ShouldReturnMatchingProfiles() {
+        String speciality = "Cardio";
+        List<DoctorProfile> expected = Collections.singletonList(doctorProfileList.get(0));
+        when(doctorProfileRepository.findBySpecialityContainingIgnoreCase(speciality)).thenReturn(expected);
 
-        when(nameSearchStrategy.search(expected.getName())).thenReturn(matchingNames);
+        List<DoctorProfile> result = doctorProfileService.findBySpeciality(speciality);
 
-        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("name", expected.getName());
-
-        assertEquals(matchingNames.size(), result.size());
-        assertDoctorProfilesEqual(expected, result.getFirst());
-        verify(nameSearchStrategy, times(1)).search(expected.getName());
+        assertEquals(1, result.size());
+        assertDoctorProfilesEqual(expected.get(0), result.get(0));
+        verify(doctorProfileRepository).findBySpecialityContainingIgnoreCase(speciality);
     }
 
     @Test
-    void testFindByNameIfNotFound() {
-        List<DoctorProfile> emptyList = new ArrayList<>();
+    void findByWorkSchedule_ShouldReturnMatchingProfiles() {
+        String schedule = "Senin 10:00-11:00";
+        String day = "Senin";
+        LocalTime start = LocalTime.parse("10:00", timeFormatter);
+        LocalTime end = LocalTime.parse("11:00", timeFormatter);
 
-        when(nameSearchStrategy.search("Random Name")).thenReturn(emptyList);
+        List<DoctorProfile> expected = Collections.singletonList(doctorProfileList.get(0));
+        when(doctorProfileRepository.findByWorkScheduleAvailable(day, start, end)).thenReturn(expected);
 
-        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("name", "Random Name");
+        List<DoctorProfile> result = doctorProfileService.findByWorkSchedule(schedule);
 
-        assertEquals(0, result.size());
-        verify(nameSearchStrategy, times(1)).search("Random Name");
+        assertEquals(1, result.size());
+        assertDoctorProfilesEqual(expected.get(0), result.get(0));
+        verify(doctorProfileRepository).findByWorkScheduleAvailable(day, start, end);
     }
 
     @Test
-    void testFindBySpecialityIfFound() {
-        DoctorProfile expected = doctorProfileList.get(1);
-        List<DoctorProfile> matchingSpecialities = new ArrayList<>();
-        matchingSpecialities.add(expected);
-
-        when(specialitySearchStrategy.search(expected.getSpeciality())).thenReturn(matchingSpecialities);
-
-        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("speciality", expected.getSpeciality());
-
-        assertEquals(matchingSpecialities.size(), result.size());
-        assertDoctorProfilesEqual(expected, result.getFirst());
-        verify(specialitySearchStrategy, times(1)).search(expected.getSpeciality());
-    }
-
-    @Test
-    void testFindBySpecialityIfNotFound() {
-        List<DoctorProfile> emptyList = new ArrayList<>();
-
-        when(specialitySearchStrategy.search("Random Speciality")).thenReturn(emptyList);
-
-        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("speciality", "Random Speciality");
-
-        assertEquals(0, result.size());
-        verify(specialitySearchStrategy, times(1)).search("Random Speciality");
-    }
-
-    @Test
-    void testFindByWorkScheduleIfFound() {
-        DoctorProfile expected = doctorProfileList.getFirst();
-        List<DoctorProfile> matchingSchedules = new ArrayList<>();
-        matchingSchedules.add(expected);
-
-        when(scheduleSearchStrategy.search("Senin 10:30-12:30")).thenReturn(matchingSchedules);
-
-        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("schedule", "Senin 10:30-12:30");
-
-        assertEquals(matchingSchedules.size(), result.size());
-        assertDoctorProfilesEqual(expected, result.getFirst());
-        verify(scheduleSearchStrategy, times(1)).search("Senin 10:30-12:30");
-    }
-
-    @Test
-    void testFindByWorkScheduleIfNotFound() {
-        List<DoctorProfile> emptyList = new ArrayList<>();
-
-        when(scheduleSearchStrategy.search("Sabtu 13:00-16:00")).thenReturn(emptyList);
-
-        List<DoctorProfile> result = doctorProfileService.searchDoctorProfile("schedule", "Sabtu 13:00-16:00");
-
-        assertEquals(0, result.size());
-        verify(scheduleSearchStrategy, times(1)).search("Sabtu 13:00-16:00");
-    }
-
-    @Test
-    void testSearchWithInvalidType() {
+    void findByWorkSchedule_ShouldThrowException_WhenInvalidFormat() {
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.searchDoctorProfile("INVALID_TYPE", "keyword");
+            doctorProfileService.findByWorkSchedule("InvalidFormat");
         });
     }
 }
