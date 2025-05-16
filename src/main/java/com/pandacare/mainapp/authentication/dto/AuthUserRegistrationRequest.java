@@ -2,8 +2,8 @@ package com.pandacare.mainapp.authentication.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Data;
 
 import java.math.BigDecimal;
 

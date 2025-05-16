@@ -1,8 +1,8 @@
 package com.pandacare.mainapp.authentication.service;
 
+import com.pandacare.mainapp.authentication.dto.AuthUserRegistrationRequest;
 import com.pandacare.mainapp.authentication.dto.AuthLoginRequest;
 import com.pandacare.mainapp.authentication.dto.AuthTokenResponse;
-import com.pandacare.mainapp.authentication.dto.AuthUserRegistrationRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

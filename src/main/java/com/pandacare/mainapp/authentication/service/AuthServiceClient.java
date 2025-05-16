@@ -1,8 +1,8 @@
 package com.pandacare.mainapp.authentication.service;
 
+import com.pandacare.mainapp.authentication.dto.AuthUserRegistrationRequest;
 import com.pandacare.mainapp.authentication.dto.AuthLoginRequest;
 import com.pandacare.mainapp.authentication.dto.AuthTokenResponse;
-import com.pandacare.mainapp.authentication.dto.AuthUserRegistrationRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
