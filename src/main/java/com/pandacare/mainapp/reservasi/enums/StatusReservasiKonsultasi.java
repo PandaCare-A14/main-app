@@ -5,4 +5,5 @@ public enum StatusReservasiKonsultasi {
     ON_RESCHEDULE,
     APPROVED,
     REJECTED,
+    COMPLETED,
 }

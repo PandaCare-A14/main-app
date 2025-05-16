@@ -13,20 +13,20 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface CaregiverScheduleRepository extends JpaRepository<CaregiverSchedule, String> {
-    List<CaregiverSchedule> findByIdCaregiver(String idCaregiver);
-    @Query("SELECT s FROM CaregiverSchedule s WHERE s.idCaregiver = :caregiverId AND s.id = :scheduleId")
+public interface CaregiverScheduleRepository extends JpaRepository<CaregiverSchedule, UUID> {
+    List<CaregiverSchedule> findByIdCaregiver(UUID idCaregiver);@Query("SELECT s FROM CaregiverSchedule s WHERE s.idCaregiver = :caregiverId AND s.id = :scheduleId")
     Optional<CaregiverSchedule> findByIdCaregiverAndIdSchedule(
-            @Param("caregiverId") String caregiverId,
-            @Param("scheduleId") String scheduleId);
-    List<CaregiverSchedule> findByIdCaregiverAndStatus(String idCaregiver, ScheduleStatus status);
-    List<CaregiverSchedule> findByIdCaregiverAndDay(String idCaregiver,DayOfWeek day);
+            @Param("caregiverId") UUID caregiverId,
+            @Param("scheduleId") UUID scheduleId);
+    List<CaregiverSchedule> findByIdCaregiverAndStatus(UUID idCaregiver, ScheduleStatus status);
+    List<CaregiverSchedule> findByIdCaregiverAndDay(UUID idCaregiver,DayOfWeek day);
     @Query("SELECT COUNT(c) > 0 FROM CaregiverSchedule c " + "WHERE c.idCaregiver = :caregiverId " +
             "AND c.day = :day " + "AND c.startTime < :endTime " + "AND c.endTime > :startTime")
     boolean existsOverlappingSchedule(
-            @Param("caregiverId") String caregiverId,
+            @Param("caregiverId") UUID caregiverId,
             @Param("day") DayOfWeek day,
             @Param("startTime") LocalTime startTime,
             @Param("endTime") LocalTime endTime);
@@ -34,7 +34,7 @@ public interface CaregiverScheduleRepository extends JpaRepository<CaregiverSche
             "WHERE s.idCaregiver = :idCaregiver AND s.day = :day AND s.date = :date AND s.status != 'INACTIVE' AND " +
             "((s.startTime <= :endTime AND s.endTime >= :startTime))")
     boolean existsOverlappingScheduleWithDate(
-            @Param("idCaregiver") String idCaregiver,
+            @Param("idCaregiver") UUID idCaregiver,
             @Param("day") DayOfWeek day,
             @Param("date") LocalDate date,
             @Param("startTime") LocalTime startTime,

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ReservasiKonsultasiServiceImpl {
@@ -21,7 +22,7 @@ public class ReservasiKonsultasiServiceImpl {
     @Autowired
     private ScheduleService scheduleService;
 
-    public ReservasiKonsultasi requestReservasi(String idSchedule, String idPacilian) {
+    public ReservasiKonsultasi requestReservasi(UUID idSchedule, String idPacilian) {
         RequestReservasiHandler handler = new RequestReservasiHandler(idSchedule, idPacilian, repository, scheduleService);
         return handler.handle();
     }

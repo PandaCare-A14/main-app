@@ -13,11 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
-    private static final int MAX_WEEKS = 12;
     private final CaregiverScheduleRepository repository;
     private final CreateManualStrategy manualStrategy;
     private final CreateIntervalStrategy intervalStrategy;
@@ -31,7 +31,7 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
 
     @Override
     @Transactional
-    public CaregiverSchedule createSchedule(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
+    public CaregiverSchedule createSchedule(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
         if (repository.existsOverlappingSchedule(idCaregiver, day, startTime, endTime)) {
             throw new RuntimeException("Schedule already exists.");
         }
@@ -41,7 +41,7 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
 
     @Override
     @Transactional
-    public List<CaregiverSchedule> createMultipleSchedules(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
+    public List<CaregiverSchedule> createMultipleSchedules(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
         List<CaregiverSchedule> allSlots = intervalStrategy.createMultipleSlots(idCaregiver, day, startTime, endTime);
         List<CaregiverSchedule> availableSlots = filterAvailableSlots(allSlots);
 
@@ -54,7 +54,7 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
 
     @Override
     @Transactional
-    public List<CaregiverSchedule> createRepeatedSchedules(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int weeks) {
+    public List<CaregiverSchedule> createRepeatedSchedules(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int weeks) {
         List<CaregiverSchedule> allSchedules = manualStrategy.createRepeated(idCaregiver, day, startTime, endTime, weeks);
         List<CaregiverSchedule> availableSchedules = filterAvailableSlotsWithDate(allSchedules);
 
@@ -67,7 +67,7 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
 
     @Override
     @Transactional
-    public List<CaregiverSchedule> createRepeatedMultipleSchedules(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int weeks) {
+    public List<CaregiverSchedule> createRepeatedMultipleSchedules(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int weeks) {
         List<CaregiverSchedule> allSlots = intervalStrategy.createRepeated(idCaregiver, day, startTime, endTime, weeks);
         List<CaregiverSchedule> availableSlots = filterAvailableSlotsWithDate(allSlots);
 
@@ -79,31 +79,30 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
     }
 
     @Override
-    public List<CaregiverSchedule> getSchedulesByCaregiver(String idCaregiver) {
+    public List<CaregiverSchedule> getSchedulesByCaregiver(UUID idCaregiver) {
         return repository.findByIdCaregiver(idCaregiver);
     }
 
     @Override
-    public List<CaregiverSchedule> getSchedulesByCaregiverAndDay(String idCaregiver, DayOfWeek day) {
+    public List<CaregiverSchedule> getSchedulesByCaregiverAndDay(UUID idCaregiver, DayOfWeek day) {
         return repository.findByIdCaregiverAndDay(idCaregiver, day);
     }
 
     @Override
-    public List<CaregiverSchedule> getSchedulesByCaregiverAndStatus(String idCaregiver, ScheduleStatus status) {
+    public List<CaregiverSchedule> getSchedulesByCaregiverAndStatus(UUID idCaregiver, ScheduleStatus status) {
         return repository.findByIdCaregiverAndStatus(idCaregiver, status);
     }
 
     @Override
-    public CaregiverSchedule getSchedulesByCaregiverAndIdSchedule(String idCaregiver, String idSchedule) {
-        return repository.findByIdCaregiverAndIdSchedule(idCaregiver, idSchedule)
-                .orElseThrow(() -> new EntityNotFoundException("Schedule not found with id: " + idSchedule + " and caregiver: " + idCaregiver));
+    public CaregiverSchedule getSchedulesByCaregiverAndIdSchedule(UUID idCaregiver, UUID idSchedule) {
+        return repository.findByIdCaregiverAndIdSchedule(idCaregiver, idSchedule).orElseThrow(() -> new EntityNotFoundException("Schedule not found with id: " + idSchedule + " and caregiver: " + idCaregiver));
     }
 
     @Override
     @Transactional
-    public CaregiverSchedule deleteSchedule(String idSchedule) {
+    public CaregiverSchedule deleteSchedule(UUID idSchedule) {
         CaregiverSchedule schedule = repository.findById(idSchedule)
-                .orElseThrow(() -> new EntityNotFoundException("Schedule with id " + idSchedule + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Schedule not found with id: " + idSchedule));
 
         if (schedule.getStatus() == ScheduleStatus.UNAVAILABLE) {
             throw new IllegalStateException("Cannot deactivate schedule that is UNAVAILABLE.");

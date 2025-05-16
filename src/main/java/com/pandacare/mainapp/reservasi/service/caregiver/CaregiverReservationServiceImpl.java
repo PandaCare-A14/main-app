@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class CaregiverReservationServiceImpl implements CaregiverReservationService {
@@ -26,17 +27,17 @@ public class CaregiverReservationServiceImpl implements CaregiverReservationServ
     }
 
     @Override
-    public List<ReservasiKonsultasi> getReservationsForCaregiver(String caregiverId) {
+    public List<ReservasiKonsultasi> getReservationsForCaregiver(UUID caregiverId) {
         return reservasiRepository.findByCaregiverId(caregiverId);
     }
 
     @Override
-    public List<ReservasiKonsultasi> getReservationsByCaregiverAndStatus(String caregiverId, StatusReservasiKonsultasi status) {
+    public List<ReservasiKonsultasi> getReservationsByCaregiverAndStatus(UUID caregiverId, StatusReservasiKonsultasi status) {
         return reservasiRepository.findByCaregiverIdAndStatus(caregiverId, status);
     }
 
     @Override
-    public List<ReservasiKonsultasi> getReservationsByCaregiverAndDay(String caregiverId, DayOfWeek day) {
+    public List<ReservasiKonsultasi> getReservationsByCaregiverAndDay(UUID caregiverId, DayOfWeek day) {
         return reservasiRepository.findByCaregiverIdAndDay(caregiverId, day);
     }
 
@@ -75,7 +76,7 @@ public class CaregiverReservationServiceImpl implements CaregiverReservationServ
 
     @Override
     @Transactional
-    public ReservasiKonsultasi changeSchedule(String reservationId, String newScheduleId) {
+    public ReservasiKonsultasi changeSchedule(String reservationId, UUID newScheduleId) {
         ReservasiKonsultasi reservation = getReservationOrThrow(reservationId);
         validateReservationStatusForAction(reservation, "change schedule");
 

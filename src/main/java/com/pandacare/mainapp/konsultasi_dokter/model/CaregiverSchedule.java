@@ -3,6 +3,7 @@ package com.pandacare.mainapp.konsultasi_dokter.model;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import jakarta.persistence.*;
@@ -16,9 +17,9 @@ import lombok.Setter;
 @Getter
 public class CaregiverSchedule {
     @Id
-    private String id;
+    private UUID id;
     @Column(name = "caregiver_id")
-    private String idCaregiver;
+    private UUID idCaregiver;
     @Enumerated(EnumType.STRING)
     private DayOfWeek day;
     @Column
@@ -32,7 +33,7 @@ public class CaregiverSchedule {
     private ScheduleStatus status;
 
     public CaregiverSchedule() {
-        this.id = java.util.UUID.randomUUID().toString();
+        this.id = java.util.UUID.randomUUID();
         this.status = ScheduleStatus.AVAILABLE;
     }
 }

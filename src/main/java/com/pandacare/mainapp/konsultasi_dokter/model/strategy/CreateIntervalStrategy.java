@@ -10,13 +10,14 @@ import java.time.Duration;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class CreateIntervalStrategy implements CreateScheduleStrategy {
     private static final int DURATION_MINUTES = 30;
     private static final int MAX_WEEKS = 12;
 
     @Override
-    public CaregiverSchedule create(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
+    public CaregiverSchedule create(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
         validateTimeParams(startTime, endTime);
 
         LocalDate nextOccurrence = LocalDate.now().with(TemporalAdjusters.nextOrSame(day));
@@ -25,7 +26,7 @@ public class CreateIntervalStrategy implements CreateScheduleStrategy {
     }
 
     @Override
-    public CaregiverSchedule createWithDate(String idCaregiver, DayOfWeek day, LocalDate date, LocalTime startTime, LocalTime endTime) {
+    public CaregiverSchedule createWithDate(UUID idCaregiver, DayOfWeek day, LocalDate date, LocalTime startTime, LocalTime endTime) {
         validateTimeParams(startTime, endTime);
 
         CaregiverSchedule schedule = new CaregiverSchedule();
@@ -39,15 +40,15 @@ public class CreateIntervalStrategy implements CreateScheduleStrategy {
         return schedule;
     }
 
-    public List<CaregiverSchedule> createMultipleSlots(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
+    public List<CaregiverSchedule> createMultipleSlots(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
         return createMultipleSlotsInternal(idCaregiver, day, null, startTime, endTime);
     }
 
-    public List<CaregiverSchedule> createMultipleSlotsWithDate(String idCaregiver, DayOfWeek day, LocalDate date, LocalTime startTime, LocalTime endTime) {
+    public List<CaregiverSchedule> createMultipleSlotsWithDate(UUID idCaregiver, DayOfWeek day, LocalDate date, LocalTime startTime, LocalTime endTime) {
         return createMultipleSlotsInternal(idCaregiver, day, date, startTime, endTime);
     }
 
-    private List<CaregiverSchedule> createMultipleSlotsInternal(String idCaregiver, DayOfWeek day, LocalDate date, LocalTime startTime, LocalTime endTime) {
+    private List<CaregiverSchedule> createMultipleSlotsInternal(UUID idCaregiver, DayOfWeek day, LocalDate date, LocalTime startTime, LocalTime endTime) {
         validateTimeParams(startTime, endTime);
         validateTimeInterval(startTime, endTime);
 
@@ -74,7 +75,7 @@ public class CreateIntervalStrategy implements CreateScheduleStrategy {
     }
 
     @Override
-    public List<CaregiverSchedule> createRepeated(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int recurrenceCount) {
+    public List<CaregiverSchedule> createRepeated(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int recurrenceCount) {
         validateTimeParams(startTime, endTime);
         validateWeeks(recurrenceCount);
 

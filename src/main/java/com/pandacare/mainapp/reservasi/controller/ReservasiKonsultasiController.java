@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/reservasi-konsultasi")
@@ -20,7 +21,7 @@ public class ReservasiKonsultasiController {
     @PostMapping("/request")
     public ResponseEntity<?> requestReservasi(@RequestBody Map<String, String> body) {
         try {
-            String idSchedule = body.get("idSchedule"); // Ambil ID jadwal langsung
+            UUID idSchedule = UUID.fromString(body.get("idSchedule")); // Ambil ID jadwal langsung
             String idPacilian = body.get("idPacilian"); // Ambil ID pasien
 
             ReservasiKonsultasi result = reservasiService.requestReservasi(idSchedule, idPacilian);

@@ -21,7 +21,7 @@ public class ReservasiKonsultasi {
     @Id
     private String idReservasi;
     @OneToOne
-    @JoinColumn(name = "id_schedule")
+    @JoinColumn(name = "schedule_id")
     private CaregiverSchedule idSchedule;
     @Column(name = "pacilian_id", nullable = false)
     private String idPacilian;
@@ -64,7 +64,7 @@ public class ReservasiKonsultasi {
         }
     }
 
-    public void handleChangeSchedule(String newScheduleId) {
+    public void handleChangeSchedule(UUID newScheduleId) {
         if (currentState != null) {
             currentState.handleChangeSchedule(this, newScheduleId);
         } else {

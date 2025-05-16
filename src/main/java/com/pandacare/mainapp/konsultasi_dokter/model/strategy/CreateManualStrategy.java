@@ -9,12 +9,13 @@ import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class CreateManualStrategy implements CreateScheduleStrategy {
     private static final int MAX_WEEKS = 12;
 
     @Override
-    public CaregiverSchedule create(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
+    public CaregiverSchedule create(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
         validateBasicParams(idCaregiver, day, startTime, endTime);
 
         LocalDate nextOccurrence = LocalDate.now().with(TemporalAdjusters.nextOrSame(day));
@@ -23,7 +24,7 @@ public class CreateManualStrategy implements CreateScheduleStrategy {
     }
 
     @Override
-    public CaregiverSchedule createWithDate(String idCaregiver, DayOfWeek day, LocalDate date, LocalTime startTime, LocalTime endTime) {
+    public CaregiverSchedule createWithDate(UUID idCaregiver, DayOfWeek day, LocalDate date, LocalTime startTime, LocalTime endTime) {
         validateBasicParams(idCaregiver, day, startTime, endTime);
 
         CaregiverSchedule schedule = new CaregiverSchedule();
@@ -38,7 +39,7 @@ public class CreateManualStrategy implements CreateScheduleStrategy {
     }
 
     @Override
-    public List<CaregiverSchedule> createRepeated(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int recurrenceCount) {
+    public List<CaregiverSchedule> createRepeated(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int recurrenceCount) {
         validateWeeks(recurrenceCount);
         validateBasicParams(idCaregiver, day, startTime, endTime);
 
@@ -54,15 +55,15 @@ public class CreateManualStrategy implements CreateScheduleStrategy {
         return scheduleList;
     }
 
-    protected void validateBasicParams(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
-        if (idCaregiver == null || idCaregiver.trim().isEmpty() || day == null || startTime == null || endTime == null) {
+    protected void validateBasicParams(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime) {
+        if (idCaregiver == null || day == null || startTime == null || endTime == null) {
             throw new IllegalArgumentException("Field can't be empty.");
         }
     }
 
     private void validateWeeks(int weeks) {
         if (weeks <= 0) {
-            throw new IllegalArgumentException("Number of weeks must be greater than 0");
+            throw new IllegalArgumentException("Minimum week(s) added is 1.");
         }
 
         if (weeks > MAX_WEEKS) {

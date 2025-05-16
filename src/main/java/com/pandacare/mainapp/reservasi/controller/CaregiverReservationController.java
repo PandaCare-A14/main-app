@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -31,7 +32,7 @@ public class CaregiverReservationController {
 
     @GetMapping("/{caregiverId}/reservations")
     public ResponseEntity<List<ReservasiKonsultasi>> getReservationsByCaregiver(
-            @PathVariable String caregiverId,
+            @PathVariable UUID caregiverId,
             @RequestParam(required = false) String status) {
         try {
             List<ReservasiKonsultasi> reservations;
@@ -58,8 +59,7 @@ public class CaregiverReservationController {
             @PathVariable String reservationId,
             @RequestBody @Valid UpdateStatusDTO dto) {
         try {
-            if (dto.getStatus() == StatusReservasiKonsultasi.ON_RESCHEDULE
-                    && (dto.getNewScheduleId() == null || dto.getNewScheduleId().isEmpty())) {
+            if (dto.getStatus() == StatusReservasiKonsultasi.ON_RESCHEDULE && dto.getNewScheduleId() == null) {
                 return ResponseEntity.badRequest().build();
             }
             ReservasiKonsultasi reservation;

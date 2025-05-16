@@ -5,16 +5,17 @@ import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 
 import java.time.DayOfWeek;
 import java.util.List;
+import java.util.UUID;
 
 public interface CaregiverReservationService {
-    List<ReservasiKonsultasi> getReservationsForCaregiver(String caregiverId);
-    List<ReservasiKonsultasi> getReservationsByCaregiverAndStatus(String caregiverId, StatusReservasiKonsultasi status);
-    List<ReservasiKonsultasi> getReservationsByCaregiverAndDay(String caregiverId, DayOfWeek day);
-    default List<ReservasiKonsultasi> getWaitingReservations(String caregiverId) {
+    List<ReservasiKonsultasi> getReservationsForCaregiver(UUID caregiverId);
+    List<ReservasiKonsultasi> getReservationsByCaregiverAndStatus(UUID caregiverId, StatusReservasiKonsultasi status);
+    List<ReservasiKonsultasi> getReservationsByCaregiverAndDay(UUID caregiverId, DayOfWeek day);
+    default List<ReservasiKonsultasi> getWaitingReservations(UUID caregiverId) {
         return getReservationsByCaregiverAndStatus(caregiverId, StatusReservasiKonsultasi.WAITING);
     }
     ReservasiKonsultasi approveReservation(String reservationId);
     ReservasiKonsultasi rejectReservation(String reservationId);
-    ReservasiKonsultasi changeSchedule(String reservationId, String newScheduleId);
+    ReservasiKonsultasi changeSchedule(String reservationId, UUID newScheduleId);
     ReservasiKonsultasi getReservationOrThrow(String reservationId);
 }

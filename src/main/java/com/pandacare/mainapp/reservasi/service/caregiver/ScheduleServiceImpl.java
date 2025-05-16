@@ -3,8 +3,11 @@ package com.pandacare.mainapp.reservasi.service.caregiver;
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.konsultasi_dokter.repository.CaregiverScheduleRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 public class ScheduleServiceImpl implements ScheduleService {
@@ -15,13 +18,13 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public CaregiverSchedule getById(String id) {
+    public CaregiverSchedule getById(UUID id) {
         return repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Schedule with ID " + id + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Schedule not found with id: " + id));
     }
 
     @Override
-    public boolean isScheduleAvailable(String scheduleId) {
+    public boolean isScheduleAvailable(UUID scheduleId) {
         CaregiverSchedule schedule = getById(scheduleId);
         return schedule.getStatus() == ScheduleStatus.AVAILABLE;
     }
@@ -39,7 +42,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     @Transactional
-    public void updateScheduleStatus(String scheduleId, ScheduleStatus status) {
+    public void updateScheduleStatus(UUID scheduleId, ScheduleStatus status) {
         CaregiverSchedule schedule = getById(scheduleId);
         updateScheduleStatus(schedule, status);
     }

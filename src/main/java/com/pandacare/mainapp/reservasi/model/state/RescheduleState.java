@@ -3,6 +3,8 @@ package com.pandacare.mainapp.reservasi.model.state;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 
+import java.util.UUID;
+
 public class RescheduleState implements ReservasiState {
     @Override
     public StatusReservasiKonsultasi getStatus() {
@@ -22,7 +24,7 @@ public class RescheduleState implements ReservasiState {
     }
 
     @Override
-    public void handleChangeSchedule(ReservasiKonsultasi reservasi, String newScheduleId) {
+    public void handleChangeSchedule(ReservasiKonsultasi reservasi, UUID newScheduleId) {
         throw new IllegalStateException("Operation not allowed. This reservation is on reschedule.");
     }
 }

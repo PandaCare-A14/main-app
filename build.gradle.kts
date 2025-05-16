@@ -44,6 +44,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation ("org.postgresql:postgresql:42.7.1")
+	runtimeOnly ("org.postgresql:postgresql")
 	runtimeOnly ("com.h2database:h2")
 	testImplementation ("org.springframework.boot:spring-boot-starter-test")
 	implementation ("jakarta.validation:jakarta.validation-api:3.0.2")

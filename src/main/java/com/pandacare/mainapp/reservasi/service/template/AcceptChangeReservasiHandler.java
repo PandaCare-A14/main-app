@@ -6,6 +6,8 @@ import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.repository.ReservasiKonsultasiRepository;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
 
+import java.util.UUID;
+
 public class AcceptChangeReservasiHandler extends ReservasiKonsultasiTemplate {
 
     private final String id;
@@ -36,7 +38,10 @@ public class AcceptChangeReservasiHandler extends ReservasiKonsultasiTemplate {
 
     @Override
     protected ReservasiKonsultasi save(ReservasiKonsultasi reservasi) {
-        scheduleService.updateScheduleStatus(id, ScheduleStatus.UNAVAILABLE);
-        return repository.save(reservasi);
+        UUID scheduleId = reservasi.getIdSchedule().getId();
+
+        scheduleService.updateScheduleStatus(scheduleId, ScheduleStatus.UNAVAILABLE);
+        repository.deleteById(reservasi.getIdReservasi());
+        return null;
     }
 }

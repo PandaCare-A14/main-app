@@ -5,6 +5,8 @@ import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
 
+import java.util.UUID;
+
 public class RequestedState implements ReservasiState {
     private final ScheduleService scheduleService;
 
@@ -30,7 +32,7 @@ public class RequestedState implements ReservasiState {
     }
 
     @Override
-    public void handleChangeSchedule(ReservasiKonsultasi reservasi, String newScheduleId) {
+    public void handleChangeSchedule(ReservasiKonsultasi reservasi, UUID newScheduleId) {
         CaregiverSchedule newSchedule = scheduleService.getById(newScheduleId);
         reservasi.setIdSchedule(newSchedule);
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.ON_RESCHEDULE);

@@ -6,13 +6,16 @@ import com.pandacare.mainapp.reservasi.repository.ReservasiKonsultasiRepository;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 
+import java.util.UUID;
+
 public class RequestReservasiHandler extends ReservasiKonsultasiTemplate {
-    private final String idSchedule, idPacilian;
+    private final String idPacilian;
+    private UUID idSchedule;
     private final ReservasiKonsultasiRepository repository;
     private final ScheduleService scheduleService;
 
     public RequestReservasiHandler(
-            String idSchedule,
+            UUID idSchedule,
             String idPacilian,
             ReservasiKonsultasiRepository repository,
             ScheduleService scheduleService) {

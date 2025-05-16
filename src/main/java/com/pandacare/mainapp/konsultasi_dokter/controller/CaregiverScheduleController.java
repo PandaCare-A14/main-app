@@ -12,10 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -33,7 +30,7 @@ public class CaregiverScheduleController {
 
     @PostMapping("/{idCaregiver}/schedules")
     public ResponseEntity<?> createSchedule(
-            @PathVariable String idCaregiver,
+            @PathVariable UUID idCaregiver,
             @Valid @RequestBody CreateScheduleDTO dto
     ) {
         try {
@@ -58,7 +55,7 @@ public class CaregiverScheduleController {
 
     @PostMapping("/{idCaregiver}/schedules/interval")
     public ResponseEntity<List<CaregiverSchedule>> createScheduleInterval(
-            @PathVariable String idCaregiver,
+            @PathVariable UUID idCaregiver,
             @Valid @RequestBody CreateScheduleDTO dto
     ) {
         try {
@@ -84,8 +81,8 @@ public class CaregiverScheduleController {
 
     @DeleteMapping("/{idCaregiver}/schedules/{idSchedule}")
     public ResponseEntity<CaregiverSchedule> deleteSchedule(
-            @PathVariable String idCaregiver,
-            @PathVariable String idSchedule
+            @PathVariable UUID idCaregiver,
+            @PathVariable UUID idSchedule
     ) {
         try {
             scheduleService.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule);
@@ -102,10 +99,10 @@ public class CaregiverScheduleController {
 
     @GetMapping("/{idCaregiver}/schedules")
     public ResponseEntity<List<CaregiverSchedule>> getScheduleByCaregiver(
-            @PathVariable String idCaregiver,
+            @PathVariable UUID idCaregiver,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String day,
-            @RequestParam(required = false) String idSchedule
+            @RequestParam(required = false) UUID idSchedule
     ) {
         try {
             if (idSchedule != null) {
@@ -127,10 +124,9 @@ public class CaregiverScheduleController {
         }
     }
 
-    private ResponseEntity<List<CaregiverSchedule>> getScheduleById(String idCaregiver, String idSchedule) {
+    private ResponseEntity<List<CaregiverSchedule>> getScheduleById(UUID idCaregiver, UUID idSchedule) {
         try {
-            CaregiverSchedule schedule = scheduleService.getSchedulesByCaregiverAndIdSchedule(
-                    idCaregiver, idSchedule);
+            CaregiverSchedule schedule = scheduleService.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule);
             return ResponseEntity.ok(Collections.singletonList(schedule));
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -139,18 +135,16 @@ public class CaregiverScheduleController {
         }
     }
 
-    private ResponseEntity<List<CaregiverSchedule>> getSchedulesByStatus(String idCaregiver, String status) {
+    private ResponseEntity<List<CaregiverSchedule>> getSchedulesByStatus(UUID idCaregiver, String status) {
         ScheduleStatus statusEnum = ScheduleStatus.valueOf(status.toUpperCase());
-        List<CaregiverSchedule> schedules = scheduleService.getSchedulesByCaregiverAndStatus(
-                idCaregiver, statusEnum);
+        List<CaregiverSchedule> schedules = scheduleService.getSchedulesByCaregiverAndStatus(idCaregiver, statusEnum);
         return ResponseEntity.ok(schedules);
     }
 
-    private ResponseEntity<List<CaregiverSchedule>> getSchedulesByDay(String idCaregiver, String day) {
+    private ResponseEntity<List<CaregiverSchedule>> getSchedulesByDay(UUID idCaregiver, String day) {
         try {
             DayOfWeek dayOfWeek = DayOfWeek.valueOf(day.toUpperCase());
-            List<CaregiverSchedule> schedules = scheduleService.getSchedulesByCaregiverAndDay(
-                    idCaregiver, dayOfWeek);
+            List<CaregiverSchedule> schedules = scheduleService.getSchedulesByCaregiverAndDay(idCaregiver, dayOfWeek);
             return ResponseEntity.ok(schedules);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();

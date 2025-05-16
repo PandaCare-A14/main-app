@@ -6,15 +6,16 @@ import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import java.util.List;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.UUID;
 
 public interface CaregiverScheduleService {
-    CaregiverSchedule createSchedule(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime);
-    List<CaregiverSchedule> createMultipleSchedules(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime);
-    List<CaregiverSchedule> createRepeatedSchedules(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int weeks);
-    List<CaregiverSchedule> createRepeatedMultipleSchedules(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int weeks);
-    List<CaregiverSchedule> getSchedulesByCaregiver(String idCaregiver);
-    List<CaregiverSchedule> getSchedulesByCaregiverAndDay(String idCaregiver, DayOfWeek day);
-    List<CaregiverSchedule> getSchedulesByCaregiverAndStatus(String idCaregiver, ScheduleStatus status);
-    CaregiverSchedule getSchedulesByCaregiverAndIdSchedule(String idCaregiver, String idSchedule);
-    CaregiverSchedule deleteSchedule(String idSchedule);
+    CaregiverSchedule createSchedule(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime);
+    List<CaregiverSchedule> createMultipleSchedules(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime);
+    List<CaregiverSchedule> createRepeatedSchedules(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int weeks);
+    List<CaregiverSchedule> createRepeatedMultipleSchedules(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int weeks);
+    List<CaregiverSchedule> getSchedulesByCaregiver(UUID idCaregiver);
+    List<CaregiverSchedule> getSchedulesByCaregiverAndDay(UUID idCaregiver, DayOfWeek day);
+    List<CaregiverSchedule> getSchedulesByCaregiverAndStatus(UUID idCaregiver, ScheduleStatus status);
+    CaregiverSchedule getSchedulesByCaregiverAndIdSchedule(UUID idCaregiver, UUID idSchedule);
+    CaregiverSchedule deleteSchedule(UUID idSchedule);
 }
