@@ -27,3 +27,7 @@ Muhammad Faizi Ismady Supardjo - 2306244955
 **Context Diagram**
 
 ![context](https://github.com/user-attachments/assets/0da4304c-c497-403c-a6c6-3ed159b7c667)
+
+**Future Architecture**
+
+![Image](https://github.com/user-attachments/assets/c97cbe0c-8c84-4fba-a4c0-078d4919ca8f)
