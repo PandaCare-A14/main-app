@@ -4,6 +4,8 @@ import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.repository.ReservasiKonsultasiRepository;
 
+import java.util.UUID;
+
 public class RequestReservasiHandler extends ReservasiKonsultasiTemplate {
 
     private final String idDokter, idPasien, day, startTime, endTime;
@@ -31,6 +33,7 @@ public class RequestReservasiHandler extends ReservasiKonsultasiTemplate {
     @Override
     protected ReservasiKonsultasi prepare() {
         ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
+        reservasi.setId(UUID.randomUUID().toString());
         reservasi.setIdDokter(idDokter);
         reservasi.setIdPasien(idPasien);
         reservasi.setDay(day);

@@ -79,7 +79,6 @@ public class ReservasiKonsultasiServiceTest {
 
     @Test
     void editReservasi_shouldUpdateReservasi_whenStatusIsWaiting() {
-        // Setup mock to return waitingJadwal when findById is called
         when(repository.findById("jadwal123")).thenReturn(Optional.of(waitingReservasi));
 
         ReservasiKonsultasi updated = service.editReservasi("jadwal123", "Selasa", "10:00", "11:00");
@@ -92,7 +91,6 @@ public class ReservasiKonsultasiServiceTest {
 
     @Test
     void editReservasi_shouldThrowException_whenStatusIsNotWaiting() {
-        // Setup mock to return approvedJadwal when findById is called
         when(repository.findById("jadwal124")).thenReturn(Optional.of(approvedReservasi));
 
         Exception ex = assertThrows(IllegalStateException.class, () ->
@@ -150,6 +148,26 @@ public class ReservasiKonsultasiServiceTest {
     }
 
     @Test
+    void rejectChangeReservasi_shouldThrowException_whenChangeReservasiIsFalse() {
+        ReservasiKonsultasi noChangeRequestReservasi = new ReservasiKonsultasi();
+        noChangeRequestReservasi.setId("jadwal125");
+        noChangeRequestReservasi.setDay("Rabu");
+        noChangeRequestReservasi.setStartTime("13:00");
+        noChangeRequestReservasi.setEndTime("14:00");
+        noChangeRequestReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+        noChangeRequestReservasi.setChangeReservasi(false);
+
+        // Setup mock
+        when(repository.findById("jadwal125")).thenReturn(Optional.of(noChangeRequestReservasi));
+
+        Exception ex = assertThrows(IllegalStateException.class, () ->
+                service.rejectChangeReservasi("jadwal125")
+        );
+
+        assertEquals("No change request exists for this schedule", ex.getMessage());
+    }
+
+    @Test
     void rejectChangeReservasi_shouldDeleteReservasi() {
         ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
         reservasi.setId("jadwal127");
@@ -180,5 +198,38 @@ public class ReservasiKonsultasiServiceTest {
         assertEquals(2, result.size());
         assertEquals("dok123", result.get(0).getIdDokter());
         verify(repository).findAllByIdPasien("pac123");
+    }
+
+    @Test
+    void editReservasi_shouldThrowException_ifReservasiNotFound() {
+        when(repository.findById("unknown")).thenReturn(Optional.empty());
+
+        Exception ex = assertThrows(IllegalArgumentException.class, () ->
+                service.editReservasi("unknown", "Senin", "09:00", "10:00")
+        );
+
+        assertEquals("Schedule not found", ex.getMessage());
+    }
+
+    @Test
+    void acceptChangeReservasi_shouldThrowException_ifReservasiNotFound() {
+        when(repository.findById("not_found")).thenReturn(Optional.empty());
+
+        Exception ex = assertThrows(IllegalArgumentException.class, () ->
+                service.acceptChangeReservasi("not_found")
+        );
+
+        assertEquals("Schedule not found", ex.getMessage());
+    }
+
+    @Test
+    void rejectChangeReservasi_shouldThrowException_ifReservasiNotFound() {
+        when(repository.findById("not_exist")).thenReturn(Optional.empty());
+
+        Exception ex = assertThrows(IllegalArgumentException.class, () ->
+                service.rejectChangeReservasi("not_exist")
+        );
+
+        assertEquals("Schedule not found", ex.getMessage());
     }
 }

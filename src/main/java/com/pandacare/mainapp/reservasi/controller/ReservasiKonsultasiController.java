@@ -19,18 +19,23 @@ public class ReservasiKonsultasiController {
 
     @PostMapping("/request")
     public ResponseEntity<?> requestReservasi(@RequestBody Map<String, String> body) {
-        ReservasiKonsultasi result = reservasiService.requestReservasi(
-                body.get("idDokter"),
-                body.get("idPasien"),
-                body.get("day"),
-                body.get("startTime"),
-                body.get("endTime")
-        );
+        try {
+            ReservasiKonsultasi result = reservasiService.requestReservasi(
+                    body.get("idDokter"),
+                    body.get("idPasien"),
+                    body.get("day"),
+                    body.get("startTime"),
+                    body.get("endTime")
+            );
 
-        return ResponseEntity.ok(Map.of(
-                "message", "Jadwal konsultasi berhasil diajukan",
-                "reservasi", result
-        ));
+            return ResponseEntity.ok(Map.of(
+                    "message", "Jadwal konsultasi berhasil diajukan",
+                    "reservasi", result
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PostMapping("/{id}/edit")
@@ -46,7 +51,7 @@ public class ReservasiKonsultasiController {
                     "message", "Jadwal berhasil diperbarui",
                     "reservasi", updated
             ));
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
@@ -65,7 +70,7 @@ public class ReservasiKonsultasiController {
                     "message", "Perubahan reservasi diterima",
                     "reservasi", updated
             ));
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));
         }

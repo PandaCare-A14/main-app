@@ -1,43 +1,22 @@
 package com.pandacare.mainapp.rating.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /**
  * DTO for receiving rating data from client
  */
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class RatingRequest {
 
     private Integer ratingScore;
     private String ulasan;
-
-    // Default constructor
-    public RatingRequest() {}
-
-    // Constructor with fields
-    public RatingRequest(Integer ratingScore, String ulasan) {
-        this.ratingScore = ratingScore;
-        this.ulasan = ulasan;
-    }
-
-    // Getters and Setters
-    public Integer getRatingScore() {
-        return ratingScore;
-    }
-
-    public void setRatingScore(Integer ratingScore) {
-        this.ratingScore = ratingScore;
-    }
-
-    public String getUlasan() {
-        return ulasan;
-    }
-
-    public void setUlasan(String ulasan) {
-        this.ulasan = ulasan;
-    }
-
-    /**
-     * Validate the rating request
-     * @throws IllegalArgumentException if validation fails
-     */
+    
     public void validate() {
         if (ratingScore == null) {
             throw new IllegalArgumentException("Rating score harus diisi");

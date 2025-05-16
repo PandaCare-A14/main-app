@@ -23,6 +23,7 @@ import com.pandacare.mainapp.rating.service.RatingService;
  * This controller implements REST API with unary RPC pattern for rating operations
  */
 @RestController
+@RequestMapping("/api/v1")
 public class RatingController {
 
     @Autowired
@@ -33,7 +34,7 @@ public class RatingController {
      * @param idDokter doctor ID
      * @return list of ratings with average and total count
      */
-    @RequestMapping(value = "/api/v1/doctors/{idDokter}/ratings", method = RequestMethod.GET)
+    @RequestMapping(value = "/doctors/{idDokter}/ratings", method = RequestMethod.GET)
     public ResponseEntity getRatingsByDokter(@PathVariable String idDokter) {
         ResponseEntity responseEntity = null;
         try {
@@ -51,7 +52,7 @@ public class RatingController {
      * @param idPasien patient ID
      * @return list of ratings
      */
-    @RequestMapping(value = "/api/v1/patients/{idPasien}/ratings", method = RequestMethod.GET)
+    @RequestMapping(value = "/patients/{idPasien}/ratings", method = RequestMethod.GET)
     public ResponseEntity getRatingsByPasien(@PathVariable String idPasien) {
         ResponseEntity responseEntity = null;
         try {
@@ -70,7 +71,7 @@ public class RatingController {
      * @param idDokter doctor ID
      * @return rating response
      */
-    @RequestMapping(value = "/api/v1/patients/{idPasien}/doctors/{idDokter}/ratings", method = RequestMethod.GET)
+    @RequestMapping(value = "/patients/{idPasien}/doctors/{idDokter}/ratings", method = RequestMethod.GET)
     public ResponseEntity getRatingByPasienAndDokter(@PathVariable String idPasien, @PathVariable String idDokter) {
         ResponseEntity responseEntity = null;
         try {
@@ -90,7 +91,7 @@ public class RatingController {
      * @param request rating data
      * @return created rating
      */
-    @RequestMapping(value = "/api/v1/doctors/{idDokter}/ratings", method = RequestMethod.POST)
+    @RequestMapping(value = "/doctors/{idDokter}/ratings", method = RequestMethod.POST)
     public ResponseEntity addRating(@PathVariable String idDokter,
                                     @RequestHeader("X-User-ID") String userId,
                                     @RequestBody RatingRequest request) {
@@ -118,7 +119,7 @@ public class RatingController {
      * @param request rating data
      * @return updated rating
      */
-    @RequestMapping(value = "/api/v1/doctors/{idDokter}/ratings", method = RequestMethod.PUT)
+    @RequestMapping(value = "/doctors/{idDokter}/ratings", method = RequestMethod.PUT)
     public ResponseEntity updateRating(@PathVariable String idDokter,
                                        @RequestHeader("X-User-ID") String userId,
                                        @RequestBody RatingRequest request) {
@@ -145,7 +146,7 @@ public class RatingController {
      * @param userId user ID from header
      * @return success message
      */
-    @RequestMapping(value = "/api/v1/doctors/{idDokter}/ratings", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/doctors/{idDokter}/ratings", method = RequestMethod.DELETE)
     public ResponseEntity deleteRating(@PathVariable String idDokter,
                                        @RequestHeader("X-User-ID") String userId) {
         ResponseEntity responseEntity = null;
