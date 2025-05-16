@@ -10,12 +10,13 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class CreateIntervalStrategyTest {
     private CreateIntervalStrategy strategy;
-    private final String DOCTOR_ID = "DOC12345";
+    private final UUID DOCTOR_ID = UUID.randomUUID();
     private final DayOfWeek TEST_DAY = DayOfWeek.MONDAY;
     private LocalDate nextMonday;
 
@@ -175,7 +176,7 @@ class CreateIntervalStrategyTest {
 
         assertEquals(12, schedules.size());
 
-        CaregiverSchedule firstSlot = schedules.get(0);
+        CaregiverSchedule firstSlot = schedules.getFirst();
         assertEquals(DOCTOR_ID, firstSlot.getIdCaregiver());
         assertEquals(TEST_DAY, firstSlot.getDay());
         assertEquals(nextMonday, firstSlot.getDate());

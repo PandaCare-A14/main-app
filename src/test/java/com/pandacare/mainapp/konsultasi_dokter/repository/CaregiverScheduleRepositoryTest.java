@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
@@ -25,14 +26,15 @@ public class CaregiverScheduleRepositoryTest {
     private CaregiverScheduleRepository repository;
 
     private CaregiverSchedule schedule1;
-    private CaregiverSchedule schedule2;
-    private CaregiverSchedule schedule3;
+    private UUID caregiverId;
 
     @BeforeEach
     public void setup() {
-        schedule1 = createSchedule("DOC1", DayOfWeek.MONDAY, LocalTime.of(9, 0), LocalTime.of(10, 0), ScheduleStatus.AVAILABLE);
-        schedule2 = createSchedule("DOC1", DayOfWeek.TUESDAY, LocalTime.of(9, 0), LocalTime.of(10, 0), ScheduleStatus.UNAVAILABLE);
-        schedule3 = createSchedule("DOC2", DayOfWeek.MONDAY, LocalTime.of(9, 0), LocalTime.of(10, 0), ScheduleStatus.AVAILABLE);
+        caregiverId = UUID.randomUUID();
+
+        schedule1 = createSchedule(caregiverId, DayOfWeek.MONDAY, LocalTime.of(9, 0), LocalTime.of(10, 0), ScheduleStatus.AVAILABLE);
+        CaregiverSchedule schedule2 = createSchedule(caregiverId, DayOfWeek.TUESDAY, LocalTime.of(9, 0), LocalTime.of(10, 0), ScheduleStatus.UNAVAILABLE);
+        CaregiverSchedule schedule3 = createSchedule(caregiverId, DayOfWeek.MONDAY, LocalTime.of(9, 0), LocalTime.of(10, 0), ScheduleStatus.AVAILABLE);
 
         entityManager.persist(schedule1);
         entityManager.persist(schedule2);
@@ -40,29 +42,32 @@ public class CaregiverScheduleRepositoryTest {
         entityManager.flush();
     }
 
-    private CaregiverSchedule createSchedule(String caregiverId, DayOfWeek day, LocalTime startTime, LocalTime endTime, ScheduleStatus status) {
+    private CaregiverSchedule createSchedule(UUID caregiverId, DayOfWeek day, LocalTime startTime, LocalTime endTime, ScheduleStatus status) {
+        UUID scheduleId = UUID.randomUUID();
+
         CaregiverSchedule schedule = new CaregiverSchedule();
-        schedule.setId(UUID.randomUUID().toString());
+        schedule.setId(scheduleId);
         schedule.setIdCaregiver(caregiverId);
         schedule.setDay(day);
         schedule.setStartTime(startTime);
         schedule.setEndTime(endTime);
         schedule.setStatus(status);
+        schedule.setDate(LocalDate.now().plusWeeks(1));
         return schedule;
     }
 
     @Test
     public void testFindByIdCaregiver() {
-        List<CaregiverSchedule> found = repository.findByIdCaregiver("DOC1");
+        List<CaregiverSchedule> found = repository.findByIdCaregiver(caregiverId);
 
         assertThat(found).isNotEmpty();
-        assertThat(found).allMatch(s -> "DOC1".equals(s.getIdCaregiver()));
+        assertThat(found).allMatch(s -> caregiverId.equals(s.getIdCaregiver()));
     }
 
     @Test
     public void testFindByIdCaregiverAndStatus() {
-        List<CaregiverSchedule> availableSchedules = repository.findByIdCaregiverAndStatus("DOC1", ScheduleStatus.AVAILABLE);
-        List<CaregiverSchedule> unavailableSchedules = repository.findByIdCaregiverAndStatus("DOC1", ScheduleStatus.UNAVAILABLE);
+        List<CaregiverSchedule> availableSchedules = repository.findByIdCaregiverAndStatus(caregiverId, ScheduleStatus.AVAILABLE);
+        List<CaregiverSchedule> unavailableSchedules = repository.findByIdCaregiverAndStatus(caregiverId, ScheduleStatus.UNAVAILABLE);
 
         assertThat(availableSchedules).allMatch(s -> s.getStatus() == ScheduleStatus.AVAILABLE);
         assertThat(unavailableSchedules).allMatch(s -> s.getStatus() == ScheduleStatus.UNAVAILABLE);
@@ -70,9 +75,9 @@ public class CaregiverScheduleRepositoryTest {
 
     @Test
     public void testFindByIdCaregiverAndDay() {
-        List<CaregiverSchedule> mondaySchedules = repository.findByIdCaregiverAndDay("DOC1", DayOfWeek.MONDAY);
-        List<CaregiverSchedule> tuesdaySchedules = repository.findByIdCaregiverAndDay("DOC1", DayOfWeek.TUESDAY);
-        List<CaregiverSchedule> wednesdaySchedules = repository.findByIdCaregiverAndDay("DOC1", DayOfWeek.WEDNESDAY);
+        List<CaregiverSchedule> mondaySchedules = repository.findByIdCaregiverAndDay(caregiverId, DayOfWeek.MONDAY);
+        List<CaregiverSchedule> tuesdaySchedules = repository.findByIdCaregiverAndDay(caregiverId, DayOfWeek.TUESDAY);
+        List<CaregiverSchedule> wednesdaySchedules = repository.findByIdCaregiverAndDay(caregiverId, DayOfWeek.WEDNESDAY);
 
         assertThat(mondaySchedules).allMatch(s -> s.getDay() == DayOfWeek.MONDAY);
         assertThat(tuesdaySchedules).allMatch(s -> s.getDay() == DayOfWeek.TUESDAY);
@@ -81,20 +86,21 @@ public class CaregiverScheduleRepositoryTest {
 
     @Test
     public void testFindByIdCaregiverNotFound() {
-        List<CaregiverSchedule> found = repository.findByIdCaregiver("DOC5");
+        List<CaregiverSchedule> found = repository.findByIdCaregiver(UUID.randomUUID());
         assertThat(found).isEmpty();
     }
 
     @Test
     public void testSaveSchedule() {
-        CaregiverSchedule newSchedule = createSchedule("DOC2", DayOfWeek.THURSDAY,
+        UUID newCaregiverId = UUID.randomUUID();
+        CaregiverSchedule newSchedule = createSchedule(newCaregiverId, DayOfWeek.THURSDAY,
                 LocalTime.of(14, 0), LocalTime.of(15, 0), ScheduleStatus.AVAILABLE);
 
         CaregiverSchedule saved = repository.save(newSchedule);
 
         CaregiverSchedule found = entityManager.find(CaregiverSchedule.class, saved.getId());
         assertThat(found).isNotNull();
-        assertThat(found.getIdCaregiver()).isEqualTo("DOC2");
+        assertThat(found.getIdCaregiver()).isEqualTo(newCaregiverId);
         assertThat(found.getDay()).isEqualTo(DayOfWeek.THURSDAY);
     }
 
@@ -107,7 +113,8 @@ public class CaregiverScheduleRepositoryTest {
 
     @Test
     public void testFindByIdNotFound() {
-        boolean exists = repository.findById("SCHED12345").isPresent();
+        UUID nonExistentId = UUID.randomUUID();
+        boolean exists = repository.findById(nonExistentId).isPresent();
         assertThat(exists).isFalse();
     }
 
@@ -129,15 +136,17 @@ public class CaregiverScheduleRepositoryTest {
 
     @Test
     public void testSaveAll() {
-        CaregiverSchedule newSchedule1 = createSchedule("DOC3", DayOfWeek.FRIDAY,
+        UUID newCaregiverId = UUID.randomUUID();
+
+        CaregiverSchedule newSchedule1 = createSchedule(newCaregiverId, DayOfWeek.FRIDAY,
                 LocalTime.of(9, 0), LocalTime.of(10, 0), ScheduleStatus.AVAILABLE);
-        CaregiverSchedule newSchedule2 = createSchedule("DOC3", DayOfWeek.SATURDAY,
+        CaregiverSchedule newSchedule2 = createSchedule(newCaregiverId, DayOfWeek.SATURDAY,
                 LocalTime.of(9, 0), LocalTime.of(10, 0), ScheduleStatus.AVAILABLE);
         List<CaregiverSchedule> newSchedules = List.of(newSchedule1, newSchedule2);
         List<CaregiverSchedule> saved = repository.saveAll(newSchedules);
         assertThat(saved).hasSize(2);
 
-        List<CaregiverSchedule> found = repository.findByIdCaregiver("DOC3");
+        List<CaregiverSchedule> found = repository.findByIdCaregiver(newCaregiverId);
         assertThat(found).hasSizeGreaterThanOrEqualTo(2);
     }
 

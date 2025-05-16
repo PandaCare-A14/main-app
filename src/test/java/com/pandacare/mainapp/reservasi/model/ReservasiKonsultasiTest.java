@@ -1,6 +1,5 @@
 package com.pandacare.mainapp.reservasi.model;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.state.*;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
@@ -10,18 +9,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class ReservasiKonsultasiTest {
-
     private ReservasiKonsultasi reservasi;
 
     @Mock
     private ScheduleService mockScheduleService;
-
-    @Mock
-    private CaregiverSchedule mockSchedule;
 
     @BeforeEach
     void setUp() {
@@ -87,15 +84,17 @@ class ReservasiKonsultasiTest {
 
     @Test
     void testHandleChangeScheduleWithState() {
+        UUID newScheduleId = UUID.randomUUID();
         reservasi.ensureStateInitialized(mockScheduleService);
-        reservasi.handleChangeSchedule("new-schedule-id");
+        reservasi.handleChangeSchedule(newScheduleId);
         assertEquals(StatusReservasiKonsultasi.ON_RESCHEDULE, reservasi.getStatusReservasi());
         assertInstanceOf(RescheduleState.class, reservasi.getCurrentState());
     }
 
     @Test
     void testHandleChangeScheduleWithoutState() {
-        reservasi.handleChangeSchedule("new-schedule-id");
+        UUID newScheduleId = UUID.randomUUID();
+        reservasi.handleChangeSchedule(newScheduleId);
         assertEquals(StatusReservasiKonsultasi.ON_RESCHEDULE, reservasi.getStatusReservasi());
     }
 
@@ -110,6 +109,6 @@ class ReservasiKonsultasiTest {
     @Test
     void testConstructorGeneratesId() {
         assertNotNull(reservasi.getIdReservasi());
-        assertTrue(reservasi.getIdReservasi().length() > 0);
+        assertFalse(reservasi.getIdReservasi().isEmpty());
     }
 }

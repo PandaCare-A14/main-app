@@ -3,6 +3,7 @@ package com.pandacare.mainapp.reservasi.service.caregiver;
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.konsultasi_dokter.repository.CaregiverScheduleRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,13 +11,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ScheduleServiceImplTest {
-
     @Mock
     private CaregiverScheduleRepository repository;
 
@@ -25,7 +26,7 @@ class ScheduleServiceImplTest {
 
     @Test
     void testGetByIdFound() {
-        String id = "schedule-1";
+        UUID id = UUID.randomUUID();
         CaregiverSchedule schedule = new CaregiverSchedule();
         schedule.setId(id);
         when(repository.findById(id)).thenReturn(Optional.of(schedule));
@@ -39,20 +40,17 @@ class ScheduleServiceImplTest {
 
     @Test
     void testGetByIdNotFound() {
-        String id = "non-existent";
-        when(repository.findById(id)).thenReturn(Optional.empty());
+        UUID nonExistentId = UUID.randomUUID();
+        when(repository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            scheduleService.getById(id);
+        assertThrows(EntityNotFoundException.class, () -> {
+            scheduleService.getById(nonExistentId);
         });
-
-        assertEquals("Schedule with ID " + id + " not found", exception.getMessage());
-        verify(repository).findById(id);
     }
 
     @Test
     void testIsScheduleAvailableTrue() {
-        String id = "available-schedule";
+        UUID id = UUID.randomUUID();
         CaregiverSchedule schedule = new CaregiverSchedule();
         schedule.setId(id);
         schedule.setStatus(ScheduleStatus.AVAILABLE);
@@ -66,7 +64,7 @@ class ScheduleServiceImplTest {
 
     @Test
     void testIsScheduleAvailableFalse() {
-        String id = "unavailable-schedule";
+        UUID id = UUID.randomUUID();
         CaregiverSchedule schedule = new CaregiverSchedule();
         schedule.setId(id);
         schedule.setStatus(ScheduleStatus.UNAVAILABLE);
@@ -101,7 +99,7 @@ class ScheduleServiceImplTest {
 
     @Test
     void testUpdateScheduleStatusWithId() {
-        String id = "schedule-1";
+        UUID id = UUID.randomUUID();
         CaregiverSchedule schedule = new CaregiverSchedule();
         schedule.setId(id);
         schedule.setStatus(ScheduleStatus.AVAILABLE);

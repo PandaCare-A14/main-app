@@ -15,6 +15,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,9 +31,10 @@ class ReservasiKonsultasiRepositoryTest {
     @Test
     void testFindAllByIdPasien() {
         String pasienId = "PAT12345";
+        UUID caregiverId = UUID.randomUUID();
 
         CaregiverSchedule schedule = new CaregiverSchedule();
-        schedule.setIdCaregiver("DOC12345");
+        schedule.setIdCaregiver(caregiverId);
         schedule.setDay(DayOfWeek.MONDAY);
         schedule.setStartTime(LocalTime.of(9, 0));
         schedule.setEndTime(LocalTime.of(10, 0));
@@ -56,7 +58,7 @@ class ReservasiKonsultasiRepositoryTest {
 
     @Test
     void testFindByCaregiverId() {
-        String caregiverId = "DOC67890";
+        UUID caregiverId = UUID.randomUUID();
 
         CaregiverSchedule schedule = new CaregiverSchedule();
         schedule.setIdCaregiver(caregiverId);
@@ -83,7 +85,7 @@ class ReservasiKonsultasiRepositoryTest {
 
     @Test
     void testFindByCaregiverIdAndStatus() {
-        String caregiverId = "DOC12345";
+        UUID caregiverId = UUID.randomUUID();
 
         CaregiverSchedule schedule1 = new CaregiverSchedule();
         schedule1.setIdCaregiver(caregiverId);
@@ -129,7 +131,7 @@ class ReservasiKonsultasiRepositoryTest {
 
     @Test
     void testFindByCaregiverIdAndDay() {
-        String caregiverId = "DOC54321";
+        UUID caregiverId = UUID.randomUUID();
 
         CaregiverSchedule mondaySchedule = new CaregiverSchedule();
         mondaySchedule.setIdCaregiver(caregiverId);
@@ -179,10 +181,12 @@ class ReservasiKonsultasiRepositoryTest {
 
     @Test
     void testNoReservationsFound() {
-        List<ReservasiKonsultasi> emptyResult1 = repository.findAllByIdPasien("NO_DOC");
-        List<ReservasiKonsultasi> emptyResult2 = repository.findByCaregiverId("NO_DOC");
-        List<ReservasiKonsultasi> emptyResult3 = repository.findByCaregiverIdAndStatus("NO_DOC", StatusReservasiKonsultasi.WAITING);
-        List<ReservasiKonsultasi> emptyResult4 = repository.findByCaregiverIdAndDay("NO_DOC", DayOfWeek.MONDAY);
+        UUID caregiverIdInvalid = UUID.randomUUID();
+
+        List<ReservasiKonsultasi> emptyResult1 = repository.findAllByIdPasien("NO_PAT");
+        List<ReservasiKonsultasi> emptyResult2 = repository.findByCaregiverId(caregiverIdInvalid);
+        List<ReservasiKonsultasi> emptyResult3 = repository.findByCaregiverIdAndStatus(caregiverIdInvalid, StatusReservasiKonsultasi.WAITING);
+        List<ReservasiKonsultasi> emptyResult4 = repository.findByCaregiverIdAndDay(caregiverIdInvalid, DayOfWeek.MONDAY);
 
         assertTrue(emptyResult1.isEmpty());
         assertTrue(emptyResult2.isEmpty());

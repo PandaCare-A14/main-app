@@ -2,6 +2,7 @@ package com.pandacare.mainapp.konsultasi_dokter.model;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.UUID;
 
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,12 +12,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CaregiverScheduleTest {
     private CaregiverSchedule schedule;
+    private UUID caregiverId;
+    private UUID scheduleId;
 
     @BeforeEach
     void setUp() {
+        caregiverId = UUID.randomUUID();
+        scheduleId = UUID.randomUUID();
+
         schedule = new CaregiverSchedule();
-        schedule.setId("SCHED001");
-        schedule.setIdCaregiver("DOC-12345");
+        schedule.setId(caregiverId);
+        schedule.setIdCaregiver(scheduleId);
         schedule.setDay(DayOfWeek.MONDAY);
         schedule.setStartTime(LocalTime.parse("10:00"));
         schedule.setEndTime(LocalTime.parse("11:00"));
@@ -29,8 +35,8 @@ class CaregiverScheduleTest {
 
     @Test
     void testGetterSetter() {
-        assertEquals("SCHED001", schedule.getId());
-        assertEquals("DOC-12345", schedule.getIdCaregiver());
+        assertEquals(caregiverId, schedule.getId());
+        assertEquals(scheduleId, schedule.getIdCaregiver());
         assertEquals(DayOfWeek.MONDAY, schedule.getDay());
         assertEquals(LocalTime.parse("10:00"), schedule.getStartTime());
         assertEquals(LocalTime.parse("11:00"), schedule.getEndTime());

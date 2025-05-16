@@ -6,6 +6,8 @@ import com.pandacare.mainapp.reservasi.model.state.ApprovedState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ApprovedStateTest {
@@ -41,8 +43,9 @@ class ApprovedStateTest {
 
     @Test
     void testHandleChangeScheduleThrowsException() {
+        UUID id = UUID.randomUUID();
         IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
-                state.handleChangeSchedule(reservasi, "some-schedule-id"));
+                state.handleChangeSchedule(reservasi, id));
         assertEquals("This reservation has already been approved.", ex.getMessage());
     }
 }

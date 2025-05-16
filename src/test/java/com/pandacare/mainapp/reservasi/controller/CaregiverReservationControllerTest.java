@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -29,9 +30,14 @@ public class CaregiverReservationControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
     private ReservasiKonsultasi mockReservation;
+    private String reservationId;
+    private UUID caregiverId;
 
     @BeforeEach
     void setUp() {
+        reservationId = "RES-001";
+        caregiverId = UUID.randomUUID();
+
         mockReservation = new ReservasiKonsultasi();
         mockReservation.setIdReservasi("RES-001");
         mockReservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
@@ -39,18 +45,18 @@ public class CaregiverReservationControllerTest {
 
     @Test
     void testGetAllReservations() throws Exception {
-        when(reservationService.getReservationsForCaregiver("CG-001")).thenReturn(List.of(mockReservation));
+        when(reservationService.getReservationsForCaregiver(caregiverId)).thenReturn(List.of(mockReservation));
 
-        mockMvc.perform(get("/api/doctors/CG-001/reservations"))
+        mockMvc.perform(get("/api/doctors/{caregiverId}/reservations", caregiverId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].idReservasi").value("RES-001"));
+                .andExpect(jsonPath("$[0].idReservasi").value(reservationId));
     }
 
     @Test
     void testGetReservationsWithStatusFilter() throws Exception {
-        when(reservationService.getWaitingReservations("CG-001")).thenReturn(List.of(mockReservation));
+        when(reservationService.getWaitingReservations(caregiverId)).thenReturn(List.of(mockReservation));
 
-        mockMvc.perform(get("/api/doctors/CG-001/reservations")
+        mockMvc.perform(get("/api/doctors/{caregiverId}/reservations", caregiverId)
                         .param("status", "WAITING"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].statusReservasi").value("WAITING"));
@@ -101,12 +107,14 @@ public class CaregiverReservationControllerTest {
     }
 
     @Test
-    void testUpdateStatus_ChangeSchedule() throws Exception {
+    void testUpdateStatusChangeSchedule() throws Exception {
+        UUID newScheduleId = UUID.randomUUID();
         UpdateStatusDTO dto = new UpdateStatusDTO();
-        dto.setStatus(StatusReservasiKonsultasi.ON_RESCHEDULE);
-        dto.setNewScheduleId("SCH-001");
 
-        when(reservationService.changeSchedule("RES-001", "SCH-001")).thenReturn(mockReservation);
+        dto.setStatus(StatusReservasiKonsultasi.ON_RESCHEDULE);
+        dto.setNewScheduleId(newScheduleId);
+
+        when(reservationService.changeSchedule("RES-001", newScheduleId)).thenReturn(mockReservation);
 
         mockMvc.perform(patch("/api/doctors/reservations/RES-001/status")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -117,7 +125,7 @@ public class CaregiverReservationControllerTest {
     @Test
     void testUpdateStatus_BadRequestWhenMissingScheduleId() throws Exception {
         UpdateStatusDTO dto = new UpdateStatusDTO();
-        dto.setStatus(StatusReservasiKonsultasi.ON_RESCHEDULE); // no newScheduleId
+        dto.setStatus(StatusReservasiKonsultasi.ON_RESCHEDULE);
 
         mockMvc.perform(patch("/api/doctors/reservations/RES-001/status")
                         .contentType(MediaType.APPLICATION_JSON)

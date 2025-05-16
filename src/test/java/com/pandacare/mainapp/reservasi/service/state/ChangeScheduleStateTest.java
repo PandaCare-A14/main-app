@@ -8,6 +8,8 @@ import com.pandacare.mainapp.reservasi.model.state.RescheduleState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ChangeScheduleStateTest {
@@ -43,8 +45,10 @@ class ChangeScheduleStateTest {
 
     @Test
     void testHandleChangeScheduleThrowsException() {
+        UUID id = UUID.randomUUID();
+
         IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
-                state.handleChangeSchedule(reservasi, "new-schedule-id"));
+                state.handleChangeSchedule(reservasi, id));
 
         assertEquals("Operation not allowed. This reservation is on reschedule.", exception.getMessage());
     }

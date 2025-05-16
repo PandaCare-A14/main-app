@@ -10,13 +10,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class CreateManualStrategyTest {
     private CreateManualStrategy strategy;
-    private final String DOCTOR_ID = "DOC12345";
+    private final UUID DOCTOR_ID = UUID.randomUUID();;
     private final DayOfWeek TEST_DAY = DayOfWeek.MONDAY;
     private final LocalTime START_TIME = LocalTime.of(9, 0);
     private final LocalTime END_TIME = LocalTime.of(10, 0);
@@ -40,7 +41,7 @@ class CreateManualStrategyTest {
 
     @ParameterizedTest
     @MethodSource("provideInvalidParameters")
-    void testCreateWithInvalidParameters(String idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, String expectedErrorMessage) {
+    void testCreateWithInvalidParameters(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, String expectedErrorMessage) {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 strategy.create(idCaregiver, day, startTime, endTime));
 
@@ -51,15 +52,11 @@ class CreateManualStrategyTest {
         return Stream.of(
                 Arguments.of(null, DayOfWeek.MONDAY, LocalTime.of(9, 0), LocalTime.of(10, 0),
                         "Field can't be empty."),
-                Arguments.of("", DayOfWeek.MONDAY, LocalTime.of(9, 0), LocalTime.of(10, 0),
+                Arguments.of(UUID.randomUUID(), null, LocalTime.of(9, 0), LocalTime.of(10, 0),
                         "Field can't be empty."),
-                Arguments.of("   ", DayOfWeek.MONDAY, LocalTime.of(9, 0), LocalTime.of(10, 0),
+                Arguments.of(UUID.randomUUID(), DayOfWeek.MONDAY, null, LocalTime.of(10, 0),
                         "Field can't be empty."),
-                Arguments.of("DOC12345", null, LocalTime.of(9, 0), LocalTime.of(10, 0),
-                        "Field can't be empty."),
-                Arguments.of("DOC12345", DayOfWeek.MONDAY, null, LocalTime.of(10, 0),
-                        "Field can't be empty."),
-                Arguments.of("DOC12345", DayOfWeek.MONDAY, LocalTime.of(9, 0), null,
+                Arguments.of(UUID.randomUUID(), DayOfWeek.MONDAY, LocalTime.of(9, 0), null,
                         "Field can't be empty.")
         );
     }

@@ -11,6 +11,8 @@ import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -51,7 +53,8 @@ class RequestedStateTest {
 
     @Test
     void testHandleChangeSchedule() {
-        String newScheduleId = "CGSCHED-123";
+        UUID newScheduleId = UUID.randomUUID();
+
         CaregiverSchedule mockSchedule = new CaregiverSchedule();
         when(scheduleService.getById(newScheduleId)).thenReturn(mockSchedule);
 

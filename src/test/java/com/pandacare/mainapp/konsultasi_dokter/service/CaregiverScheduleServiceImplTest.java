@@ -15,6 +15,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,7 +31,7 @@ class CaregiverScheduleServiceImplTest {
 
     @Test
     void testCreateScheduleSuccess() {
-        String caregiverId = "DOCTOR1";
+        UUID caregiverId = UUID.randomUUID();
         DayOfWeek day = DayOfWeek.MONDAY;
         LocalTime startTime = LocalTime.of(9, 0);
         LocalTime endTime = LocalTime.of(10, 0);
@@ -49,7 +50,7 @@ class CaregiverScheduleServiceImplTest {
 
     @Test
     void testCreateScheduleThrowsWhenOverlapping() {
-        String caregiverId = "DOCTOR1";
+        UUID caregiverId = UUID.randomUUID();
         DayOfWeek day = DayOfWeek.MONDAY;
         LocalTime startTime = LocalTime.of(9, 0);
         LocalTime endTime = LocalTime.of(10, 0);
@@ -67,7 +68,7 @@ class CaregiverScheduleServiceImplTest {
 
     @Test
     void testCreateMultipleSchedulesSuccess() {
-        String caregiverId = "DOCTOR1";
+        UUID caregiverId = UUID.randomUUID();
         DayOfWeek day = DayOfWeek.MONDAY;
         LocalTime startTime = LocalTime.of(9, 0);
         LocalTime endTime = LocalTime.of(11, 0);
@@ -89,7 +90,7 @@ class CaregiverScheduleServiceImplTest {
 
     @Test
     void testCreateMultipleSchedulesThrowsWhenAllOverlap() {
-        String caregiverId = "DOCTOR1";
+        UUID caregiverId = UUID.randomUUID();
         DayOfWeek day = DayOfWeek.MONDAY;
         LocalTime startTime = LocalTime.of(9, 0);
         LocalTime endTime = LocalTime.of(11, 0);
@@ -107,7 +108,7 @@ class CaregiverScheduleServiceImplTest {
 
     @Test
     void testGetSchedulesByCaregiver() {
-        String caregiverId = "DOCTOR1";
+        UUID caregiverId = UUID.randomUUID();
         List<CaregiverSchedule> schedules = new ArrayList<>();
         schedules.add(new CaregiverSchedule());
 
@@ -122,7 +123,7 @@ class CaregiverScheduleServiceImplTest {
 
     @Test
     void testGetSchedulesByCaregiverAndDay() {
-        String caregiverId = "DOCTOR1";
+        UUID caregiverId = UUID.randomUUID();
         DayOfWeek day = DayOfWeek.MONDAY;
         List<CaregiverSchedule> schedules = new ArrayList<>();
         schedules.add(new CaregiverSchedule());
@@ -138,7 +139,7 @@ class CaregiverScheduleServiceImplTest {
 
     @Test
     void testGetSchedulesByCaregiverAndStatus() {
-        String caregiverId = "DOCTOR1";
+        UUID caregiverId = UUID.randomUUID();
         ScheduleStatus status = ScheduleStatus.AVAILABLE;
         List<CaregiverSchedule> schedules = new ArrayList<>();
         schedules.add(new CaregiverSchedule());
@@ -154,8 +155,8 @@ class CaregiverScheduleServiceImplTest {
 
     @Test
     void testGetSchedulesByCaregiverAndIdScheduleFound() {
-        String caregiverId = "DOCTOR1";
-        String scheduleId = "SCHEDULE1";
+        UUID caregiverId = UUID.randomUUID();
+        UUID scheduleId = UUID.randomUUID();
         CaregiverSchedule schedule = new CaregiverSchedule();
 
         when(repository.findByIdCaregiverAndIdSchedule(caregiverId, scheduleId)).thenReturn(Optional.of(schedule));
@@ -168,8 +169,8 @@ class CaregiverScheduleServiceImplTest {
 
     @Test
     void testGetSchedulesByCaregiverAndIdScheduleNotFound() {
-        String caregiverId = "DOCTOR1";
-        String scheduleId = "SCHEDULE1";
+        UUID caregiverId = UUID.randomUUID();
+        UUID scheduleId = UUID.randomUUID();
 
         when(repository.findByIdCaregiverAndIdSchedule(caregiverId, scheduleId)).thenReturn(Optional.empty());
 
@@ -183,17 +184,19 @@ class CaregiverScheduleServiceImplTest {
 
     @Test
     void testDeleteScheduleSuccess(){
-        String scheduleId = "SCHED1";
+        UUID caregiverId = UUID.randomUUID();
+        UUID scheduleId = UUID.randomUUID();
 
         CaregiverSchedule schedule = new CaregiverSchedule();
         schedule.setId(scheduleId);
-        schedule.setIdCaregiver("DOC1");
+        schedule.setIdCaregiver(caregiverId);
         schedule.setDay(DayOfWeek.MONDAY);
         schedule.setStartTime(LocalTime.of(9, 0));
         schedule.setEndTime(LocalTime.of(10, 0));
         schedule.setStatus(ScheduleStatus.AVAILABLE);
 
         when(repository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+
         when(repository.save(any(CaregiverSchedule.class))).thenAnswer(invocation -> {
             CaregiverSchedule savedSchedule = invocation.getArgument(0);
             return savedSchedule;
@@ -204,6 +207,6 @@ class CaregiverScheduleServiceImplTest {
         assertEquals(scheduleId, result.getId());
         assertEquals(ScheduleStatus.INACTIVE, result.getStatus());
         verify(repository).findById(scheduleId);
-        verify(repository).save(schedule);
+        verify(repository).save(any(CaregiverSchedule.class));
     }
 }

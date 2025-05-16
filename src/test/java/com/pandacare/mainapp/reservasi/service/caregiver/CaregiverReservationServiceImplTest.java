@@ -16,6 +16,7 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,13 +35,16 @@ class CaregiverReservationServiceImplTest {
 
     private ReservasiKonsultasi reservation;
     private CaregiverSchedule schedule;
-    private final String caregiverId = "DOC12345";
     private final String reservationId = "RES12345";
+    private UUID caregiverId;
 
     @BeforeEach
     void setUp() {
+        UUID scheduleId = UUID.randomUUID();
+        caregiverId = UUID.randomUUID();
+
         schedule = new CaregiverSchedule();
-        schedule.setId("SCHED12345");
+        schedule.setId(scheduleId);
         schedule.setIdCaregiver(caregiverId);
         schedule.setDay(DayOfWeek.MONDAY);
         schedule.setStartTime(LocalTime.of(9, 0));
@@ -137,7 +141,7 @@ class CaregiverReservationServiceImplTest {
 
     @Test
     void testChangeSchedule() {
-        String newScheduleId = "SCHED54321";
+        UUID newScheduleId = UUID.randomUUID();
 
         CaregiverSchedule newSchedule = new CaregiverSchedule();
         newSchedule.setId(newScheduleId);

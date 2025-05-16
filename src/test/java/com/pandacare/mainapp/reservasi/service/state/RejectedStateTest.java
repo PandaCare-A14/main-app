@@ -6,6 +6,8 @@ import com.pandacare.mainapp.reservasi.model.state.RejectedState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class RejectedStateTest {
@@ -41,8 +43,10 @@ class RejectedStateTest {
 
     @Test
     void testHandleChangeScheduleThrowsException() {
+        UUID id = UUID.randomUUID();
+
         IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
-                state.handleChangeSchedule(reservasi, "new-sched-id"));
+                state.handleChangeSchedule(reservasi, id));
         assertEquals("This reservation has already been rejected.", ex.getMessage());
     }
 }
