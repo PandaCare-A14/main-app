@@ -5,6 +5,7 @@ import com.pandacare.mainapp.konsultasi_dokter.dto.CreateScheduleDTO;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import com.pandacare.mainapp.konsultasi_dokter.service.CaregiverScheduleService;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
 @ExtendWith(MockitoExtension.class)
 public class CaregiverScheduleControllerTest {
@@ -35,7 +37,7 @@ public class CaregiverScheduleControllerTest {
     private CaregiverScheduleService service;
     @InjectMocks
     private CaregiverScheduleController controller;
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     public void setup() {
@@ -65,9 +67,12 @@ public class CaregiverScheduleControllerTest {
         mockMvc.perform(post("/api/doctors/{idCaregiver}/schedules", idCaregiver)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
+                .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(idSchedule.toString()))
-                .andExpect(jsonPath("$.idCaregiver").value(idCaregiver.toString()));
+                .andExpect(jsonPath("$.status").value(201))
+                .andExpect(jsonPath("$.message").value("Schedule created successfully"))
+                .andExpect(jsonPath("$.data.id").value(idSchedule.toString()))
+                .andExpect(jsonPath("$.data.idCaregiver").value(idCaregiver.toString()));
 
         verify(service).createSchedule(eq(idCaregiver), eq(DayOfWeek.MONDAY),
                 eq(LocalTime.of(9, 0)), eq(LocalTime.of(10, 0)));
@@ -105,12 +110,15 @@ public class CaregiverScheduleControllerTest {
         mockMvc.perform(post("/api/doctors/{idCaregiver}/schedules", idCaregiver)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
+                .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$[0].id").value(scheduleIds.get(0).toString()))
-                .andExpect(jsonPath("$[1].id").value(scheduleIds.get(1).toString()))
-                .andExpect(jsonPath("$[2].id").value(scheduleIds.get(2).toString()))
-                .andExpect(jsonPath("$[3].id").value(scheduleIds.get(3).toString()))
-                .andExpect(jsonPath("$[0].idCaregiver").value(idCaregiver.toString()));
+                .andExpect(jsonPath("$.status").value(201))
+                .andExpect(jsonPath("$.message").value("Schedules created successfully"))
+                .andExpect(jsonPath("$.data[0].id").value(scheduleIds.get(0).toString()))
+                .andExpect(jsonPath("$.data[1].id").value(scheduleIds.get(1).toString()))
+                .andExpect(jsonPath("$.data[2].id").value(scheduleIds.get(2).toString()))
+                .andExpect(jsonPath("$.data[3].id").value(scheduleIds.get(3).toString()))
+                .andExpect(jsonPath("$.data[0].idCaregiver").value(idCaregiver.toString()));
     }
 
     @Test
@@ -147,11 +155,14 @@ public class CaregiverScheduleControllerTest {
         mockMvc.perform(post("/api/doctors/{idCaregiver}/schedules/interval", idCaregiver)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
+                .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$[0].id").value(scheduleId1.toString()))
-                .andExpect(jsonPath("$[1].id").value(scheduleId2.toString()))
-                .andExpect(jsonPath("$[0].idCaregiver").value(idCaregiver.toString()))
-                .andExpect(jsonPath("$[1].idCaregiver").value(idCaregiver.toString()));
+                .andExpect(jsonPath("$.status").value(201))
+                .andExpect(jsonPath("$.message").value("Interval schedules created successfully"))
+                .andExpect(jsonPath("$.data[0].id").value(scheduleId1.toString()))
+                .andExpect(jsonPath("$.data[1].id").value(scheduleId2.toString()))
+                .andExpect(jsonPath("$.data[0].idCaregiver").value(idCaregiver.toString()))
+                .andExpect(jsonPath("$.data[1].idCaregiver").value(idCaregiver.toString()));
 
         verify(service).createMultipleSchedules(eq(idCaregiver), eq(DayOfWeek.MONDAY),
                 eq(LocalTime.of(9, 0)), eq(LocalTime.of(10, 0)));
@@ -211,13 +222,16 @@ public class CaregiverScheduleControllerTest {
         mockMvc.perform(post("/api/doctors/{idCaregiver}/schedules/interval", idCaregiver)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
+                .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$[0].id").value(scheduleIds.get(0).toString()))
-                .andExpect(jsonPath("$[1].id").value(scheduleIds.get(1).toString()))
-                .andExpect(jsonPath("$[2].id").value(scheduleIds.get(2).toString()))
-                .andExpect(jsonPath("$[3].id").value(scheduleIds.get(3).toString()))
-                .andExpect(jsonPath("$[0].idCaregiver").value(idCaregiver.toString()))
-                .andExpect(jsonPath("$[3].idCaregiver").value(idCaregiver.toString()));
+                .andExpect(jsonPath("$.status").value(201))
+                .andExpect(jsonPath("$.message").value("Multiple schedules created successfully"))
+                .andExpect(jsonPath("$.data[0].id").value(scheduleIds.get(0).toString()))
+                .andExpect(jsonPath("$.data[1].id").value(scheduleIds.get(1).toString()))
+                .andExpect(jsonPath("$.data[2].id").value(scheduleIds.get(2).toString()))
+                .andExpect(jsonPath("$.data[3].id").value(scheduleIds.get(3).toString()))
+                .andExpect(jsonPath("$.data[0].idCaregiver").value(idCaregiver.toString()))
+                .andExpect(jsonPath("$.data[3].idCaregiver").value(idCaregiver.toString()));
     }
 
     @Test
@@ -237,9 +251,12 @@ public class CaregiverScheduleControllerTest {
         when(service.getSchedulesByCaregiver(idCaregiver)).thenReturn(schedules);
 
         mockMvc.perform(get("/api/doctors/{idCaregiver}/schedules", idCaregiver))
+                .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(scheduleId.toString()))
-                .andExpect(jsonPath("$[0].idCaregiver").value(idCaregiver.toString()));
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Schedules retrieved successfully"))
+                .andExpect(jsonPath("$.data[0].id").value(scheduleId.toString()))
+                .andExpect(jsonPath("$.data[0].idCaregiver").value(idCaregiver.toString()));
     }
 
     @Test
@@ -259,8 +276,11 @@ public class CaregiverScheduleControllerTest {
 
         mockMvc.perform(get("/api/doctors/{idCaregiver}/schedules", idCaregiver)
                         .param("status", statusStr))
+                .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(scheduleId.toString()));
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Schedules with status " + statusStr + " retrieved successfully"))
+                .andExpect(jsonPath("$.data[0].id").value(scheduleId.toString()));
     }
 
     @Test
@@ -280,8 +300,11 @@ public class CaregiverScheduleControllerTest {
 
         mockMvc.perform(get("/api/doctors/{idCaregiver}/schedules", idCaregiver)
                         .param("day", day))
+                .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(scheduleId.toString()));
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Schedules for " + day + " retrieved successfully"))
+                .andExpect(jsonPath("$.data[0].id").value(scheduleId.toString()));
     }
 
     @Test
@@ -298,7 +321,46 @@ public class CaregiverScheduleControllerTest {
 
         mockMvc.perform(get("/api/doctors/{idCaregiver}/schedules", idCaregiver)
                         .param("idSchedule", idSchedule.toString()))
+                .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(idSchedule.toString()));
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Schedule retrieved successfully"))
+                .andExpect(jsonPath("$.data.id").value(idSchedule.toString()));
+    }
+
+    @Test
+    public void testDeleteSchedule() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        UUID idSchedule = UUID.randomUUID();
+
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId(idSchedule);
+        schedule.setIdCaregiver(idCaregiver);
+        schedule.setDay(DayOfWeek.MONDAY);
+
+        when(service.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule)).thenReturn(schedule);
+        when(service.deleteSchedule(idSchedule)).thenReturn(schedule);
+
+        mockMvc.perform(delete("/api/doctors/{idCaregiver}/schedules/{idSchedule}", idCaregiver, idSchedule))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Schedule deleted successfully"))
+                .andExpect(jsonPath("$.data.id").value(idSchedule.toString()));
+    }
+
+    @Test
+    public void testDeleteScheduleNotFound() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        UUID idSchedule = UUID.randomUUID();
+
+        when(service.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule))
+                .thenThrow(new EntityNotFoundException("Schedule not found"));
+
+        mockMvc.perform(delete("/api/doctors/{idCaregiver}/schedules/{idSchedule}", idCaregiver, idSchedule))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Schedule not found"));
     }
 }

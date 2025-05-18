@@ -1,5 +1,6 @@
 package com.pandacare.mainapp.reservasi.model;
 
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.state.*;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
@@ -12,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ReservasiKonsultasiTest {
@@ -19,6 +21,9 @@ class ReservasiKonsultasiTest {
 
     @Mock
     private ScheduleService mockScheduleService;
+
+    @Mock
+    private CaregiverSchedule mockSchedule;
 
     @BeforeEach
     void setUp() {
@@ -110,5 +115,97 @@ class ReservasiKonsultasiTest {
     void testConstructorGeneratesId() {
         assertNotNull(reservasi.getIdReservasi());
         assertFalse(reservasi.getIdReservasi().isEmpty());
+    }
+
+    @Test
+    void testInitializeState() {
+        reservasi.setScheduleService(mockScheduleService);
+
+        reservasi.initializeState();
+
+        assertNotNull(reservasi.getCurrentState());
+        assertInstanceOf(RequestedState.class, reservasi.getCurrentState());
+    }
+
+    @Test
+    void testLoadStateWithScheduleService() {
+        reservasi.setScheduleService(mockScheduleService);
+
+        try {
+            java.lang.reflect.Method loadStateMethod =
+                    ReservasiKonsultasi.class.getDeclaredMethod("loadState");
+            loadStateMethod.setAccessible(true);
+            loadStateMethod.invoke(reservasi);
+
+            assertNotNull(reservasi.getCurrentState());
+            assertInstanceOf(RequestedState.class, reservasi.getCurrentState());
+        } catch (Exception e) {
+            fail("Exception occurred while testing loadState: " + e.getMessage());
+        }
+    }
+
+    @Test
+    void testLoadStateWithoutScheduleService() {
+        reservasi.setScheduleService(null);
+
+        try {
+            java.lang.reflect.Method loadStateMethod =
+                    ReservasiKonsultasi.class.getDeclaredMethod("loadState");
+            loadStateMethod.setAccessible(true);
+            loadStateMethod.invoke(reservasi);
+
+            assertNull(reservasi.getCurrentState());
+        } catch (Exception e) {
+            fail("Exception occurred while testing loadState: " + e.getMessage());
+        }
+    }
+
+    @Test
+    void testEnsureStateInitializedWithExistingState() {
+        ReservasiState mockState = mock(ReservasiState.class);
+        reservasi.setState(mockState);
+        reservasi.ensureStateInitialized(mockScheduleService);
+        assertSame(mockState, reservasi.getCurrentState());
+    }
+
+    @Test
+    void testEnsureStateInitializedWithExistingScheduleService() {
+        ScheduleService existingService = mock(ScheduleService.class);
+        reservasi.setScheduleService(existingService);
+        reservasi.ensureStateInitialized(mockScheduleService);
+        assertSame(existingService, reservasi.getScheduleService());
+    }
+
+    @Test
+    void testIdScheduleAssociation() {
+        reservasi.setIdSchedule(mockSchedule);
+        assertSame(mockSchedule, reservasi.getIdSchedule());
+    }
+
+    @Test
+    void testPacilianNote() {
+        String testNote = "Test patient note";
+        reservasi.setPacilianNote(testNote);
+        assertEquals(testNote, reservasi.getPacilianNote());
+    }
+
+    @Test
+    void testDefaultStatus() {
+        ReservasiKonsultasi newReservasi = new ReservasiKonsultasi();
+        assertEquals(StatusReservasiKonsultasi.WAITING, newReservasi.getStatusReservasi());
+    }
+
+    @Test
+    void testSetIdReservasi() {
+        String customId = "CUSTOM-ID-123";
+        reservasi.setIdReservasi(customId);
+        assertEquals(customId, reservasi.getIdReservasi());
+    }
+
+    @Test
+    void testInitStateWithDefaultCase() {
+        reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+        reservasi.ensureStateInitialized(mockScheduleService);
+        assertInstanceOf(RequestedState.class, reservasi.getCurrentState());
     }
 }

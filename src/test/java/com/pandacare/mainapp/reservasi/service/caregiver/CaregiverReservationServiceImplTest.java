@@ -142,29 +142,20 @@ class CaregiverReservationServiceImplTest {
     @Test
     void testChangeSchedule() {
         UUID newScheduleId = UUID.randomUUID();
-
         CaregiverSchedule newSchedule = new CaregiverSchedule();
         newSchedule.setId(newScheduleId);
-        newSchedule.setIdCaregiver(caregiverId);
-        newSchedule.setDay(DayOfWeek.TUESDAY);
-        newSchedule.setStatus(ScheduleStatus.AVAILABLE);
 
         when(reservasiRepository.findById(reservationId)).thenReturn(Optional.of(reservation));
         when(scheduleService.getById(newScheduleId)).thenReturn(newSchedule);
-        doNothing().when(scheduleService).updateScheduleStatus(schedule, ScheduleStatus.AVAILABLE);
-        doNothing().when(scheduleService).updateScheduleStatus(newSchedule, ScheduleStatus.UNAVAILABLE);
         when(reservasiRepository.save(any(ReservasiKonsultasi.class))).thenReturn(reservation);
-        when(reservasiRepository.saveAndFlush(any(ReservasiKonsultasi.class))).thenReturn(reservation);
 
         ReservasiKonsultasi result = service.changeSchedule(reservationId, newScheduleId);
 
         assertEquals(reservationId, result.getIdReservasi());
-        verify(reservasiRepository).findById(reservationId);
         verify(scheduleService).updateScheduleStatus(schedule, ScheduleStatus.AVAILABLE);
-        verify(scheduleService, times(2)).getById(newScheduleId);
         verify(scheduleService).updateScheduleStatus(newSchedule, ScheduleStatus.UNAVAILABLE);
-        verify(reservasiRepository).saveAndFlush(any(ReservasiKonsultasi.class));
         verify(reservasiRepository).save(any(ReservasiKonsultasi.class));
+        verify(reservasiRepository, never()).saveAndFlush(any());
     }
 
     @Test
