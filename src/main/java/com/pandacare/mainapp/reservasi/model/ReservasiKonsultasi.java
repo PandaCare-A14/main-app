@@ -41,6 +41,7 @@ public class ReservasiKonsultasi {
 
     public ReservasiKonsultasi() {
         this.idReservasi = UUID.randomUUID().toString();
+        this.statusReservasi = StatusReservasiKonsultasi.WAITING;
     }
 
     @PostConstruct

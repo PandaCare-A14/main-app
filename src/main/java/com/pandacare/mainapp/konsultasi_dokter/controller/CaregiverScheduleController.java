@@ -4,6 +4,7 @@ import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import com.pandacare.mainapp.konsultasi_dokter.service.CaregiverScheduleService;
 import com.pandacare.mainapp.konsultasi_dokter.dto.CreateScheduleDTO;
+import com.pandacare.mainapp.konsultasi_dokter.dto.ApiResponse;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,7 @@ public class CaregiverScheduleController {
     }
 
     @PostMapping("/{idCaregiver}/schedules")
-    public ResponseEntity<?> createSchedule(
+    public ResponseEntity<ApiResponse<?>> createSchedule(
             @PathVariable UUID idCaregiver,
             @Valid @RequestBody CreateScheduleDTO dto
     ) {
@@ -41,20 +42,24 @@ public class CaregiverScheduleController {
             if (dto.getWeeks() != null && dto.getWeeks() > 0) {
                 List<CaregiverSchedule> schedules = scheduleService.createRepeatedSchedules(
                         idCaregiver, day, startTime, endTime, dto.getWeeks());
-                return ResponseEntity.status(HttpStatus.CREATED).body(schedules);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(ApiResponse.created("Schedules created successfully", schedules));
             } else {
                 CaregiverSchedule schedule = scheduleService.createSchedule(idCaregiver, day, startTime, endTime);
-                return ResponseEntity.status(HttpStatus.CREATED).body(schedule);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(ApiResponse.created("Schedule created successfully", schedule));
             }
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.badRequest("Invalid input: " + e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.internalError("An internal error occurred: " + e.getMessage()));
         }
     }
 
     @PostMapping("/{idCaregiver}/schedules/interval")
-    public ResponseEntity<List<CaregiverSchedule>> createScheduleInterval(
+    public ResponseEntity<ApiResponse<?>> createScheduleInterval(
             @PathVariable UUID idCaregiver,
             @Valid @RequestBody CreateScheduleDTO dto
     ) {
@@ -66,39 +71,47 @@ public class CaregiverScheduleController {
             if (dto.getWeeks() != null && dto.getWeeks() > 0) {
                 List<CaregiverSchedule> schedules = scheduleService.createRepeatedMultipleSchedules(
                         idCaregiver, day, startTime, endTime, dto.getWeeks());
-                return ResponseEntity.status(HttpStatus.CREATED).body(schedules);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(ApiResponse.created("Multiple schedules created successfully", schedules));
             } else {
                 List<CaregiverSchedule> schedules = scheduleService.createMultipleSchedules(
                         idCaregiver, day, startTime, endTime);
-                return ResponseEntity.status(HttpStatus.CREATED).body(schedules);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(ApiResponse.created("Interval schedules created successfully", schedules));
             }
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.badRequest("Invalid input: " + e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.internalError("An internal error occurred: " + e.getMessage()));
         }
     }
 
     @DeleteMapping("/{idCaregiver}/schedules/{idSchedule}")
-    public ResponseEntity<CaregiverSchedule> deleteSchedule(
+    public ResponseEntity<ApiResponse<CaregiverSchedule>> deleteSchedule(
             @PathVariable UUID idCaregiver,
             @PathVariable UUID idSchedule
     ) {
         try {
             scheduleService.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule);
             CaregiverSchedule inactiveSchedule = scheduleService.deleteSchedule(idSchedule);
-            return ResponseEntity.ok(inactiveSchedule);
+            return ResponseEntity.ok(
+                    ApiResponse.success("Schedule deleted successfully", inactiveSchedule));
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.notFound("Schedule not found"));
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.conflict("Cannot delete schedule: " + e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.internalError("An internal error occurred: " + e.getMessage()));
         }
     }
 
     @GetMapping("/{idCaregiver}/schedules")
-    public ResponseEntity<List<CaregiverSchedule>> getScheduleByCaregiver(
+    public ResponseEntity<ApiResponse<?>> getScheduleByCaregiver(
             @PathVariable UUID idCaregiver,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String day,
@@ -118,36 +131,47 @@ public class CaregiverScheduleController {
             }
 
             List<CaregiverSchedule> schedules = scheduleService.getSchedulesByCaregiver(idCaregiver);
-            return ResponseEntity.ok(schedules);
+            return ResponseEntity.ok(ApiResponse.success("Schedules retrieved successfully", schedules));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.internalError("An internal error occurred: " + e.getMessage()));
         }
     }
 
-    private ResponseEntity<List<CaregiverSchedule>> getScheduleById(UUID idCaregiver, UUID idSchedule) {
+    private ResponseEntity<ApiResponse<?>> getScheduleById(UUID idCaregiver, UUID idSchedule) {
         try {
             CaregiverSchedule schedule = scheduleService.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule);
-            return ResponseEntity.ok(Collections.singletonList(schedule));
+            return ResponseEntity.ok(
+                    ApiResponse.success("Schedule retrieved successfully", schedule));
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.notFound("Schedule not found"));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.badRequest("Invalid input: " + e.getMessage()));
         }
     }
 
-    private ResponseEntity<List<CaregiverSchedule>> getSchedulesByStatus(UUID idCaregiver, String status) {
-        ScheduleStatus statusEnum = ScheduleStatus.valueOf(status.toUpperCase());
-        List<CaregiverSchedule> schedules = scheduleService.getSchedulesByCaregiverAndStatus(idCaregiver, statusEnum);
-        return ResponseEntity.ok(schedules);
+    private ResponseEntity<ApiResponse<?>> getSchedulesByStatus(UUID idCaregiver, String status) {
+        try {
+            ScheduleStatus statusEnum = ScheduleStatus.valueOf(status.toUpperCase());
+            List<CaregiverSchedule> schedules = scheduleService.getSchedulesByCaregiverAndStatus(idCaregiver, statusEnum);
+            return ResponseEntity.ok(
+                    ApiResponse.success("Schedules with status " + status + " retrieved successfully", schedules));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.badRequest("Invalid status: " + e.getMessage()));
+        }
     }
 
-    private ResponseEntity<List<CaregiverSchedule>> getSchedulesByDay(UUID idCaregiver, String day) {
+    private ResponseEntity<ApiResponse<?>> getSchedulesByDay(UUID idCaregiver, String day) {
         try {
             DayOfWeek dayOfWeek = DayOfWeek.valueOf(day.toUpperCase());
             List<CaregiverSchedule> schedules = scheduleService.getSchedulesByCaregiverAndDay(idCaregiver, dayOfWeek);
-            return ResponseEntity.ok(schedules);
+            return ResponseEntity.ok(ApiResponse.success("Schedules for " + day + " retrieved successfully", schedules));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.badRequest("Invalid day: " + e.getMessage()));
         }
     }
 

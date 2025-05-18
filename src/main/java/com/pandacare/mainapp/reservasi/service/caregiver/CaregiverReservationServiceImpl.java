@@ -80,14 +80,19 @@ public class CaregiverReservationServiceImpl implements CaregiverReservationServ
         ReservasiKonsultasi reservation = getReservationOrThrow(reservationId);
         validateReservationStatusForAction(reservation, "change schedule");
 
+        CaregiverSchedule newSchedule = scheduleService.getById(newScheduleId);
+        if (newSchedule == null) {
+            throw new IllegalArgumentException("Schedule with ID " + newScheduleId + " not found");
+        }
+
         CaregiverSchedule oldSchedule = reservation.getIdSchedule();
         if (oldSchedule != null) {
             scheduleService.updateScheduleStatus(oldSchedule, ScheduleStatus.AVAILABLE);
-            reservation.setIdSchedule(null);
-            reservasiRepository.saveAndFlush(reservation);
         }
-        CaregiverSchedule newSchedule = scheduleService.getById(newScheduleId);
+
         scheduleService.updateScheduleStatus(newSchedule, ScheduleStatus.UNAVAILABLE);
+        reservation.setIdSchedule(newSchedule);
+
         reservation.ensureStateInitialized(scheduleService);
         reservation.handleChangeSchedule(newScheduleId);
 
