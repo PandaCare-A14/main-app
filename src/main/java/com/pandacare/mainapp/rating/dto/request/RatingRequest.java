@@ -1,4 +1,4 @@
-package com.pandacare.mainapp.rating.dto;
+package com.pandacare.mainapp.rating.dto.request;
 
 /**
  * DTO for receiving rating data from client
