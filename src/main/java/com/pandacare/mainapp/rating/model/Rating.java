@@ -2,88 +2,56 @@ package com.pandacare.mainapp.rating.model;
 
 import java.time.LocalDateTime;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * Model for storing rating data
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Rating {
-    private Long id;
+
+    private String id;
     private String idDokter;
-    private String idPacillian;
-    private int ratingScore;
+    private String idPasien;
+    private Integer ratingScore;
     private String ulasan;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Default constructor
-    public Rating() {
-    }
-
-    // Constructor with all parameters
-    public Rating(Long id, String idDokter, String idPacillian, int ratingScore, String ulasan,
-                  LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
+    /**
+     * Constructor without id and dates (for creating new rating)
+     */
+    public Rating(String idDokter, String idPasien, Integer ratingScore, String ulasan) {
         this.idDokter = idDokter;
-        this.idPacillian = idPacillian;
-        setRatingScore(ratingScore); // Use setter for validation
+        this.idPasien = idPasien;
+        this.ratingScore = ratingScore;
         this.ulasan = ulasan;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getIdDokter() {
-        return idDokter;
-    }
-
-    public void setIdDokter(String idDokter) {
-        this.idDokter = idDokter;
-    }
-
-    public String getIdPacillian() {
-        return idPacillian;
-    }
-
-    public void setIdPacillian(String idPacillian) {
-        this.idPacillian = idPacillian;
-    }
-
-    public int getRatingScore() {
-        return ratingScore;
-    }
-
-    public void setRatingScore(int ratingScore) {
+    /**
+     * Validation method for rating score
+     */
+    public void setRatingScore(Integer ratingScore) {
+        if (ratingScore == null) {
+            throw new IllegalArgumentException("Rating score cannot be null");
+        }
         if (ratingScore < 1 || ratingScore > 5) {
             throw new IllegalArgumentException("Rating score harus di antara 1 dan 5");
         }
         this.ratingScore = ratingScore;
     }
-
-    public String getUlasan() {
-        return ulasan;
-    }
-
-    public void setUlasan(String ulasan) {
-        this.ulasan = ulasan;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    /**
+     * Update rating from another rating
+     */
+    public void updateFrom(Rating other) {
+        this.ratingScore = other.getRatingScore();
+        this.ulasan = other.getUlasan();
+        this.updatedAt = LocalDateTime.now();
     }
 }

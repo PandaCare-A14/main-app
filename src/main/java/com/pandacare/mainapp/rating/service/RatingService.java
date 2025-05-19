@@ -1,42 +1,60 @@
 package com.pandacare.mainapp.rating.service;
 
-import com.pandacare.mainapp.rating.model.Rating;
 import java.util.List;
 
+import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
+import com.pandacare.mainapp.rating.dto.RatingRequest;
+import com.pandacare.mainapp.rating.dto.response.RatingResponse;
+
+/**
+ * Service interface for rating operations
+ */
 public interface RatingService {
+
     /**
-     * Menambahkan rating baru
-     * @param rating Rating yang akan ditambahkan
-     * @return Rating yang telah disimpan dengan ID yang diperbarui
+     * Get all ratings for a doctor
+     * @param idDokter doctor ID
+     * @return list of ratings with average and total count
      */
-    Rating addRating(Rating rating);
-    
+    RatingListResponse getRatingsByDokter(String idDokter);
+
     /**
-     * Memperbarui rating yang sudah ada
-     * @param rating Rating dengan data yang diperbarui
-     * @return Rating yang telah diperbarui
+     * Get all ratings given by a patient
+     * @param idPasien patient ID
+     * @return list of ratings
      */
-    Rating updateRating(Rating rating);
-    
+    List<RatingResponse> getRatingsByPasien(String idPasien);
+
     /**
-     * Menghapus rating berdasarkan ID Pacillian dan ID Dokter
-     * @param idPacillian ID dari Pacillian
-     * @param idDokter ID dari Dokter
-     * @return Rating yang telah dihapus
+     * Get a specific rating given by a patient to a doctor
+     * @param idPasien patient ID
+     * @param idDokter doctor ID
+     * @return rating response
      */
-    Rating deleteRating(String idPacillian, String idDokter);
-    
+    RatingResponse getRatingByPasienAndDokter(String idPasien, String idDokter);
+
     /**
-     * Mendapatkan semua rating berdasarkan ID pemilik (Pacillian)
-     * @param idPacillian ID dari Pacillian
-     * @return Daftar rating
+     * Add a new rating
+     * @param idPasien patient ID
+     * @param idDokter doctor ID
+     * @param request rating data
+     * @return created rating
      */
-    List<Rating> getRatingsByOwnerId(String idPacillian);
-    
+    RatingResponse addRating(String idPasien, String idDokter, RatingRequest request);
+
     /**
-     * Mendapatkan semua rating berdasarkan ID Dokter
-     * @param idDokter ID dari Dokter
-     * @return Daftar rating
+     * Update an existing rating
+     * @param idPasien patient ID
+     * @param idDokter doctor ID
+     * @param request rating data
+     * @return updated rating
      */
-    List<Rating> getRatingsByIdDokter(String idDokter);
+    RatingResponse updateRating(String idPasien, String idDokter, RatingRequest request);
+
+    /**
+     * Delete a rating
+     * @param idPasien patient ID
+     * @param idDokter doctor ID
+     */
+    void deleteRating(String idPasien, String idDokter);
 }
