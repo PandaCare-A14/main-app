@@ -35,7 +35,6 @@ public class ReservasiKonsultasi {
     private ReservasiState currentState;
     @Transient
     @JsonIgnore
-    @Autowired
     @Lazy
     private ScheduleService scheduleService;
 
