@@ -33,9 +33,6 @@ public class EditReservasiHandler extends ReservasiKonsultasiTemplate {
 
     @Override
     protected ReservasiKonsultasi prepare() {
-        reservasi.setDay(newDay);
-        reservasi.setStartTime(newStartTime);
-        reservasi.setEndTime(newEndTime);
         return reservasi;
     }
 

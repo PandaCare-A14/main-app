@@ -47,6 +47,12 @@ dependencies {
 	implementation ("org.hibernate.validator:hibernate-validator:7.0.1.Final")
 	implementation ("org.postgresql:postgresql:42.7.2")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation ("org.postgresql:postgresql:42.7.1")
+	runtimeOnly ("org.postgresql:postgresql")
+	runtimeOnly ("com.h2database:h2")
+	testImplementation ("org.springframework.boot:spring-boot-starter-test")
+	implementation ("jakarta.validation:jakarta.validation-api:3.0.2")
+	implementation ("org.hibernate.validator:hibernate-validator:8.0.0.Final")
 
 	compileOnly("org.projectlombok:lombok")
 
