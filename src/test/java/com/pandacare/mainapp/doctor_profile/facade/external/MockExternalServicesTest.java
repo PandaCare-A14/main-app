@@ -1,43 +1,75 @@
 package com.pandacare.mainapp.doctor_profile.facade.external;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(MockitoExtension.class)
 class MockExternalServicesTest {
 
-    @Test
-    void testStartChat() {
-        // Arrange
-        MockExternalServices mock = new MockExternalServices();
-        String doctorId = "doc123";
-        String patientId = "patient456";
+    @InjectMocks
+    private MockExternalServices mockExternalServices;
 
-        // Act & Assert
-        assertDoesNotThrow(() -> mock.startChat(doctorId, patientId));
+    private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    private final PrintStream originalOut = System.out;
+
+    @BeforeEach
+    void setUp() {
+        System.setOut(new PrintStream(outputStream));
+    }
+
+    @BeforeEach
+    void tearDown() {
+        System.setOut(originalOut);
     }
 
     @Test
-    void testCreateAppointment() {
+    void startChat_ShouldPrintCorrectMessage() {
         // Arrange
-        MockExternalServices mock = new MockExternalServices();
         String doctorId = "doc123";
         String patientId = "patient456";
-        LocalDateTime time = LocalDateTime.now();
+        String expectedOutput = "[MOCK] Chat initiated - Doctor: doc123, Patient: patient456";
 
-        // Act & Assert
-        assertDoesNotThrow(() -> mock.createAppointment(doctorId, patientId, time));
+        // Act
+        mockExternalServices.startChat(doctorId, patientId);
+
+        // Assert
+        assertTrue(outputStream.toString().contains(expectedOutput));
     }
 
     @Test
-    void testCreateAppointmentWithNullTime() {
+    void createAppointment_WithValidTime_ShouldPrintCorrectMessage() {
         // Arrange
-        MockExternalServices mock = new MockExternalServices();
         String doctorId = "doc123";
         String patientId = "patient456";
+        LocalDateTime time = LocalDateTime.of(2023, 12, 25, 14, 30);
+        String expectedOutput = "[MOCK] Appointment created - Doctor: doc123, Patient: patient456, Time: 2023-12-25T14:30";
 
-        // Act & Assert
-        assertDoesNotThrow(() -> mock.createAppointment(doctorId, patientId, null));
+        // Act
+        mockExternalServices.createAppointment(doctorId, patientId, time);
+
+        // Assert
+        assertTrue(outputStream.toString().contains(expectedOutput));
+    }
+
+    @Test
+    void createAppointment_WithNullTime_ShouldPrintCorrectMessage() {
+        // Arrange
+        String doctorId = "doc123";
+        String patientId = "patient456";
+        String expectedOutput = "[MOCK] Appointment created - Doctor: doc123, Patient: patient456, Time: null";
+
+        // Act
+        mockExternalServices.createAppointment(doctorId, patientId, null);
+
+        // Assert
+        assertTrue(outputStream.toString().contains(expectedOutput));
     }
 }
