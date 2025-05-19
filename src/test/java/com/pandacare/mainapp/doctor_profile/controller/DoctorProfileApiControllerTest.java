@@ -5,6 +5,7 @@ import com.pandacare.mainapp.doctor_profile.dto.request.UpdateDoctorRequest;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorListResponse;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorResponse;
 import com.pandacare.mainapp.doctor_profile.dto.response.ErrorResponse;
+import com.pandacare.mainapp.doctor_profile.facade.DoctorFacade;
 import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 import com.pandacare.mainapp.doctor_profile.service.DoctorProfileService;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,9 @@ class DoctorProfileApiControllerTest {
     @Mock
     private DoctorProfileService doctorProfileService;
 
+    @Mock
+    private DoctorFacade doctorFacade;
+
     @InjectMocks
     private DoctorProfileApiController doctorProfileApiController;
 
@@ -39,11 +43,48 @@ class DoctorProfileApiControllerTest {
 
     @BeforeEach
     void setUp() {
+        doctorProfileApiController = new DoctorProfileApiController(doctorProfileService, doctorFacade);
+
         doctor1 = createDoctorProfile("doc1", "Dr. Smith", "dr.smith@example.com", "Cardiology", 4.5);
         doctor2 = createDoctorProfile("doc2", "Dr. Johnson", "dr.johnson@example.com", "Neurology", 4.8);
 
         createRequest = createDoctorRequest("Dr. New", "dr.new@example.com", "Pediatrics");
         updateRequest = updateDoctorRequest("doc1", "Dr. Smith Updated", "dr.smith.updated@example.com", "Cardiology Updated");
+    }
+
+    @Nested
+    class GetDoctorWithActionsTests {
+        @Test
+        void shouldReturnDoctorWithTriggeredActions() {
+            // Arrange
+            String doctorId = "doc1";
+            String patientId = "patient123";
+            when(doctorFacade.getDoctorProfileWithActions(doctorId, patientId)).thenReturn(doctor1);
+
+            // Act
+            ResponseEntity<DoctorResponse> response = doctorProfileApiController.getDoctorWithActions(doctorId, patientId);
+
+            // Assert
+            assertSuccessfulResponse(response, HttpStatus.OK);
+            assertEquals("doc1", response.getBody().getId());
+            assertEquals("Dr. Smith", response.getBody().getName());
+            verify(doctorFacade).getDoctorProfileWithActions(doctorId, patientId);
+        }
+
+        @Test
+        void shouldReturnNotFoundWhenDoctorDoesNotExist() {
+            // Arrange
+            String doctorId = "nonexistent";
+            String patientId = "patient123";
+            when(doctorFacade.getDoctorProfileWithActions(doctorId, patientId)).thenReturn(null);
+
+            // Act
+            ResponseEntity<DoctorResponse> response = doctorProfileApiController.getDoctorWithActions(doctorId, patientId);
+
+            // Assert
+            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+            verify(doctorFacade).getDoctorProfileWithActions(doctorId, patientId);
+        }
     }
 
     @Nested
