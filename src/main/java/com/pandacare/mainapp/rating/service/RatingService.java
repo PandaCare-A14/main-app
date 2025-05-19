@@ -3,7 +3,7 @@ package com.pandacare.mainapp.rating.service;
 import java.util.List;
 
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
-import com.pandacare.mainapp.rating.dto.RatingRequest;
+import com.pandacare.mainapp.rating.dto.request.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 
 /**

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
-import com.pandacare.mainapp.rating.dto.RatingRequest;
+import com.pandacare.mainapp.rating.dto.request.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import com.pandacare.mainapp.rating.service.RatingService;
 

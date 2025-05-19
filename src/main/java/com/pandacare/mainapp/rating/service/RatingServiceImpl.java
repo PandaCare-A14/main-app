@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import com.pandacare.mainapp.common.exception.BusinessException;
 import com.pandacare.mainapp.common.exception.ResourceNotFoundException;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
-import com.pandacare.mainapp.rating.dto.RatingRequest;
+import com.pandacare.mainapp.rating.dto.request.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import com.pandacare.mainapp.rating.model.Rating;
 import com.pandacare.mainapp.rating.repository.RatingRepository;
