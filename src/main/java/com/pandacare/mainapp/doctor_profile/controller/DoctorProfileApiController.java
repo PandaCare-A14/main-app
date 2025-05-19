@@ -5,8 +5,10 @@ import com.pandacare.mainapp.doctor_profile.dto.request.UpdateDoctorRequest;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorResponse;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorListResponse;
 import com.pandacare.mainapp.doctor_profile.dto.response.ErrorResponse;
+import com.pandacare.mainapp.doctor_profile.facade.DoctorFacade;
 import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 import com.pandacare.mainapp.doctor_profile.service.DoctorProfileService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,9 +23,22 @@ import java.util.stream.Collectors;
 public class DoctorProfileApiController {
 
     private final DoctorProfileService doctorProfileService;
+    private final DoctorFacade doctorFacade;
 
-    public DoctorProfileApiController(DoctorProfileService doctorProfileService) {
+    public DoctorProfileApiController(DoctorProfileService doctorProfileService, DoctorFacade doctorFacade) {
         this.doctorProfileService = doctorProfileService;
+        this.doctorFacade = doctorFacade;
+    }
+
+    @GetMapping("/{doctorId}/actions")
+    public ResponseEntity<DoctorResponse> getDoctorWithActions(
+            @PathVariable String doctorId,
+            @RequestParam String patientId
+    ) {
+        DoctorProfile doctor = doctorFacade.getDoctorProfileWithActions(doctorId, patientId);
+        return doctor != null ?
+                ResponseEntity.ok(convertToDto(doctor)) :
+                ResponseEntity.notFound().build();
     }
 
     @GetMapping
