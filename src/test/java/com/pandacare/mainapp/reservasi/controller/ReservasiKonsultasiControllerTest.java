@@ -1,8 +1,12 @@
 package com.pandacare.mainapp.reservasi.controller;
 
+import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.service.ReservasiKonsultasiServiceImpl;
+import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -10,11 +14,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -30,56 +35,65 @@ class ReservasiKonsultasiControllerTest {
     @MockBean
     private ReservasiKonsultasiServiceImpl reservasiService;
 
+    @MockBean
+    private ScheduleService scheduleService;
+
+    private UUID scheduleId;
+    private CaregiverSchedule schedule;
+    private ReservasiKonsultasi waitingReservasi;
+
+    @BeforeEach
+    void setup() {
+        scheduleId = UUID.randomUUID();
+
+        schedule = new CaregiverSchedule();
+        schedule.setId(scheduleId);
+        schedule.setDay(DayOfWeek.MONDAY);
+        schedule.setStartTime(LocalTime.of(9, 0));  // Use LocalTime instead of String
+        schedule.setEndTime(LocalTime.of(10, 0));
+        schedule.setStatus(ScheduleStatus.AVAILABLE);
+
+        waitingReservasi = new ReservasiKonsultasi();
+        waitingReservasi.setId("RSV001");
+        waitingReservasi.setIdDokter("dok123");
+        waitingReservasi.setIdPacilian("pac123");
+        waitingReservasi.setDay("MONDAY");
+        waitingReservasi.setStartTime(LocalTime.of(9, 0));  // Use LocalTime instead of String
+        waitingReservasi.setEndTime(LocalTime.of(10, 0));
+        waitingReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+        waitingReservasi.setIdSchedule(schedule);
+    }
+
     @Test
     void testRequestReservasi_success() throws Exception {
-        ReservasiKonsultasi dummy = new ReservasiKonsultasi();
-        dummy.setId("RSV001");
-        dummy.setIdDokter("dok123");
-        dummy.setIdPasien("pac123");
-        dummy.setDay("MONDAY");
-        dummy.setStartTime("09:00");
-        dummy.setEndTime("10:00");
-        dummy.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
-
-        when(reservasiService.requestReservasi(any(), any(), any(), any(), any())).thenReturn(dummy);
+        when(reservasiService.requestReservasi(any(UUID.class), anyString())).thenReturn(waitingReservasi);
 
         mockMvc.perform(post("/api/reservasi-konsultasi/request")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+                        .content(String.format("""
                             {
-                                "idDokter": "dok123",
-                                "idPasien": "pac123",
-                                "day": "MONDAY",
-                                "startTime": "09:00",
-                                "endTime": "10:00"
+                                "idSchedule": "%s",
+                                "idPacilian": "pac123"
                             }
-                        """))
+                        """, scheduleId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Jadwal konsultasi berhasil diajukan"))
                 .andExpect(jsonPath("$.reservasi.idDokter").value("dok123"));
+
+        verify(reservasiService).requestReservasi(any(UUID.class), eq("pac123"));
     }
 
     @Test
     void testEditReservasi_success() throws Exception {
-        // Membuat objek dummy untuk reservasi yang sudah ada
-        ReservasiKonsultasi originalReservasi = new ReservasiKonsultasi();
-        originalReservasi.setId("RSV001");
-        originalReservasi.setIdDokter("dok123");
-        originalReservasi.setIdPasien("pac123");
-        originalReservasi.setDay("MONDAY");
-        originalReservasi.setStartTime("09:00");
-        originalReservasi.setEndTime("10:00");
-        originalReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
-
-        // Membuat objek untuk reservasi setelah diedit
         ReservasiKonsultasi updatedReservasi = new ReservasiKonsultasi();
         updatedReservasi.setId("RSV001");
         updatedReservasi.setIdDokter("dok123");
-        updatedReservasi.setIdPasien("pac123");
+        updatedReservasi.setIdPacilian("pac123");
         updatedReservasi.setDay("TUESDAY");
-        updatedReservasi.setStartTime("10:00");
-        updatedReservasi.setEndTime("11:00");
+        updatedReservasi.setStartTime(LocalTime.of(10, 0));
+        updatedReservasi.setEndTime(LocalTime.of(11, 0));
         updatedReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+        updatedReservasi.setIdSchedule(schedule);
 
         when(reservasiService.editReservasi(
                 eq("RSV001"),
@@ -91,33 +105,25 @@ class ReservasiKonsultasiControllerTest {
         mockMvc.perform(post("/api/reservasi-konsultasi/{id}/edit", "RSV001")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                        {
-                            "day": "TUESDAY",
-                            "startTime": "10:00",
-                            "endTime": "11:00"
-                        }
-                    """))
+                    {
+                        "day": "TUESDAY",
+                        "startTime": "10:00",
+                        "endTime": "11:00"
+                    }
+                """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Jadwal berhasil diperbarui"))
+                .andExpect(jsonPath("$.message").value("Reservasi updated successfully"))
                 .andExpect(jsonPath("$.reservasi.day").value("TUESDAY"))
-                .andExpect(jsonPath("$.reservasi.startTime").value("10:00"))
-                .andExpect(jsonPath("$.reservasi.endTime").value("11:00"));
+                .andExpect(jsonPath("$.reservasi.startTime").value("10:00:00"))
+                .andExpect(jsonPath("$.reservasi.endTime").value("11:00:00"));
 
         verify(reservasiService).editReservasi("RSV001", "TUESDAY", "10:00", "11:00");
     }
 
     @Test
     void testEditReservasi_error_invalidStatus() throws Exception {
-        ReservasiKonsultasi dummy = new ReservasiKonsultasi();
-        dummy.setId("RSV001");
-        dummy.setIdDokter("dok123");
-        dummy.setIdPasien("pac123");
-        dummy.setDay("MONDAY");
-        dummy.setStartTime("09:00");
-        dummy.setEndTime("10:00");
-        dummy.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
-
-        when(reservasiService.editReservasi(any(), any(), any(), any())).thenThrow(new IllegalStateException("Hanya jadwal dengan status WAITING yang bisa diedit"));
+        when(reservasiService.editReservasi(any(), any(), any(), any()))
+                .thenThrow(new IllegalStateException("Only schedules with status WAITING can be edited"));
 
         mockMvc.perform(post("/api/reservasi-konsultasi/{id}/edit", "RSV001")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -129,36 +135,28 @@ class ReservasiKonsultasiControllerTest {
                             }
                         """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Hanya jadwal dengan status WAITING yang bisa diedit"));
+                .andExpect(jsonPath("$.error").value("Only schedules with status WAITING can be edited"));
     }
 
     @Test
     void testGetAllReservasiByIdPasien_success() throws Exception {
-        ReservasiKonsultasi reservasi1 = new ReservasiKonsultasi();
-        reservasi1.setId("RSV001");
-        reservasi1.setIdDokter("dokA");
-        reservasi1.setIdPasien("pac123");
-        reservasi1.setDay("MONDAY");
-        reservasi1.setStartTime("09:00");
-        reservasi1.setEndTime("10:00");
-        reservasi1.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
-
         ReservasiKonsultasi reservasi2 = new ReservasiKonsultasi();
         reservasi2.setId("RSV002");
         reservasi2.setIdDokter("dokB");
-        reservasi2.setIdPasien("pac123");
+        reservasi2.setIdPacilian("pac123");
         reservasi2.setDay("TUESDAY");
-        reservasi2.setStartTime("11:00");
-        reservasi2.setEndTime("12:00");
+        reservasi2.setStartTime(LocalTime.of(11, 0));
+        reservasi2.setEndTime(LocalTime.of(12, 0));
         reservasi2.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
+        reservasi2.setIdSchedule(schedule);
 
-        when(reservasiService.findAllByPasien("pac123")).thenReturn(List.of(reservasi1, reservasi2));
+        when(reservasiService.findAllByPasien("pac123")).thenReturn(List.of(waitingReservasi, reservasi2));
 
         mockMvc.perform(get("/api/reservasi-konsultasi/pac123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("RSV001"))
                 .andExpect(jsonPath("$[1].id").value("RSV002"))
-                .andExpect(jsonPath("$[0].idPasien").value("pac123"))
+                .andExpect(jsonPath("$[0].idPacilian").value("pac123"))
                 .andExpect(jsonPath("$.length()").value(2));
 
         verify(reservasiService).findAllByPasien("pac123");
@@ -169,11 +167,12 @@ class ReservasiKonsultasiControllerTest {
         ReservasiKonsultasi updated = new ReservasiKonsultasi();
         updated.setId("RSV001");
         updated.setIdDokter("dok123");
-        updated.setIdPasien("pac123");
+        updated.setIdPacilian("pac123");
         updated.setDay("THURSDAY");
-        updated.setStartTime("15:00");
-        updated.setEndTime("16:00");
+        updated.setStartTime(LocalTime.of(15, 0));
+        updated.setEndTime(LocalTime.of(16, 0));
         updated.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+        updated.setIdSchedule(schedule);
 
         when(reservasiService.acceptChangeReservasi("RSV001")).thenReturn(updated);
 
@@ -181,7 +180,7 @@ class ReservasiKonsultasiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Perubahan reservasi diterima"))
                 .andExpect(jsonPath("$.reservasi.day").value("THURSDAY"))
-                .andExpect(jsonPath("$.reservasi.startTime").value("15:00"));
+                .andExpect(jsonPath("$.reservasi.startTime").value("15:00:00"));
     }
 
     @Test
@@ -209,21 +208,19 @@ class ReservasiKonsultasiControllerTest {
 
     @Test
     void testRequestReservasi_invalidTime_shouldReturn400() throws Exception {
-        when(reservasiService.requestReservasi(any(), any(), any(), any(), any()))
-                .thenThrow(new IllegalArgumentException("Start time must be before end time"));
+        when(reservasiService.requestReservasi(any(UUID.class), anyString()))
+                .thenThrow(new IllegalArgumentException("Selected schedule is not available"));
 
         mockMvc.perform(post("/api/reservasi-konsultasi/request")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+                        .content(String.format("""
                         {
-                            "idDokter": "dok123",
-                            "idPasien": "pac123",
-                            "day": "MONDAY",
-                            "startTime": "10:00",
-                            "endTime": "09:00"
+                            "idSchedule": "%s",
+                            "idPacilian": "pac123"
                         }
-                    """))
-                .andExpect(status().isBadRequest());
+                    """, scheduleId)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Selected schedule is not available"));
     }
 
     @Test
