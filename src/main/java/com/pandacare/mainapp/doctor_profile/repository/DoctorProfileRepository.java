@@ -1,33 +1,31 @@
 package com.pandacare.mainapp.doctor_profile.repository;
 
-import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
+import com.pandacare.mainapp.authentication.model.Caregiver;
+import com.pandacare.mainapp.authentication.repository.CaregiverRepository;
 import org.springframework.stereotype.Repository;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 
 @Repository
-public interface DoctorProfileRepository extends JpaRepository<DoctorProfile, String> {
+public interface DoctorProfileRepository extends CaregiverRepository {
 
-    List<DoctorProfile> findByNameContainingIgnoreCase(String name);
-    List<DoctorProfile> findBySpecialityContainingIgnoreCase(String speciality);
+    List<Caregiver> findByNameContainingIgnoreCase(String name);
+    List<Caregiver> findBySpecialityContainingIgnoreCase(String speciality);
 
-    @Query("SELECT d FROM DoctorProfile d WHERE " +
-            "FUNCTION('JSON_EXTRACT', d.workSchedule, :day) IS NOT NULL AND " +
-            "( " +
-            "  (FUNCTION('PARSE_TIME', FUNCTION('JSON_EXTRACT', d.workSchedule, :day, 'start')) <= :searchStart AND " +
-            "  (FUNCTION('PARSE_TIME', FUNCTION('JSON_EXTRACT', d.workSchedule, :day, 'end')) >= :searchStart) AND " +
-            "  FUNCTION('TIMESTAMPDIFF', MINUTE, :searchStart, FUNCTION('PARSE_TIME', FUNCTION('JSON_EXTRACT', d.workSchedule, :day, 'end'))) >= 30 " +
-            ") OR ( " +
-            "  (FUNCTION('PARSE_TIME', FUNCTION('JSON_EXTRACT', d.workSchedule, :day, 'start')) <= :searchEnd AND " +
-            "  (FUNCTION('PARSE_TIME', FUNCTION('JSON_EXTRACT', d.workSchedule, :day, 'end')) >= :searchEnd) AND " +
-            "  FUNCTION('TIMESTAMPDIFF', MINUTE, FUNCTION('PARSE_TIME', FUNCTION('JSON_EXTRACT', d.workSchedule, :day, 'start')), :searchEnd) >= 30 " +
-            ")")
-    List<DoctorProfile> findByWorkScheduleAvailable(
-        @Param("day") String day,
-        @Param("searchStart") LocalTime searchStart,
-        @Param("searchEnd") LocalTime searchEnd);
+    @Query("SELECT DISTINCT c FROM Caregiver c " +
+            "JOIN c.workingSchedules s " +
+            "WHERE s.day = :day " +
+            "AND s.status = 'AVAILABLE' " +
+            "AND s.startTime <= :searchEnd " +
+            "AND s.endTime >= :searchStart " +
+            "AND FUNCTION('TIMESTAMPDIFF', MINUTE, :searchStart, s.endTime) >= 30 " +
+            "AND FUNCTION('TIMESTAMPDIFF', MINUTE, s.startTime, :searchEnd) >= 30")
+    List<Caregiver> findByWorkScheduleAvailable(
+            @Param("day") DayOfWeek day,
+            @Param("searchStart") LocalTime searchStart,
+            @Param("searchEnd") LocalTime searchEnd);
 }
