@@ -3,6 +3,7 @@ package com.pandacare.mainapp.reservasi.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
+import com.pandacare.mainapp.reservasi.model.statepacilian.ReservasiStatePacilian;
 import jakarta.persistence.*;
 import com.pandacare.mainapp.reservasi.model.state.*;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
@@ -57,13 +58,19 @@ public class ReservasiKonsultasi {
 
     @Column
     private String pacilianNote;
+
     @Transient
     @JsonIgnore
     private ReservasiState currentState;
+
     @Transient
     @JsonIgnore
     @Lazy
     private ScheduleService scheduleService;
+
+    @Transient
+    @JsonIgnore
+    private ReservasiStatePacilian statePacilian;
 
     public ReservasiKonsultasi() {
         this.id = UUID.randomUUID().toString();
@@ -139,5 +146,31 @@ public class ReservasiKonsultasi {
             default:
                 this.currentState = new RequestedState(scheduleService);
         }
+    }
+
+    // State methods for pacilian
+    public void setStatePacilian(ReservasiStatePacilian status) {
+        this.statePacilian = status;
+    }
+
+    public void editAsPacilian(String newDay, String newStartTime, String newEndTime) {
+        if (statePacilian == null) {
+            throw new IllegalStateException("State Pacilian belum diset.");
+        }
+        statePacilian.edit(this, newDay, newStartTime, newEndTime);
+    }
+
+    public void acceptChangeAsPacilian() {
+        if (statePacilian == null) {
+            throw new IllegalStateException("State Pacilian belum diset.");
+        }
+        statePacilian.acceptChange(this);
+    }
+
+    public void rejectChangeAsPacilian() {
+        if (statePacilian == null) {
+            throw new IllegalStateException("State Pacilian belum diset.");
+        }
+        statePacilian.rejectChange(this);
     }
 }
