@@ -1,12 +1,9 @@
 package com.pandacare.mainapp.doctor_profile.controller;
 
-import com.pandacare.mainapp.doctor_profile.dto.request.CreateDoctorRequest;
-import com.pandacare.mainapp.doctor_profile.dto.request.UpdateDoctorRequest;
-import com.pandacare.mainapp.doctor_profile.dto.response.DoctorListResponse;
-import com.pandacare.mainapp.doctor_profile.dto.response.DoctorResponse;
+import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileListResponse;
+import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileResponse;
 import com.pandacare.mainapp.doctor_profile.dto.response.ErrorResponse;
 import com.pandacare.mainapp.doctor_profile.facade.DoctorFacade;
-import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
 import com.pandacare.mainapp.doctor_profile.service.DoctorProfileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -18,10 +15,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,33 +36,44 @@ class DoctorProfileApiControllerTest {
     @InjectMocks
     private DoctorProfileApiController doctorProfileApiController;
 
-    private DoctorProfile doctor1;
-    private DoctorProfile doctor2;
-    private CreateDoctorRequest createRequest;
-    private UpdateDoctorRequest updateRequest;
+    private DoctorProfileResponse doctorProfile1;
+    private DoctorProfileResponse doctorProfile2;
+    private DoctorProfileListResponse doctorList;
 
     @BeforeEach
     void setUp() {
         doctorProfileApiController = new DoctorProfileApiController(doctorProfileService, doctorFacade);
 
-        doctor1 = createDoctorProfile("doc1", "Dr. Smith", "dr.smith@example.com", "Cardiology", 4.5);
-        doctor2 = createDoctorProfile("doc2", "Dr. Johnson", "dr.johnson@example.com", "Neurology", 4.8);
+        doctorProfile1 = createDoctorProfileResponse("doc1", "Dr. Smith", "Cardiology", 4.5, 10);
+        doctorProfile2 = createDoctorProfileResponse("doc2", "Dr. Johnson", "Neurology", 4.8, 15);
+        
+        List<DoctorProfileResponse> doctorProfiles = new ArrayList<>();
+        doctorProfiles.add(doctorProfile1);
+        doctorProfiles.add(doctorProfile2);
 
-        createRequest = createDoctorRequest("Dr. New", "dr.new@example.com", "Pediatrics");
-        updateRequest = updateDoctorRequest("doc1", "Dr. Smith Updated", "dr.smith.updated@example.com", "Cardiology Updated");
+        DoctorProfileListResponse.DoctorProfileSummary doctorProfileSummary1 = new DoctorProfileListResponse.DoctorProfileSummary("doc1", "Dr. Smith", "Cardiology", 4.8, 10);
+        DoctorProfileListResponse.DoctorProfileSummary doctorProfileSummary2 = new DoctorProfileListResponse.DoctorProfileSummary("doc2", "Dr. Johnson", "Neurology", 4.7, 15);
+
+        List<DoctorProfileListResponse.DoctorProfileSummary> doctorProfileSummaries = new ArrayList<>();
+        doctorProfileSummaries.add(doctorProfileSummary1);
+        doctorProfileSummaries.add(doctorProfileSummary2);
+
+        doctorList = new DoctorProfileListResponse();
+        doctorList.setDoctorProfiles(doctorProfileSummaries);
+        doctorList.setTotalItems(doctorProfileSummaries.size());
     }
 
     @Nested
     class GetDoctorWithActionsTests {
         @Test
-        void shouldReturnDoctorWithTriggeredActions() {
+        void shouldReturnDoctorWithActionsWhenDoctorExists() {
             // Arrange
             String doctorId = "doc1";
             String patientId = "patient123";
-            when(doctorFacade.getDoctorProfileWithActions(doctorId, patientId)).thenReturn(doctor1);
+            when(doctorFacade.getDoctorProfileWithActions(doctorId, patientId)).thenReturn(doctorProfile1);
 
             // Act
-            ResponseEntity<DoctorResponse> response = doctorProfileApiController.getDoctorWithActions(doctorId, patientId);
+            ResponseEntity<DoctorProfileResponse> response = doctorProfileApiController.getDoctorWithActions(doctorId, patientId);
 
             // Assert
             assertSuccessfulResponse(response, HttpStatus.OK);
@@ -79,10 +90,26 @@ class DoctorProfileApiControllerTest {
             when(doctorFacade.getDoctorProfileWithActions(doctorId, patientId)).thenReturn(null);
 
             // Act
-            ResponseEntity<DoctorResponse> response = doctorProfileApiController.getDoctorWithActions(doctorId, patientId);
+            ResponseEntity<DoctorProfileResponse> response = doctorProfileApiController.getDoctorWithActions(doctorId, patientId);
 
             // Assert
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+            verify(doctorFacade).getDoctorProfileWithActions(doctorId, patientId);
+        }
+        
+        @Test
+        void shouldReturnInternalServerErrorWhenExceptionThrown() {
+            // Arrange
+            String doctorId = "doc1";
+            String patientId = "patient123";
+            when(doctorFacade.getDoctorProfileWithActions(doctorId, patientId))
+                .thenThrow(new RuntimeException("Something went wrong"));
+
+            // Act
+            ResponseEntity<DoctorProfileResponse> response = doctorProfileApiController.getDoctorWithActions(doctorId, patientId);
+
+            // Assert
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
             verify(doctorFacade).getDoctorProfileWithActions(doctorId, patientId);
         }
     }
@@ -92,30 +119,45 @@ class DoctorProfileApiControllerTest {
         @Test
         void shouldReturnListOfDoctorsWhenDoctorsExist() {
             // Arrange
-            when(doctorProfileService.findAll()).thenReturn(List.of(doctor1, doctor2));
+            when(doctorProfileService.findAll()).thenReturn(doctorList);
 
             // Act
-            ResponseEntity<DoctorListResponse> response = doctorProfileApiController.getAllDoctors();
+            ResponseEntity<DoctorProfileListResponse> response = doctorProfileApiController.getAllDoctorProfiles();
 
             // Assert
             assertSuccessfulResponse(response, HttpStatus.OK);
             assertEquals(2, response.getBody().getTotalItems());
-            assertEquals(2, response.getBody().getDoctors().size());
+            assertEquals(2, response.getBody().getDoctorProfiles().size());
             verify(doctorProfileService).findAll();
         }
 
         @Test
-        void shouldReturnEmptyListWhenNoDoctorsExist() {
+        void shouldReturnNotFoundWhenNoDoctorsExist() {
             // Arrange
-            when(doctorProfileService.findAll()).thenReturn(List.of());
+            DoctorProfileListResponse emptyList = new DoctorProfileListResponse();
+            emptyList.setDoctorProfiles(Collections.emptyList());
+            emptyList.setTotalItems(0);
+            
+            when(doctorProfileService.findAll()).thenReturn(null);
 
             // Act
-            ResponseEntity<DoctorListResponse> response = doctorProfileApiController.getAllDoctors();
+            ResponseEntity<DoctorProfileListResponse> response = doctorProfileApiController.getAllDoctorProfiles();
 
             // Assert
-            assertSuccessfulResponse(response, HttpStatus.OK);
-            assertEquals(0, response.getBody().getTotalItems());
-            assertTrue(response.getBody().getDoctors().isEmpty());
+            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+            verify(doctorProfileService).findAll();
+        }
+        
+        @Test
+        void shouldReturnInternalServerErrorWhenExceptionThrown() {
+            // Arrange
+            when(doctorProfileService.findAll()).thenThrow(new RuntimeException("Database error"));
+
+            // Act
+            ResponseEntity<DoctorProfileListResponse> response = doctorProfileApiController.getAllDoctorProfiles();
+
+            // Assert
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
             verify(doctorProfileService).findAll();
         }
     }
@@ -125,10 +167,10 @@ class DoctorProfileApiControllerTest {
         @Test
         void shouldReturnDoctorWhenIdExists() {
             // Arrange
-            when(doctorProfileService.findById("doc1")).thenReturn(doctor1);
+            when(doctorProfileService.findById("doc1")).thenReturn(doctorProfile1);
 
             // Act
-            ResponseEntity<DoctorResponse> response = doctorProfileApiController.getDoctorById("doc1");
+            ResponseEntity<DoctorProfileResponse> response = doctorProfileApiController.getDoctorProfile("doc1");
 
             // Assert
             assertSuccessfulResponse(response, HttpStatus.OK);
@@ -143,191 +185,187 @@ class DoctorProfileApiControllerTest {
             when(doctorProfileService.findById("nonexistent")).thenReturn(null);
 
             // Act
-            ResponseEntity<DoctorResponse> response = doctorProfileApiController.getDoctorById("nonexistent");
+            ResponseEntity<DoctorProfileResponse> response = doctorProfileApiController.getDoctorProfile("nonexistent");
 
             // Assert
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-            assertNull(response.getBody());
             verify(doctorProfileService).findById("nonexistent");
         }
-    }
-
-    @Nested
-    class CreateDoctorTests {
+        
         @Test
-        void shouldCreateDoctorWhenRequestIsValid() {
+        void shouldReturnInternalServerErrorWhenExceptionThrown() {
             // Arrange
-            DoctorProfile newDoctor = createDoctorProfile("new-doc", createRequest.getName(),
-                    createRequest.getEmail(), createRequest.getSpeciality(), 0.0); // Default rating
-
-            when(doctorProfileService.createProfile(any(DoctorProfile.class))).thenReturn(newDoctor);
+            when(doctorProfileService.findById(anyString())).thenThrow(new RuntimeException("Database error"));
 
             // Act
-            ResponseEntity<?> response = doctorProfileApiController.createDoctor(createRequest);
+            ResponseEntity<DoctorProfileResponse> response = doctorProfileApiController.getDoctorProfile("doc1");
 
             // Assert
-            assertSuccessfulResponse(response, HttpStatus.CREATED);
-            assertDoctorResponseEqualsRequest((DoctorResponse) response.getBody(), createRequest);
-            verify(doctorProfileService).createProfile(any(DoctorProfile.class));
-        }
-
-        @Test
-        void shouldReturnBadRequestWhenServiceThrowsException() {
-            // Arrange
-            when(doctorProfileService.createProfile(any(DoctorProfile.class)))
-                    .thenThrow(new IllegalArgumentException("Invalid data"));
-
-            // Act
-            ResponseEntity<?> response = doctorProfileApiController.createDoctor(createRequest);
-
-            // Assert
-            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-            assertTrue(response.getBody() instanceof ErrorResponse);
-            verify(doctorProfileService).createProfile(any(DoctorProfile.class));
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+            verify(doctorProfileService).findById("doc1");
         }
     }
 
     @Nested
-    class UpdateDoctorTests {
+    class SearchDoctorsByNameTests {
         @Test
-        void shouldUpdateDoctorWhenIdMatchesAndDataIsValid() {
+        void shouldReturnMatchingDoctors() {
             // Arrange
-            DoctorProfile updatedDoctor = createDoctorProfile(
-                    updateRequest.getId(),
-                    updateRequest.getName(),
-                    updateRequest.getEmail(),
-                    updateRequest.getSpeciality(),
-                    4.5
-            );
-
-            when(doctorProfileService.updateProfile(any(DoctorProfile.class))).thenReturn(updatedDoctor);
+            when(doctorProfileService.findByName("Smith")).thenReturn(doctorList);
 
             // Act
-            ResponseEntity<?> response = doctorProfileApiController.updateDoctor("doc1", updateRequest);
+            ResponseEntity<DoctorProfileListResponse> response = doctorProfileApiController.searchDoctorsByName("Smith");
 
             // Assert
             assertSuccessfulResponse(response, HttpStatus.OK);
-            assertDoctorResponseEqualsRequest((DoctorResponse) response.getBody(), updateRequest);
-            verify(doctorProfileService).updateProfile(any(DoctorProfile.class));
+            assertEquals(2, response.getBody().getTotalItems());
+            verify(doctorProfileService).findByName("Smith");
         }
-
+        
         @Test
-        void shouldReturnBadRequestWhenIdsDoNotMatch() {
+        void shouldReturnNotFoundWhenNoMatchingDoctors() {
             // Arrange
-            UpdateDoctorRequest mismatchedRequest = updateDoctorRequest(
-                    "doc2",
-                    "Dr. Mismatch",
-                    "mismatch@example.com",
-                    "Mismatch"
-            );
+            when(doctorProfileService.findByName(anyString())).thenReturn(null);
 
             // Act
-            ResponseEntity<?> response = doctorProfileApiController.updateDoctor("doc1", mismatchedRequest);
-
-            // Assert
-            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-            verify(doctorProfileService, never()).updateProfile(any());
-        }
-
-        @Test
-        void shouldReturnNotFoundWhenDoctorDoesNotExist() {
-            // Arrange
-            when(doctorProfileService.updateProfile(any(DoctorProfile.class))).thenReturn(null);
-
-            // Act
-            ResponseEntity<?> response = doctorProfileApiController.updateDoctor("doc1", updateRequest);
+            ResponseEntity<DoctorProfileListResponse> response = doctorProfileApiController.searchDoctorsByName("NonExistent");
 
             // Assert
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-            verify(doctorProfileService).updateProfile(any(DoctorProfile.class));
+            verify(doctorProfileService).findByName("NonExistent");
         }
-
+        
         @Test
-        void shouldReturnErrorResponseWhenUpdateFails() {
+        void shouldReturnInternalServerErrorWhenExceptionThrown() {
             // Arrange
-            when(doctorProfileService.updateProfile(any(DoctorProfile.class)))
-                    .thenThrow(new RuntimeException("Update failed"));
+            when(doctorProfileService.findByName(anyString())).thenThrow(new RuntimeException("Search error"));
 
             // Act
-            ResponseEntity<?> response = doctorProfileApiController.updateDoctor("doc1", updateRequest);
+            ResponseEntity<DoctorProfileListResponse> response = doctorProfileApiController.searchDoctorsByName("Smith");
 
             // Assert
-            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-            assertTrue(response.getBody() instanceof ErrorResponse);
-            verify(doctorProfileService).updateProfile(any(DoctorProfile.class));
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+            verify(doctorProfileService).findByName("Smith");
         }
     }
 
     @Nested
-    class DeleteDoctorTests {
+    class SearchDoctorsBySpecialityTests {
         @Test
-        void shouldDeleteDoctorWhenIdExists() {
-            when(doctorProfileService.deleteProfile("doc1")).thenReturn(true);
+        void shouldReturnMatchingDoctors() {
+            // Arrange
+            when(doctorProfileService.findBySpeciality("Cardiology")).thenReturn(doctorList);
 
-            ResponseEntity<Void> response = doctorProfileApiController.deleteDoctor("doc1");
+            // Act
+            ResponseEntity<DoctorProfileListResponse> response = doctorProfileApiController.searchDoctorsBySpeciality("Cardiology");
 
-            assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-            verify(doctorProfileService).deleteProfile("doc1");
+            // Assert
+            assertSuccessfulResponse(response, HttpStatus.OK);
+            assertEquals(2, response.getBody().getTotalItems());
+            verify(doctorProfileService).findBySpeciality("Cardiology");
         }
-
+        
         @Test
-        void shouldReturnNotFoundWhenIdDoesNotExist() {
-            when(doctorProfileService.deleteProfile("nonexistent")).thenReturn(false);
+        void shouldReturnNotFoundWhenNoMatchingDoctors() {
+            // Arrange
+            when(doctorProfileService.findBySpeciality(anyString())).thenReturn(null);
 
-            ResponseEntity<Void> response = doctorProfileApiController.deleteDoctor("nonexistent");
+            // Act
+            ResponseEntity<DoctorProfileListResponse> response = doctorProfileApiController.searchDoctorsBySpeciality("NonExistent");
 
+            // Assert
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-            verify(doctorProfileService).deleteProfile("nonexistent");
+            verify(doctorProfileService).findBySpeciality("NonExistent");
+        }
+        
+        @Test
+        void shouldReturnInternalServerErrorWhenExceptionThrown() {
+            // Arrange
+            when(doctorProfileService.findBySpeciality(anyString())).thenThrow(new RuntimeException("Search error"));
+
+            // Act
+            ResponseEntity<DoctorProfileListResponse> response = doctorProfileApiController.searchDoctorsBySpeciality("Cardiology");
+
+            // Assert
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+            verify(doctorProfileService).findBySpeciality("Cardiology");
+        }
+    }
+
+    @Nested
+    class SearchDoctorsByScheduleTests {
+        @Test
+        void shouldReturnMatchingDoctors() {
+            // Arrange
+            when(doctorProfileService.findByWorkSchedule("Monday 09:00-12:00")).thenReturn(doctorList);
+
+            // Act
+            ResponseEntity<?> response = doctorProfileApiController.searchDoctorsBySchedule("Monday", "09:00", "12:00");
+
+            // Assert
+            assertSuccessfulResponse(response, HttpStatus.OK);
+            assertEquals(2, ((DoctorProfileListResponse)response.getBody()).getTotalItems());
+            verify(doctorProfileService).findByWorkSchedule("Monday 09:00-12:00");
+        }
+        
+        @Test
+        void shouldReturnNotFoundWhenNoMatchingDoctors() {
+            // Arrange
+            when(doctorProfileService.findByWorkSchedule(anyString())).thenReturn(null);
+
+            // Act
+            ResponseEntity<?> response = doctorProfileApiController.searchDoctorsBySchedule("Tuesday", "14:00", "16:00");
+
+            // Assert
+            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+            verify(doctorProfileService).findByWorkSchedule("Tuesday 14:00-16:00");
+        }
+        
+        @Test
+        void shouldReturnBadRequestWhenInvalidScheduleFormat() {
+            // Arrange
+            when(doctorProfileService.findByWorkSchedule(anyString())).thenThrow(
+                new IllegalArgumentException("Invalid time format"));
+
+            // Act
+            ResponseEntity<?> response = doctorProfileApiController.searchDoctorsBySchedule("Monday", "9:00", "12:00");
+
+            // Assert
+            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+            assertTrue(response.getBody() instanceof ErrorResponse);
+            ErrorResponse errorResponse = (ErrorResponse) response.getBody();
+            assertTrue(errorResponse.message().contains("Invalid schedule format"));
+            verify(doctorProfileService).findByWorkSchedule("Monday 9:00-12:00");
+        }
+        
+        @Test
+        void shouldReturnInternalServerErrorWhenUnexpectedExceptionThrown() {
+            // Arrange
+            when(doctorProfileService.findByWorkSchedule(anyString())).thenThrow(new RuntimeException("Database error"));
+
+            // Act
+            ResponseEntity<?> response = doctorProfileApiController.searchDoctorsBySchedule("Monday", "09:00", "12:00");
+
+            // Assert
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+            verify(doctorProfileService).findByWorkSchedule("Monday 09:00-12:00");
         }
     }
 
     // Helper methods
-    private DoctorProfile createDoctorProfile(String id, String name, String email, String speciality, Double rating) {
-        DoctorProfile doctor = new DoctorProfile();
-        doctor.setId(id);
-        doctor.setName(name);
-        doctor.setEmail(email);
-        doctor.setSpeciality(speciality);
-        if (rating != null) {
-            doctor.setRating(rating);
-        } else {
-            doctor.setRating(0.0); // Default rating if null is passed
-        }
-        return doctor;
-    }
-
-    private CreateDoctorRequest createDoctorRequest(String name, String email, String speciality) {
-        CreateDoctorRequest request = new CreateDoctorRequest();
-        request.setName(name);
-        request.setEmail(email);
-        request.setSpeciality(speciality);
-        return request;
-    }
-
-    private UpdateDoctorRequest updateDoctorRequest(String id, String name, String email, String speciality) {
-        UpdateDoctorRequest request = new UpdateDoctorRequest();
-        request.setId(id);
-        request.setName(name);
-        request.setEmail(email);
-        request.setSpeciality(speciality);
-        return request;
+    private DoctorProfileResponse createDoctorProfileResponse(String id, String name, String speciality, 
+                                                     double averageRating, int totalRatings) {
+        DoctorProfileResponse response = new DoctorProfileResponse();
+        response.setId(id);
+        response.setName(name);
+        response.setSpeciality(speciality);
+        response.setAverageRating(averageRating);
+        response.setTotalRatings(totalRatings);
+        return response;
     }
 
     private <T> void assertSuccessfulResponse(ResponseEntity<T> response, HttpStatus expectedStatus) {
         assertEquals(expectedStatus, response.getStatusCode());
         assertNotNull(response.getBody());
-    }
-
-    private void assertDoctorResponseEqualsRequest(DoctorResponse response, CreateDoctorRequest request) {
-        assertEquals(request.getName(), response.getName());
-        assertEquals(request.getEmail(), response.getEmail());
-        assertEquals(request.getSpeciality(), response.getSpeciality());
-    }
-
-    private void assertDoctorResponseEqualsRequest(DoctorResponse response, UpdateDoctorRequest request) {
-        assertEquals(request.getId(), response.getId());
-        assertEquals(request.getName(), response.getName());
-        assertEquals(request.getEmail(), response.getEmail());
-        assertEquals(request.getSpeciality(), response.getSpeciality());
     }
 }
