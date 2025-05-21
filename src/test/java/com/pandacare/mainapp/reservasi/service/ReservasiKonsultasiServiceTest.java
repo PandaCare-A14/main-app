@@ -43,7 +43,6 @@ public class ReservasiKonsultasiServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Create a caregiver schedule
         scheduleId = UUID.randomUUID();
         schedule = new CaregiverSchedule();
         schedule.setId(scheduleId);
@@ -52,7 +51,6 @@ public class ReservasiKonsultasiServiceTest {
         schedule.setEndTime(LocalTime.of(10, 0));
         schedule.setStatus(ScheduleStatus.AVAILABLE);
 
-        // Set up test data
         reservationId = "jadwal123";
 
         waitingReservasi = new ReservasiKonsultasi();
@@ -73,9 +71,22 @@ public class ReservasiKonsultasiServiceTest {
 
     @Test
     void requestReservasi_shouldReturnWaitingStatus() {
+        UUID scheduleId = UUID.randomUUID();
+        UUID caregiverId = UUID.randomUUID();
+
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId(scheduleId);
+        schedule.setIdCaregiver(caregiverId);
+        schedule.setDay(DayOfWeek.MONDAY);
+        schedule.setStartTime(LocalTime.of(10, 0));
+        schedule.setEndTime(LocalTime.of(11, 0));
+
+        when(scheduleService.getById(scheduleId)).thenReturn(schedule);
+        when(scheduleService.isScheduleAvailable(scheduleId)).thenReturn(true);
+
         when(repository.save(any(ReservasiKonsultasi.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(scheduleService.getById(any(UUID.class))).thenReturn(schedule);
-        when(scheduleService.isScheduleAvailable(any(UUID.class))).thenReturn(true); // Add this line
+        when(scheduleService.isScheduleAvailable(any(UUID.class))).thenReturn(true);
 
         ReservasiKonsultasi result = service.requestReservasi(scheduleId, "pac123");
 
@@ -109,7 +120,7 @@ public class ReservasiKonsultasiServiceTest {
                 service.editReservasi("jadwal124", "MONDAY", "09:00", "10:00")
         );
 
-        assertEquals("Only schedules with status WAITING can be edited", ex.getMessage());
+        assertEquals("Tidak bisa mengedit reservasi yang sudah disetujui.", ex.getMessage());
     }
 
     @Test
@@ -155,17 +166,25 @@ public class ReservasiKonsultasiServiceTest {
         reservasi.setIdPacilian("pac123");
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.ON_RESCHEDULE);
         reservasi.setChangeReservasi(true);
-        reservasi.setIdSchedule(schedule); // Set the schedule object to prevent NPE
+        reservasi.setIdSchedule(schedule);
+
+        String newDay = "MONDAY";
+        LocalTime newStartTime = LocalTime.of(10, 0);
+        LocalTime newEndTime = LocalTime.of(11, 0);
+        reservasi.setNewDay(newDay);
+        reservasi.setNewStartTime(newStartTime);
+        reservasi.setNewEndTime(newEndTime);
 
         when(repository.findById(reservationId)).thenReturn(Optional.of(reservasi));
-        // For void methods, use doNothing() instead of when/thenReturn
-        doNothing().when(scheduleService).updateScheduleStatus(any(UUID.class), any());
+        when(repository.save(any(ReservasiKonsultasi.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ReservasiKonsultasi result = service.acceptChangeReservasi(reservationId);
 
+        assertEquals(StatusReservasiKonsultasi.APPROVED, result.getStatusReservasi());
         verify(repository).findById(reservationId);
-        verify(repository).deleteById(reservationId);
-        verify(scheduleService).updateScheduleStatus(schedule.getId(), ScheduleStatus.UNAVAILABLE);
+        verify(repository).save(any(ReservasiKonsultasi.class));
+
+        verify(repository, never()).deleteById(anyString());
     }
 
     @Test
