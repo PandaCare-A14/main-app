@@ -1,16 +1,12 @@
 package com.pandacare.mainapp.doctor_profile.service;
 
-import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
-
-import java.util.List;
+import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileListResponse;
+import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileResponse;
 
 public interface DoctorProfileService {
-    public DoctorProfile createProfile(DoctorProfile profile);
-    public DoctorProfile updateProfile(DoctorProfile profile);
-    public boolean deleteProfile(String id);
-    public List<DoctorProfile> findAll();
-    public DoctorProfile findById(String id);
-    public List<DoctorProfile> findByName(String name);
-    public List<DoctorProfile> findBySpeciality(String speciality);
-    public List<DoctorProfile> findByWorkSchedule(String workSchedule);
+    DoctorProfileListResponse findAll();
+    DoctorProfileResponse findById(String id);
+    DoctorProfileListResponse findByName(String name);
+    DoctorProfileListResponse findBySpeciality(String speciality);
+    DoctorProfileListResponse findByWorkSchedule(String workSchedule);
 }
