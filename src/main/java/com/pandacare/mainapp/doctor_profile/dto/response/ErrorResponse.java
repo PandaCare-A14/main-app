@@ -1,21 +1,16 @@
 package com.pandacare.mainapp.doctor_profile.dto.response;
 
-import lombok.Data;
-import java.time.LocalDateTime;
+import lombok.Getter;
+import java.util.Objects;
 
-@Data
-public class ErrorResponse {
-    private LocalDateTime timestamp;
-    private int status;
-    private String error;
-    private String message;
-    private String path;
+public record ErrorResponse(String message) {
 
-    public ErrorResponse(LocalDateTime now, int value, String badRequest, String message, String path) {
-        this.timestamp = now;
-        this.status = value;
-        this.error = badRequest;
-        this.message = message;
-        this.path = path;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ErrorResponse that = (ErrorResponse) o;
+        return Objects.equals(message, that.message);
     }
+
 }
