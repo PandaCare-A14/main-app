@@ -11,7 +11,7 @@ public class ErrorResponseTest {
         String message = "Invalid input data";
         ErrorResponse response = new ErrorResponse(message);
 
-        assertEquals(message, response.getMessage());
+        assertEquals(message, response.message());
     }
 
     @Test
