@@ -1,16 +1,17 @@
 package com.pandacare.mainapp.doctor_profile.repository;
 
-import com.pandacare.mainapp.doctor_profile.model.DoctorProfile;
+import com.pandacare.mainapp.authentication.model.Caregiver;
+import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,137 +24,182 @@ class DoctorProfileRepositoryTest {
     @Autowired
     private DoctorProfileRepository doctorProfileRepository;
 
-    private DoctorProfile doctorProfile1;
-    private DoctorProfile doctorProfile2;
+    private Caregiver caregiver1;
+    private Caregiver caregiver2;
 
     @BeforeEach
     void setUp() {
-        Map<String, String> workSchedule1 = new HashMap<>();
-        workSchedule1.put("Senin", "09:00-12:00");
-        workSchedule1.put("Rabu", "10:00-13:00");
+        // Create caregivers
+        caregiver1 = new Caregiver("Dr. Hafiz", "3704892357482376", "08123456789", "RS Pandacare", "Cardiologist");
+        caregiver1.setId(UUID.fromString("eb558e9f-1c39-460e-8860-71af6af63bd6"));
 
-        doctorProfile1 = new DoctorProfile("Dr. Hafiz", "hafiz@pandacare.com", "08123456789", "RS Pandacare",
-                workSchedule1, "Cardiologist", 4.9);
-        doctorProfile1.setId("eb558e9f-1c39-460e-8860-71af6af63bd6");
+        caregiver2 = new Caregiver("Dr. Jonah", "3704892357482377", "08192836789", "RS Pondok Indah", "Orthopedic");
+        caregiver2.setId(UUID.fromString("eb558e9f-1c39-460e-8860-71af6af63ds2"));
 
-        Map<String, String> workSchedule2 = new HashMap<>();
-        workSchedule2.put("Selasa", "14:00-18:00");
-        workSchedule2.put("Kamis", "09:00-12:00");
+        // Add working schedules
+        CaregiverSchedule schedule1 = new CaregiverSchedule();
+        schedule1.setDay(DayOfWeek.MONDAY);
+        schedule1.setStartTime(LocalTime.of(9, 0));
+        schedule1.setEndTime(LocalTime.of(12, 0));
+        schedule1.setStatus(ScheduleStatus.AVAILABLE);
+        caregiver1.addWorkingSchedule(schedule1);
 
-        doctorProfile2 = new DoctorProfile("Dr. Jonah", "jonah@pandacare.com", "08192836789", "RS Pondok Indah",
-                workSchedule2, "Orthopedic", 4.8);
-        doctorProfile2.setId("eb558e9f-1c39-460e-8860-71af6af63ds2");
+        CaregiverSchedule schedule2 = new CaregiverSchedule();
+        schedule2.setDay(DayOfWeek.WEDNESDAY);
+        schedule2.setStartTime(LocalTime.of(10, 0));
+        schedule2.setEndTime(LocalTime.of(13, 0));
+        schedule2.setStatus(ScheduleStatus.AVAILABLE);
+        caregiver1.addWorkingSchedule(schedule2);
+
+        CaregiverSchedule schedule3 = new CaregiverSchedule();
+        schedule3.setDay(DayOfWeek.MONDAY);
+        schedule3.setStartTime(LocalTime.of(14, 0));
+        schedule3.setEndTime(LocalTime.of(17, 0));
+        schedule3.setStatus(ScheduleStatus.AVAILABLE);
+        caregiver2.addWorkingSchedule(schedule3);
     }
 
     // Utility method
-    private void assertDoctorProfilesEqual(DoctorProfile expected, DoctorProfile actual) {
+    private void assertCaregiversEqual(Caregiver expected, Caregiver actual) {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getName(), actual.getName());
-        assertEquals(expected.getEmail(), actual.getEmail());
+        assertEquals(expected.getNik(), actual.getNik());
         assertEquals(expected.getPhoneNumber(), actual.getPhoneNumber());
         assertEquals(expected.getWorkAddress(), actual.getWorkAddress());
-        assertEquals(expected.getWorkSchedule(), actual.getWorkSchedule());
         assertEquals(expected.getSpeciality(), actual.getSpeciality());
-        assertEquals(expected.getRating(), actual.getRating());
     }
 
     @Test
-    void testSaveDoctorProfile() {
-        DoctorProfile saved = doctorProfileRepository.save(doctorProfile1);
-        DoctorProfile found = entityManager.find(DoctorProfile.class, doctorProfile1.getId());
+    void testSaveCaregiver() {
+        Caregiver saved = doctorProfileRepository.save(caregiver1);
+        Caregiver found = entityManager.find(Caregiver.class, caregiver1.getId());
 
         assertNotNull(saved);
-        assertDoctorProfilesEqual(doctorProfile1, found);
+        assertCaregiversEqual(caregiver1, found);
     }
 
     @Test
-    void testSaveUpdateDoctorProfile() {
+    void testSaveUpdateCaregiver() {
         // First save
-        doctorProfileRepository.save(doctorProfile1);
+        doctorProfileRepository.save(caregiver1);
 
         // Update
-        Map<String, String> workSchedule = new HashMap<>();
-        workSchedule.put("Selasa", "15:00-18:00");
-        workSchedule.put("Jumat", "19:00-21:00");
+        Caregiver updatedCaregiver = new Caregiver(caregiver1.getName(), "3704892357482399",
+                "082723726789", "RS Premiere Bintaro", "Cardiologist");
+        updatedCaregiver.setId(caregiver1.getId());
 
-        DoctorProfile updatedProfile = new DoctorProfile(doctorProfile1.getName(), "hafiz@premierebintaro.com",
-                "082723726789", "RS Premiere Bintaro", workSchedule, doctorProfile1.getSpeciality(), 4.95);
-        updatedProfile.setId(doctorProfile1.getId());
-
-        DoctorProfile result = doctorProfileRepository.save(updatedProfile);
-        DoctorProfile findResult = doctorProfileRepository.findById(doctorProfile1.getId()).orElse(null);
+        Caregiver result = doctorProfileRepository.save(updatedCaregiver);
+        Caregiver findResult = doctorProfileRepository.findById(caregiver1.getId()).orElse(null);
 
         assertNotNull(findResult);
-        assertEquals(doctorProfile1.getId(), result.getId());
-        assertDoctorProfilesEqual(updatedProfile, findResult);
+        assertEquals(caregiver1.getId(), result.getId());
+        assertCaregiversEqual(updatedCaregiver, findResult);
     }
 
     @Test
-    void testDeleteDoctorProfileIfExists() {
-        entityManager.persist(doctorProfile1);
+    void testDeleteCaregiverIfExists() {
+        entityManager.persist(caregiver1);
 
-        doctorProfileRepository.deleteById(doctorProfile1.getId());
+        doctorProfileRepository.deleteById(caregiver1.getId());
 
-        DoctorProfile deleted = entityManager.find(DoctorProfile.class, doctorProfile1.getId());
+        Caregiver deleted = entityManager.find(Caregiver.class, caregiver1.getId());
         assertNull(deleted);
     }
 
     @Test
-    void testFindAllDoctorProfile() {
-        entityManager.persist(doctorProfile1);
-        entityManager.persist(doctorProfile2);
+    void testFindAllCaregivers() {
+        entityManager.persist(caregiver1);
+        entityManager.persist(caregiver2);
 
-        List<DoctorProfile> result = doctorProfileRepository.findAll();
+        List<Caregiver> result = doctorProfileRepository.findAll();
         assertEquals(2, result.size());
     }
 
     @Test
-    void testFindDoctorProfileByIdIfIdExists() {
-        entityManager.persist(doctorProfile1);
+    void testFindCaregiverByIdIfIdExists() {
+        entityManager.persist(caregiver1);
 
-        Optional<DoctorProfile> result = doctorProfileRepository.findById(doctorProfile1.getId());
+        Optional<Caregiver> result = doctorProfileRepository.findById(caregiver1.getId());
         assertTrue(result.isPresent());
-        assertDoctorProfilesEqual(doctorProfile1, result.get());
+        assertCaregiversEqual(caregiver1, result.get());
     }
 
     @Test
-    void testFindDoctorProfileByIdIfIdNotExist() {
-        Optional<DoctorProfile> result = doctorProfileRepository.findById("NonExistentId");
+    void testFindCaregiverByIdIfIdNotExist() {
+        Optional<Caregiver> result = doctorProfileRepository.findById(UUID.randomUUID());
         assertFalse(result.isPresent());
     }
 
     @Test
-    void testFindDoctorProfileByNameIfFound() {
-        entityManager.persist(doctorProfile1);
-        entityManager.persist(doctorProfile2);
+    void testFindCaregiverByNameIfFound() {
+        entityManager.persist(caregiver1);
+        entityManager.persist(caregiver2);
 
-        List<DoctorProfile> result = doctorProfileRepository.findByNameContainingIgnoreCase("Hafiz");
+        List<Caregiver> result = doctorProfileRepository.findByNameContainingIgnoreCase("Hafiz");
         assertEquals(1, result.size());
-        assertDoctorProfilesEqual(doctorProfile1, result.get(0));
+        assertCaregiversEqual(caregiver1, result.get(0));
     }
 
     @Test
-    void testFindDoctorProfileByNameIfNotFound() {
-        List<DoctorProfile> result = doctorProfileRepository.findByNameContainingIgnoreCase("Nonexistent");
+    void testFindCaregiverByNameIfNotFound() {
+        List<Caregiver> result = doctorProfileRepository.findByNameContainingIgnoreCase("Nonexistent");
         assertTrue(result.isEmpty());
     }
 
     @Test
-    void testFindDoctorProfileBySpecialityIfFound() {
-        entityManager.persist(doctorProfile1);
-        entityManager.persist(doctorProfile2);
+    void testFindCaregiverBySpecialityIfFound() {
+        entityManager.persist(caregiver1);
+        entityManager.persist(caregiver2);
 
-        List<DoctorProfile> result = doctorProfileRepository.findBySpecialityContainingIgnoreCase("Cardio");
+        List<Caregiver> result = doctorProfileRepository.findBySpecialityContainingIgnoreCase("Cardio");
         assertEquals(1, result.size());
-        assertDoctorProfilesEqual(doctorProfile1, result.get(0));
+        assertCaregiversEqual(caregiver1, result.get(0));
     }
 
     @Test
-    void testFindDoctorProfileBySpecialityIfNotFound() {
-        List<DoctorProfile> result = doctorProfileRepository.findBySpecialityContainingIgnoreCase("Nonexistent");
+    void testFindCaregiverBySpecialityIfNotFound() {
+        List<Caregiver> result = doctorProfileRepository.findBySpecialityContainingIgnoreCase("Nonexistent");
         assertTrue(result.isEmpty());
     }
 
-    // Note: The work schedule tests would need to be adjusted to use the new findByWorkScheduleAvailable method
-    // which takes separate day, start time, and end time parameters rather than a combined string
+    @Test
+    void testFindByWorkScheduleAvailable() {
+        entityManager.persist(caregiver1);
+        entityManager.persist(caregiver2);
+
+        // Search for Monday 10:00-11:00 (should match caregiver1's 9:00-12:00 schedule)
+        List<Caregiver> result = doctorProfileRepository.findByWorkScheduleAvailable(
+                DayOfWeek.MONDAY,
+                LocalTime.of(10, 0),
+                LocalTime.of(11, 0));
+
+        assertEquals(1, result.size());
+        assertEquals(caregiver1.getId(), result.get(0).getId());
+
+        // Search for Monday 16:00-17:00 (should match caregiver2's 14:00-17:00 schedule)
+        result = doctorProfileRepository.findByWorkScheduleAvailable(
+                DayOfWeek.MONDAY,
+                LocalTime.of(16, 0),
+                LocalTime.of(17, 0));
+
+        assertEquals(1, result.size());
+        assertEquals(caregiver2.getId(), result.get(0).getId());
+
+        // Search for Wednesday 11:00-12:00 (should match caregiver1's 10:00-13:00 schedule)
+        result = doctorProfileRepository.findByWorkScheduleAvailable(
+                DayOfWeek.WEDNESDAY,
+                LocalTime.of(11, 0),
+                LocalTime.of(12, 0));
+
+        assertEquals(1, result.size());
+        assertEquals(caregiver1.getId(), result.get(0).getId());
+
+        // Search for time with no available caregivers
+        result = doctorProfileRepository.findByWorkScheduleAvailable(
+                DayOfWeek.FRIDAY,
+                LocalTime.of(9, 0),
+                LocalTime.of(10, 0));
+
+        assertTrue(result.isEmpty());
+    }
 }
