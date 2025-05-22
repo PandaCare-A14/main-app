@@ -100,16 +100,53 @@ public class ReservasiKonsultasiServiceTest {
 
     @Test
     void editReservasi_shouldUpdateReservasi_whenStatusIsWaiting() {
+        UUID newScheduleId = UUID.randomUUID();
+        CaregiverSchedule newSchedule = new CaregiverSchedule();
+        newSchedule.setId(newScheduleId);
+        newSchedule.setDay(DayOfWeek.TUESDAY);
+        newSchedule.setStartTime(LocalTime.of(10, 0));
+        newSchedule.setEndTime(LocalTime.of(11, 0));
+        newSchedule.setStatus(ScheduleStatus.AVAILABLE);
+
         when(repository.findById(reservationId)).thenReturn(Optional.of(waitingReservasi));
+        when(scheduleService.getById(newScheduleId)).thenReturn(newSchedule);
+        when(scheduleService.isScheduleAvailable(newScheduleId)).thenReturn(true);
 
-        String newDay = "TUESDAY";
-        String newStartTime = "10:00";
-        String newEndTime = "11:00";
-
-        ReservasiKonsultasi updated = service.editReservasi(reservationId, newDay, newStartTime, newEndTime);
+        ReservasiKonsultasi updated = service.editReservasi(reservationId, newScheduleId);
 
         assertEquals(StatusReservasiKonsultasi.WAITING, updated.getStatusReservasi());
+        assertEquals("TUESDAY", updated.getDay());
+        assertEquals(LocalTime.of(10, 0), updated.getStartTime());
+        assertEquals(LocalTime.of(11, 0), updated.getEndTime());
+        assertEquals(newSchedule, updated.getIdSchedule());
+
         verify(repository).save(any(ReservasiKonsultasi.class));
+    }
+
+    @Test
+    void editReservasi_shouldThrowException_whenScheduleNotAvailable() {
+        UUID newScheduleId = UUID.randomUUID();
+        when(repository.findById(reservationId)).thenReturn(Optional.of(waitingReservasi));
+        when(scheduleService.getById(newScheduleId)).thenReturn(new CaregiverSchedule());
+        when(scheduleService.isScheduleAvailable(newScheduleId)).thenReturn(false);
+
+        Exception ex = assertThrows(IllegalArgumentException.class, () ->
+                service.editReservasi(reservationId, newScheduleId)
+        );
+
+        assertEquals("Jadwal baru tidak tersedia", ex.getMessage());
+    }
+
+    @Test
+    void editReservasi_shouldThrowException_whenReservasiNotFound() {
+        UUID newScheduleId = UUID.randomUUID();
+        when(repository.findById("nonexistent")).thenReturn(Optional.empty());
+
+        Exception ex = assertThrows(IllegalArgumentException.class, () ->
+                service.editReservasi("nonexistent", newScheduleId)
+        );
+
+        assertEquals("Reservasi tidak ditemukan", ex.getMessage());
     }
 
     @Test
@@ -117,46 +154,10 @@ public class ReservasiKonsultasiServiceTest {
         when(repository.findById("jadwal124")).thenReturn(Optional.of(approvedReservasi));
 
         Exception ex = assertThrows(IllegalStateException.class, () ->
-                service.editReservasi("jadwal124", "MONDAY", "09:00", "10:00")
+                service.editReservasi("jadwal124", UUID.randomUUID())
         );
 
         assertEquals("Tidak bisa mengedit reservasi yang sudah disetujui.", ex.getMessage());
-    }
-
-    @Test
-    void findAllByPasien_shouldReturnAllReservasiForGivenUser() {
-        List<ReservasiKonsultasi> reservasiList = List.of(waitingReservasi, approvedReservasi);
-
-        when(repository.findAllByIdPasien("pac123")).thenReturn(reservasiList);
-
-        List<ReservasiKonsultasi> result = service.findAllByPasien("pac123");
-
-        assertEquals(2, result.size());
-        assertEquals("pac123", result.get(0).getIdPacilian());
-        verify(repository).findAllByIdPasien("pac123");
-    }
-
-    @Test
-    void findById_shouldReturnReservation() {
-        when(repository.findById(reservationId)).thenReturn(Optional.of(waitingReservasi));
-
-        ReservasiKonsultasi result = service.findById(reservationId);
-
-        assertNotNull(result);
-        assertEquals(reservationId, result.getId());
-        verify(repository).findById(reservationId);
-    }
-
-    @Test
-    void findById_shouldThrowWhenNotExists() {
-        String nonExistingId = "nonexistent";
-        when(repository.findById(nonExistingId)).thenReturn(Optional.empty());
-
-        Exception exception = assertThrows(IllegalArgumentException.class, () ->
-                service.findById(nonExistingId));
-
-        assertEquals("Schedule not found", exception.getMessage());
-        verify(repository).findById(nonExistingId);
     }
 
     @Test
@@ -206,6 +207,42 @@ public class ReservasiKonsultasiServiceTest {
         verify(repository).findById(reservationId);
         verify(repository).save(reservasi);
         verify(repository, never()).deleteById(anyString());
+    }
+
+    @Test
+    void findAllByPasien_shouldReturnAllReservasiForGivenUser() {
+        List<ReservasiKonsultasi> reservasiList = List.of(waitingReservasi, approvedReservasi);
+
+        when(repository.findAllByIdPasien("pac123")).thenReturn(reservasiList);
+
+        List<ReservasiKonsultasi> result = service.findAllByPasien("pac123");
+
+        assertEquals(2, result.size());
+        assertEquals("pac123", result.get(0).getIdPacilian());
+        verify(repository).findAllByIdPasien("pac123");
+    }
+
+    @Test
+    void findById_shouldReturnReservation() {
+        when(repository.findById(reservationId)).thenReturn(Optional.of(waitingReservasi));
+
+        ReservasiKonsultasi result = service.findById(reservationId);
+
+        assertNotNull(result);
+        assertEquals(reservationId, result.getId());
+        verify(repository).findById(reservationId);
+    }
+
+    @Test
+    void findById_shouldThrowWhenNotExists() {
+        String nonExistingId = "nonexistent";
+        when(repository.findById(nonExistingId)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () ->
+                service.findById(nonExistingId));
+
+        assertEquals("Schedule not found", exception.getMessage());
+        verify(repository).findById(nonExistingId);
     }
 
     @Test
