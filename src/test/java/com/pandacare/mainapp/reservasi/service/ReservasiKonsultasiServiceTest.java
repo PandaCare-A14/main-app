@@ -162,29 +162,39 @@ public class ReservasiKonsultasiServiceTest {
 
     @Test
     void acceptChangeReservasi_shouldApplyRequestedChanges() {
+        CaregiverSchedule currentSchedule = schedule;
+
+        // Create proposed schedule (Monday 10-11)
+        UUID proposedScheduleId = UUID.randomUUID();
+        CaregiverSchedule proposedSchedule = new CaregiverSchedule();
+        proposedSchedule.setId(proposedScheduleId);
+        proposedSchedule.setDay(DayOfWeek.MONDAY);
+        proposedSchedule.setStartTime(LocalTime.of(10, 0));
+        proposedSchedule.setEndTime(LocalTime.of(11, 0));
+        proposedSchedule.setStatus(ScheduleStatus.AVAILABLE);
+
+        // Create reservation with ON_RESCHEDULE status
         ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
         reservasi.setId(reservationId);
         reservasi.setIdPacilian("pac123");
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.ON_RESCHEDULE);
-        reservasi.setChangeReservasi(true);
-        reservasi.setIdSchedule(schedule);
+        reservasi.setIdSchedule(currentSchedule);
+        reservasi.setProposedSchedule(proposedSchedule); // Set the proposed schedule
 
-        String newDay = "MONDAY";
-        LocalTime newStartTime = LocalTime.of(10, 0);
-        LocalTime newEndTime = LocalTime.of(11, 0);
-        reservasi.setNewDay(newDay);
-        reservasi.setNewStartTime(newStartTime);
-        reservasi.setNewEndTime(newEndTime);
-
+        // Mock repository behavior
         when(repository.findById(reservationId)).thenReturn(Optional.of(reservasi));
         when(repository.save(any(ReservasiKonsultasi.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+        // Call the service method
         ReservasiKonsultasi result = service.acceptChangeReservasi(reservationId);
 
-        assertEquals(StatusReservasiKonsultasi.APPROVED, result.getStatusReservasi());
+        // Verify the result
+        assertEquals(StatusReservasiKonsultasi.WAITING, result.getStatusReservasi());
+        assertEquals(proposedSchedule, result.getIdSchedule()); // Schedule should be updated to proposed schedule
+        assertNull(result.getProposedSchedule()); // Proposed schedule should be cleared after accepting
+
         verify(repository).findById(reservationId);
         verify(repository).save(any(ReservasiKonsultasi.class));
-
         verify(repository, never()).deleteById(anyString());
     }
 
@@ -194,7 +204,6 @@ public class ReservasiKonsultasiServiceTest {
         reservasi.setId(reservationId);
         reservasi.setIdPacilian("pac123");
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.ON_RESCHEDULE);
-        reservasi.setChangeReservasi(true);
         reservasi.setIdSchedule(schedule);
 
         when(repository.findById(reservationId)).thenReturn(Optional.of(reservasi));
