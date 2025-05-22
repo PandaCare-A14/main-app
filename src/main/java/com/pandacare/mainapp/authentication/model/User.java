@@ -13,7 +13,16 @@ import java.util.UUID;
 public abstract class User {
     @Id
     private UUID id; // Sync with id from auth service
+    private String email;
     private String name;
     private String nik;
     private String phoneNumber;
+
+    protected User() {}
+
+    protected User(String name, String nik, String phoneNumber) {
+        this.name = name;
+        this.nik = nik;
+        this.phoneNumber = phoneNumber;
+    }
 }
