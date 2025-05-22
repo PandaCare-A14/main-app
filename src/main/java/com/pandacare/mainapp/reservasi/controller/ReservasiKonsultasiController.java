@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -37,20 +38,20 @@ public class ReservasiKonsultasiController {
     }
 
     @PostMapping("/{id}/edit")
-    public ResponseEntity<?> editReservasi(@PathVariable String id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> editReservasi(@PathVariable String id, @RequestBody Map<String, String> request) {
         try {
-            String day = body.get("day");
-            String startTime = body.get("startTime");
-            String endTime = body.get("endTime");
-
-//            ReservasiKonsultasi updated = reservasiService.editReservasi(id, day, startTime, endTime);
-
-            return ResponseEntity.ok(Map.of(
-                    "message", "Jadwal berhasil diperbarui",
-                    "reservasi", null
-            ));
-        } catch (IllegalStateException | IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+            ReservasiKonsultasi updated = reservasiService.editReservasi(
+                    id,
+                    request.get("day"),
+                    request.get("startTime"),
+                    request.get("endTime")
+            );
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Reservasi updated successfully");
+            response.put("reservasi", updated);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -63,11 +64,11 @@ public class ReservasiKonsultasiController {
     @PostMapping("/{id}/accept-change")
     public ResponseEntity<?> acceptChangeReservasi(@PathVariable String id) {
         try {
-//            ReservasiKonsultasi updated = reservasiService.acceptChangeReservasi(id);
-            return ResponseEntity.ok(Map.of(
-                    "message", "Perubahan reservasi diterima",
-                    "reservasi", null
-            ));
+            ReservasiKonsultasi updated = reservasiService.acceptChangeReservasi(id);
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Perubahan reservasi diterima");
+            response.put("reservasi", updated); // Can handle null values
+            return ResponseEntity.ok(response);
         } catch (IllegalStateException | IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));

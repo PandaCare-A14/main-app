@@ -1,224 +1,269 @@
 package com.pandacare.mainapp.rating.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pandacare.mainapp.common.exception.BusinessException;
-import com.pandacare.mainapp.common.exception.ResourceNotFoundException;
+import com.pandacare.mainapp.rating.dto.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
-import com.pandacare.mainapp.rating.dto.request.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import com.pandacare.mainapp.rating.service.RatingService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-@WebMvcTest(RatingController.class)
-public class RatingControllerTest {
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-    @Autowired
-    private MockMvc mockMvc;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+class RatingControllerTest {
 
-    @MockBean
+    @Mock
     private RatingService ratingService;
 
-    private RatingResponse testRatingResponse;
-    private RatingRequest testRatingRequest;
-    private RatingListResponse testRatingListResponse;
+    @InjectMocks
+    private RatingController ratingController;
+
+    private RatingRequest ratingRequest;
+    private RatingResponse ratingResponse;
+    private RatingListResponse ratingListResponse;
+
+    private final String ID_JADWAL_KONSULTASI = "jadwal-123";
+    private final String ID_PASIEN = "pasien-123";
+    private final String ID_DOKTER = "dokter-123";
 
     @BeforeEach
-    public void setup() {
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
         // Setup test data
-        testRatingResponse = new RatingResponse();
-        testRatingResponse.setId("RTG12345");
-        testRatingResponse.setIdDokter("DOC12345");
-        testRatingResponse.setIdPasien("PAT7890");
-        testRatingResponse.setRatingScore(4);
-        testRatingResponse.setUlasan("Dokter sangat ramah");
-        testRatingResponse.setCreatedAt(LocalDateTime.now().minusDays(1));
-        testRatingResponse.setUpdatedAt(LocalDateTime.now().minusDays(1));
+        ratingRequest = new RatingRequest();
+        ratingRequest.setIdJadwalKonsultasi(ID_JADWAL_KONSULTASI);
+        ratingRequest.setRatingScore(5);
+        ratingRequest.setUlasan("Dokter sangat membantu");
 
-        RatingResponse testRatingResponse2 = new RatingResponse();
-        testRatingResponse2.setId("RTG12346");
-        testRatingResponse2.setIdDokter("DOC12345");
-        testRatingResponse2.setIdPasien("PAT7891");
-        testRatingResponse2.setRatingScore(5);
-        testRatingResponse2.setUlasan("Pelayanan memuaskan");
-        testRatingResponse2.setCreatedAt(LocalDateTime.now().minusDays(2));
-        testRatingResponse2.setUpdatedAt(LocalDateTime.now().minusDays(2));
+        ratingResponse = new RatingResponse();
+        ratingResponse.setId("rating-123");
+        ratingResponse.setIdDokter(ID_DOKTER);
+        ratingResponse.setIdPasien(ID_PASIEN);
+        ratingResponse.setIdJadwalKonsultasi(ID_JADWAL_KONSULTASI);
+        ratingResponse.setRatingScore(5);
+        ratingResponse.setUlasan("Dokter sangat membantu");
+        ratingResponse.setCreatedAt(LocalDateTime.now());
+        ratingResponse.setUpdatedAt(LocalDateTime.now());
 
-        List<RatingResponse> testRatingResponses = Arrays.asList(testRatingResponse, testRatingResponse2);
+        List<RatingResponse> ratingList = new ArrayList<>();
+        ratingList.add(ratingResponse);
 
-        testRatingListResponse = new RatingListResponse(4.5, 2, testRatingResponses);
-
-        testRatingRequest = new RatingRequest(5, "Updated review");
+        ratingListResponse = new RatingListResponse(4.5, 1, ratingList);
     }
 
     @Test
-    public void testGetRatingsByDokter() throws Exception {
+    void addRating_Success() {
         // Arrange
-        when(ratingService.getRatingsByDokter("DOC12345")).thenReturn(testRatingListResponse);
+        when(ratingService.addRating(anyString(), any(RatingRequest.class))).thenReturn(ratingResponse);
 
-        // Act & Assert
-        mockMvc.perform(get("/api/v1/doctors/DOC12345/ratings"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.averageRating").value(4.5))
-                .andExpect(jsonPath("$.totalRatings").value(2))
-                .andExpect(jsonPath("$.ratings.length()").value(2));
+        // Act
+        ResponseEntity<?> response = ratingController.addRating(ID_JADWAL_KONSULTASI, ratingRequest, ID_PASIEN);
+
+        // Assert
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("success", body.get("status"));
+
+        // Verify that service was called with correct parameters
+        verify(ratingService, times(1)).addRating(eq(ID_PASIEN), any(RatingRequest.class));
     }
 
     @Test
-    public void testGetRatingsByDokterError() throws Exception {
+    void addRating_BadRequest() {
         // Arrange
-        when(ratingService.getRatingsByDokter("DOC12345")).thenThrow(new RuntimeException("Database error"));
+        when(ratingService.addRating(anyString(), any(RatingRequest.class)))
+                .thenThrow(new IllegalArgumentException("Rating error"));
 
-        // Act & Assert
-        mockMvc.perform(get("/api/v1/doctors/DOC12345/ratings"))
-                .andExpect(status().isBadRequest());
+        // Act
+        ResponseEntity<?> response = ratingController.addRating(ID_JADWAL_KONSULTASI, ratingRequest, ID_PASIEN);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("error", body.get("status"));
+        assertEquals("Rating error", body.get("message"));
     }
 
     @Test
-    public void testGetRatingsByPasien() throws Exception {
+    void updateRating_Success() {
         // Arrange
-        List<RatingResponse> ratings = Arrays.asList(testRatingResponse);
-        when(ratingService.getRatingsByPasien("PAT7890")).thenReturn(ratings);
+        when(ratingService.updateRating(anyString(), any(RatingRequest.class))).thenReturn(ratingResponse);
 
-        // Act & Assert
-        mockMvc.perform(get("/api/v1/patients/PAT7890/ratings"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("RTG12345"));
+        // Act
+        ResponseEntity<?> response = ratingController.updateRating(ID_JADWAL_KONSULTASI, ratingRequest, ID_PASIEN);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("success", body.get("status"));
+
+        // Verify that service was called with correct parameters
+        verify(ratingService, times(1)).updateRating(eq(ID_PASIEN), any(RatingRequest.class));
     }
 
     @Test
-    public void testGetRatingByPasienAndDokter() throws Exception {
+    void updateRating_BadRequest() {
         // Arrange
-        when(ratingService.getRatingByPasienAndDokter("PAT7890", "DOC12345")).thenReturn(testRatingResponse);
+        when(ratingService.updateRating(anyString(), any(RatingRequest.class)))
+                .thenThrow(new IllegalArgumentException("Update error"));
 
-        // Act & Assert
-        mockMvc.perform(get("/api/v1/patients/PAT7890/doctors/DOC12345/ratings"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("RTG12345"));
+        // Act
+        ResponseEntity<?> response = ratingController.updateRating(ID_JADWAL_KONSULTASI, ratingRequest, ID_PASIEN);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("error", body.get("status"));
+        assertEquals("Update error", body.get("message"));
     }
 
     @Test
-    public void testGetRatingByPasienAndDokterNotFound() throws Exception {
-        // Arrange
-        when(ratingService.getRatingByPasienAndDokter("PAT7890", "DOC12345"))
-                .thenThrow(new ResourceNotFoundException("Rating tidak ditemukan"));
-
-        // Act & Assert
-        mockMvc.perform(get("/api/v1/patients/PAT7890/doctors/DOC12345/ratings"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testAddRating() throws Exception {
-        // Arrange
-        when(ratingService.addRating(anyString(), anyString(), any(RatingRequest.class)))
-                .thenReturn(testRatingResponse);
-
-        // Act & Assert
-        mockMvc.perform(post("/api/v1/doctors/DOC12345/ratings")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testRatingRequest))
-                        .header("X-User-ID", "PAT7890"))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value("RTG12345"));
-    }
-
-    @Test
-    public void testAddRatingNoConsultation() throws Exception {
-        // Arrange
-        when(ratingService.addRating(anyString(), anyString(), any(RatingRequest.class)))
-                .thenThrow(new BusinessException("Pasien belum pernah melakukan konsultasi dengan dokter ini"));
-
-        // Act & Assert
-        mockMvc.perform(post("/api/v1/doctors/DOC12345/ratings")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testRatingRequest))
-                        .header("X-User-ID", "PAT7890"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testUpdateRating() throws Exception {
-        // Arrange
-        when(ratingService.updateRating(anyString(), anyString(), any(RatingRequest.class)))
-                .thenReturn(testRatingResponse);
-
-        // Act & Assert
-        mockMvc.perform(put("/api/v1/doctors/DOC12345/ratings")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testRatingRequest))
-                        .header("X-User-ID", "PAT7890"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("RTG12345"));
-    }
-
-    @Test
-    public void testUpdateRatingNotFound() throws Exception {
-        // Arrange
-        when(ratingService.updateRating(anyString(), anyString(), any(RatingRequest.class)))
-                .thenThrow(new ResourceNotFoundException("Rating tidak ditemukan"));
-
-        // Act & Assert
-        mockMvc.perform(put("/api/v1/doctors/DOC12345/ratings")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testRatingRequest))
-                        .header("X-User-ID", "PAT7890"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testDeleteRating() throws Exception {
+    void deleteRating_Success() {
         // Arrange
         doNothing().when(ratingService).deleteRating(anyString(), anyString());
 
-        // Act & Assert
-        mockMvc.perform(delete("/api/v1/doctors/DOC12345/ratings")
-                        .header("X-User-ID", "PAT7890"))
-                .andExpect(status().isOk());
+        // Act
+        ResponseEntity<?> response = ratingController.deleteRating(ID_JADWAL_KONSULTASI, ID_PASIEN);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("success", body.get("status"));
+        assertEquals("Rating berhasil dihapus", body.get("message"));
+
+        // Verify that service was called with correct parameters
+        verify(ratingService, times(1)).deleteRating(ID_PASIEN, ID_JADWAL_KONSULTASI);
     }
 
     @Test
-    public void testDeleteRatingError() throws Exception {
+    void deleteRating_BadRequest() {
         // Arrange
-        doThrow(new RuntimeException("Database error")).when(ratingService).deleteRating(anyString(), anyString());
+        doThrow(new IllegalArgumentException("Delete error")).when(ratingService).deleteRating(anyString(), anyString());
 
-        // Act & Assert
-        mockMvc.perform(delete("/api/v1/doctors/DOC12345/ratings")
-                        .header("X-User-ID", "PAT7890"))
-                .andExpect(status().isBadRequest());
+        // Act
+        ResponseEntity<?> response = ratingController.deleteRating(ID_JADWAL_KONSULTASI, ID_PASIEN);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("error", body.get("status"));
+        assertEquals("Delete error", body.get("message"));
     }
 
     @Test
-    public void testValidationError() throws Exception {
-        // Arrange - Invalid request with rating=0
-        RatingRequest invalidRequest = new RatingRequest(0, "Invalid rating");
+    void getRatingsByDokter_Success() {
+        // Arrange
+        when(ratingService.getRatingsByDokter(anyString())).thenReturn(ratingListResponse);
 
-        // Act & Assert
-        mockMvc.perform(post("/api/v1/doctors/DOC12345/ratings")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest))
-                        .header("X-User-ID", "PAT7890"))
-                .andExpect(status().isBadRequest());
+        // Act
+        ResponseEntity<?> response = ratingController.getRatingsByDokter(ID_DOKTER);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("success", body.get("status"));
+        assertNotNull(body.get("data"));
+
+        // Verify that service was called
+        verify(ratingService, times(1)).getRatingsByDokter(ID_DOKTER);
+    }
+
+    @Test
+    void getRatingsByPasien_Success() {
+        // Arrange
+        when(ratingService.getRatingsByPasien(anyString())).thenReturn(ratingListResponse);
+
+        // Act
+        ResponseEntity<?> response = ratingController.getRatingsByPasien(ID_PASIEN, ID_PASIEN);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("success", body.get("status"));
+        assertNotNull(body.get("data"));
+
+        // Verify that service was called
+        verify(ratingService, times(1)).getRatingsByPasien(ID_PASIEN);
+    }
+
+    @Test
+    void getRatingsByPasien_Forbidden() {
+        // Act - attempt to access ratings of a different patient
+        ResponseEntity<?> response = ratingController.getRatingsByPasien(ID_PASIEN, "different-pasien");
+
+        // Assert
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("error", body.get("status"));
+        assertEquals("Anda tidak memiliki izin untuk melihat rating pasien lain", body.get("message"));
+
+        // Verify that service was not called
+        verify(ratingService, never()).getRatingsByPasien(anyString());
+    }
+
+    @Test
+    void hasRatedKonsultasi_Success() {
+        // Arrange
+        when(ratingService.hasRatedKonsultasi(anyString(), anyString())).thenReturn(true);
+
+        // Act
+        ResponseEntity<?> response = ratingController.hasRatedKonsultasi(ID_JADWAL_KONSULTASI, ID_PASIEN);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("success", body.get("status"));
+        Map<String, Object> dataMap = (Map<String, Object>) body.get("data");
+        assertTrue((Boolean) dataMap.get("hasRated"));
+
+        // Verify that service was called
+        verify(ratingService, times(1)).hasRatedKonsultasi(ID_PASIEN, ID_JADWAL_KONSULTASI);
+    }
+
+    @Test
+    void getRatingByKonsultasi_Success() {
+        // Arrange
+        when(ratingService.getRatingByKonsultasi(anyString(), anyString())).thenReturn(ratingResponse);
+
+        // Act
+        ResponseEntity<?> response = ratingController.getRatingByKonsultasi(ID_JADWAL_KONSULTASI, ID_PASIEN);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("success", body.get("status"));
+        assertNotNull(body.get("data"));
+
+        // Verify that service was called
+        verify(ratingService, times(1)).getRatingByKonsultasi(ID_PASIEN, ID_JADWAL_KONSULTASI);
+    }
+
+    @Test
+    void getRatingByKonsultasi_NotFound() {
+        // Arrange
+        when(ratingService.getRatingByKonsultasi(anyString(), anyString()))
+                .thenThrow(new IllegalArgumentException("Rating tidak ditemukan"));
+
+        // Act
+        ResponseEntity<?> response = ratingController.getRatingByKonsultasi(ID_JADWAL_KONSULTASI, ID_PASIEN);
+
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("error", body.get("status"));
+        assertEquals("Rating tidak ditemukan", body.get("message"));
     }
 }

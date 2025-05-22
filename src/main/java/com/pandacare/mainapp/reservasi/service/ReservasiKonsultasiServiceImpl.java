@@ -1,12 +1,15 @@
 package com.pandacare.mainapp.reservasi.service;
 
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
+import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
+import com.pandacare.mainapp.reservasi.model.statepacilian.StateFactory;
 import com.pandacare.mainapp.reservasi.repository.ReservasiKonsultasiRepository;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
-import com.pandacare.mainapp.reservasi.service.template.AcceptChangeReservasiHandler;
-import com.pandacare.mainapp.reservasi.service.template.EditReservasiHandler;
-import com.pandacare.mainapp.reservasi.service.template.RejectChangeReservasiHandler;
-import com.pandacare.mainapp.reservasi.service.template.RequestReservasiHandler;
+//import com.pandacare.mainapp.reservasi.service.template.AcceptChangeReservasiHandler;
+//import com.pandacare.mainapp.reservasi.service.template.EditReservasiHandler;
+//import com.pandacare.mainapp.reservasi.service.template.RejectChangeReservasiHandler;
+//import com.pandacare.mainapp.reservasi.service.template.RequestReservasiHandler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,23 +26,53 @@ public class ReservasiKonsultasiServiceImpl {
     private ScheduleService scheduleService;
 
     public ReservasiKonsultasi requestReservasi(UUID idSchedule, String idPacilian) {
-        RequestReservasiHandler handler = new RequestReservasiHandler(idSchedule, idPacilian, repository, scheduleService);
-        return handler.handle();
+        // Validasi apakah jadwal tersedia
+        CaregiverSchedule schedule = scheduleService.getById(idSchedule);
+
+        if (!scheduleService.isScheduleAvailable(idSchedule)) {
+            throw new IllegalArgumentException("Selected schedule is not available");
+        }
+
+        ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
+        reservasi.setIdDokter(schedule.getIdCaregiver().toString());
+        reservasi.setIdPacilian(idPacilian);
+        reservasi.setIdSchedule(schedule);
+        reservasi.setDay(schedule.getDay().toString());
+        reservasi.setStartTime(schedule.getStartTime());
+        reservasi.setEndTime(schedule.getEndTime());
+        reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+
+        return repository.save(reservasi);
     }
 
     public ReservasiKonsultasi editReservasi(String id, String newDay, String newStartTime, String newEndTime) {
-        EditReservasiHandler handler = new EditReservasiHandler(id, newDay, newStartTime, newEndTime, repository);
-        return handler.handle();
+        ReservasiKonsultasi reservasi = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Reservasi tidak ditemukan"));
+
+        reservasi.setStatePacilian(StateFactory.from(reservasi.getStatusReservasi()));
+        reservasi.editAsPacilian(newDay, newStartTime, newEndTime);
+
+        return repository.save(reservasi);
     }
 
     public ReservasiKonsultasi acceptChangeReservasi(String id) {
-        AcceptChangeReservasiHandler handler = new AcceptChangeReservasiHandler(id, repository, scheduleService);
-        return handler.handle();
+        ReservasiKonsultasi reservasi = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Reservasi tidak ditemukan"));
+
+        reservasi.setStatePacilian(StateFactory.from(reservasi.getStatusReservasi()));
+        reservasi.acceptChangeAsPacilian();
+
+        return repository.save(reservasi);
     }
 
     public void rejectChangeReservasi(String id) {
-        RejectChangeReservasiHandler handler = new RejectChangeReservasiHandler(id, repository, scheduleService);
-        handler.handle();
+        ReservasiKonsultasi reservasi = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Reservasi tidak ditemukan"));
+
+        reservasi.setStatePacilian(StateFactory.from(reservasi.getStatusReservasi()));
+        reservasi.rejectChangeAsPacilian();
+
+        repository.save(reservasi);
     }
 
     public ReservasiKonsultasi findById(String id) {
