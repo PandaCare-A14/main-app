@@ -7,17 +7,16 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserTest {
+public class UserTest {
 
     private TestUser user;
 
-    // Concrete subclass to test the abstract User
+    /**
+     * Concrete subclass to test the abstract User model.
+     */
     private static class TestUser extends User {
-        public TestUser() {
-            super();
-        }
-
-        public TestUser(String name, String nik, String phoneNumber) {
+        TestUser() { super(); }
+        TestUser(String name, String nik, String phoneNumber) {
             super(name, nik, phoneNumber);
         }
     }
@@ -31,19 +30,24 @@ class UserTest {
     @Test
     void testDefaultConstructor() {
         TestUser defaultUser = new TestUser();
-        assertNull(defaultUser.getId());
-        assertNull(defaultUser.getName());
-        assertNull(defaultUser.getNik());
-        assertNull(defaultUser.getPhoneNumber());
-        assertNull(defaultUser.getEmail());
+        assertAll("Default user should have null fields",
+                () -> assertNull(defaultUser.getId(), "ID should be null"),
+                () -> assertNull(defaultUser.getName(), "Name should be null"),
+                () -> assertNull(defaultUser.getNik(), "NIK should be null"),
+                () -> assertNull(defaultUser.getPhoneNumber(), "Phone number should be null"),
+                () -> assertNull(defaultUser.getEmail(), "Email should be null")
+        );
     }
 
     @Test
     void testConstructorAndGetters() {
-        assertEquals("Alice", user.getName());
-        assertEquals("NIK789", user.getNik());
-        assertEquals("0811223344", user.getPhoneNumber());
-        assertEquals("alice@example.com", user.getEmail());
+        assertAll("Constructor should set provided values",
+                () -> assertNull(user.getId(), "ID is null until explicitly set"),
+                () -> assertEquals("Alice", user.getName(), "Name getter"),
+                () -> assertEquals("NIK789", user.getNik(), "NIK getter"),
+                () -> assertEquals("0811223344", user.getPhoneNumber(), "Phone number getter"),
+                () -> assertEquals("alice@example.com", user.getEmail(), "Email getter")
+        );
     }
 
     @Test
@@ -55,10 +59,12 @@ class UserTest {
         user.setPhoneNumber("0899001122");
         user.setEmail("bob@example.com");
 
-        assertEquals(uuid, user.getId());
-        assertEquals("Bob", user.getName());
-        assertEquals("NIK000", user.getNik());
-        assertEquals("0899001122", user.getPhoneNumber());
-        assertEquals("bob@example.com", user.getEmail());
+        assertAll("Setters should update fields correctly",
+                () -> assertEquals(uuid, user.getId(), "ID setter/getter"),
+                () -> assertEquals("Bob", user.getName(), "Name setter/getter"),
+                () -> assertEquals("NIK000", user.getNik(), "NIK setter/getter"),
+                () -> assertEquals("0899001122", user.getPhoneNumber(), "Phone number setter/getter"),
+                () -> assertEquals("bob@example.com", user.getEmail(), "Email setter/getter")
+        );
     }
 }
