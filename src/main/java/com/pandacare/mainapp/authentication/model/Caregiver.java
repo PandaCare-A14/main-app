@@ -8,6 +8,8 @@ import jakarta.persistence.OneToMany;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,6 +23,16 @@ public class Caregiver extends User {
 
     @OneToMany(mappedBy = "idCaregiver", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CaregiverSchedule> workingSchedules = new ArrayList<>();
+
+    public Caregiver() {}
+
+    public Caregiver(String name, String nik, String phoneNumber,
+                     String workAddress, String speciality) {
+        super(name, nik, phoneNumber);
+        this.workAddress = workAddress;
+        this.speciality = speciality;
+        this.workingSchedules = new ArrayList<>();
+    }
 
     public void addWorkingSchedule(CaregiverSchedule schedule) {
         workingSchedules.add(schedule);
