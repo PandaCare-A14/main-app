@@ -40,12 +40,8 @@ public class ReservasiKonsultasiController {
     @PostMapping("/{id}/edit")
     public ResponseEntity<?> editReservasi(@PathVariable String id, @RequestBody Map<String, String> request) {
         try {
-            ReservasiKonsultasi updated = reservasiService.editReservasi(
-                    id,
-                    request.get("day"),
-                    request.get("startTime"),
-                    request.get("endTime")
-            );
+            UUID newScheduleId = UUID.fromString(request.get("idSchedule"));
+            ReservasiKonsultasi updated = reservasiService.editReservasi(id, newScheduleId);
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Reservasi updated successfully");
             response.put("reservasi", updated);
