@@ -1,60 +1,46 @@
 package com.pandacare.mainapp.rating.service;
 
-import java.util.List;
-
-import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.dto.RatingRequest;
+import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 
 /**
- * Service interface for rating operations
+ * Service interface for handling consultation ratings
  */
 public interface RatingService {
 
     /**
-     * Get all ratings for a doctor
-     * @param idDokter doctor ID
-     * @return list of ratings with average and total count
+     * Add a new rating for a consultation
+     */
+    RatingResponse addRating(String idPasien, RatingRequest ratingRequest);
+
+    /**
+     * Update an existing rating
+     */
+    RatingResponse updateRating(String idPasien, RatingRequest ratingRequest);
+
+    /**
+     * Delete a rating for a consultation
+     */
+    void deleteRating(String idPasien, String idJadwalKonsultasi);
+
+    /**
+     * Get all ratings for a specific doctor
      */
     RatingListResponse getRatingsByDokter(String idDokter);
 
     /**
-     * Get all ratings given by a patient
-     * @param idPasien patient ID
-     * @return list of ratings
+     * Get all ratings made by a specific patient
      */
-    List<RatingResponse> getRatingsByPasien(String idPasien);
+    RatingListResponse getRatingsByPasien(String idPasien);
 
     /**
-     * Get a specific rating given by a patient to a doctor
-     * @param idPasien patient ID
-     * @param idDokter doctor ID
-     * @return rating response
+     * Get a specific rating by consultation ID
      */
-    RatingResponse getRatingByPasienAndDokter(String idPasien, String idDokter);
+    RatingResponse getRatingByKonsultasi(String idPasien, String idJadwalKonsultasi);
 
     /**
-     * Add a new rating
-     * @param idPasien patient ID
-     * @param idDokter doctor ID
-     * @param request rating data
-     * @return created rating
+     * Check if a patient has already rated a specific consultation
      */
-    RatingResponse addRating(String idPasien, String idDokter, RatingRequest request);
-
-    /**
-     * Update an existing rating
-     * @param idPasien patient ID
-     * @param idDokter doctor ID
-     * @param request rating data
-     * @return updated rating
-     */
-    RatingResponse updateRating(String idPasien, String idDokter, RatingRequest request);
-
-    /**
-     * Delete a rating
-     * @param idPasien patient ID
-     * @param idDokter doctor ID
-     */
-    void deleteRating(String idPasien, String idDokter);
+    boolean hasRatedKonsultasi(String idPasien, String idJadwalKonsultasi);
 }

@@ -1,62 +1,28 @@
 package com.pandacare.mainapp.rating.repository;
 
+import com.pandacare.mainapp.rating.model.Rating;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
 
-import com.pandacare.mainapp.rating.model.Rating;
+@Repository
+public interface RatingRepository extends JpaRepository<Rating, String> {
 
-/**
- * Repository interface for Rating entity
- */
-public interface RatingRepository {
-
-    /**
-     * Find ratings by patient ID
-     * @param idPasien patient ID
-     * @return list of ratings
-     */
-    List<Rating> findByIdPasien(String idPasien);
-
-    /**
-     * Find ratings by doctor ID
-     * @param idDokter doctor ID
-     * @return list of ratings
-     */
     List<Rating> findByIdDokter(String idDokter);
 
-    /**
-     * Find rating by patient ID and doctor ID
-     * @param idPasien patient ID
-     * @param idDokter doctor ID
-     * @return optional rating
-     */
-    Optional<Rating> findByIdPasienAndIdDokter(String idPasien, String idDokter);
+    List<Rating> findByIdPasien(String idPasien);
 
-    /**
-     * Calculate average rating score for a doctor
-     * @param idDokter doctor ID
-     * @return average rating score
-     */
-    Double calculateAverageRatingByDokter(String idDokter);
+    Optional<Rating> findByIdPasienAndIdJadwalKonsultasi(String idPasien, String idJadwalKonsultasi);
 
-    /**
-     * Count ratings for a doctor
-     * @param idDokter doctor ID
-     * @return number of ratings
-     */
-    long countByIdDokter(String idDokter);
+    @Query("SELECT AVG(r.ratingScore) FROM Rating r WHERE r.idDokter = :idDokter")
+    Double calculateAverageRatingByDokter(@Param("idDokter") String idDokter);
 
-    /**
-     * Save or update a rating
-     * @param rating the rating to save
-     * @return the saved rating
-     */
-    Rating save(Rating rating);
+    @Query("SELECT COUNT(r) FROM Rating r WHERE r.idDokter = :idDokter")
+    Integer countRatingsByDokter(@Param("idDokter") String idDokter);
 
-    /**
-     * Delete rating by patient ID and doctor ID
-     * @param idPasien patient ID
-     * @param idDokter doctor ID
-     */
-    void deleteByIdPasienAndIdDokter(String idPasien, String idDokter);
+    boolean existsByIdPasienAndIdJadwalKonsultasi(String idPasien, String idJadwalKonsultasi);
 }
