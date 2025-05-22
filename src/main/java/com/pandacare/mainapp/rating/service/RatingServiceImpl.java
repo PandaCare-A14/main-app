@@ -132,6 +132,6 @@ public class RatingServiceImpl implements RatingService {
 
         // Check if any consultation exists with this doctor
         return consultations.stream()
-                .anyMatch(c -> c.getIdDokter().equals(idDokter));
+                .anyMatch(c -> c.getIdCareGiver().equals(idDokter));
     }
 }

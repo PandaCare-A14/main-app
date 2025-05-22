@@ -21,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.pandacare.mainapp.common.exception.BusinessException;
 import com.pandacare.mainapp.common.exception.ResourceNotFoundException;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
-import com.pandacare.mainapp.rating.dto.RatingRequest;
+import com.pandacare.mainapp.rating.dto.request.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import com.pandacare.mainapp.rating.model.Rating;
 import com.pandacare.mainapp.rating.repository.RatingRepository;
@@ -72,9 +72,9 @@ public class RatingServiceTest {
 
         // Setup completed consultation
         completedConsultation = new ReservasiKonsultasi();
-        completedConsultation.setId("JDW12345");
-        completedConsultation.setIdDokter("DOC12345");
-        completedConsultation.setIdPasien("PAT7890");
+        completedConsultation.setIdReservasi("JDW12345");
+        completedConsultation.setIdCareGiver("DOC12345");
+        completedConsultation.setIdPacilian("PAT7890");
     }
 
     @Test
