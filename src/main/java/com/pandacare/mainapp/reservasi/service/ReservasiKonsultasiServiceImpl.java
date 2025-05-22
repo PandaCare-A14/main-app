@@ -34,12 +34,8 @@ public class ReservasiKonsultasiServiceImpl {
         }
 
         ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
-        reservasi.setIdDokter(schedule.getIdCaregiver().toString());
         reservasi.setIdPacilian(idPacilian);
         reservasi.setIdSchedule(schedule);
-        reservasi.setDay(schedule.getDay().toString());
-        reservasi.setStartTime(schedule.getStartTime());
-        reservasi.setEndTime(schedule.getEndTime());
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
 
         return repository.save(reservasi);
@@ -61,18 +57,12 @@ public class ReservasiKonsultasiServiceImpl {
 
         reservasi.setStatePacilian(StateFactory.from(reservasi.getStatusReservasi()));
 
-        // Extract and pass the day, startTime, and endTime as strings to editAsPacilian
-        reservasi.editAsPacilian(
-                newSchedule.getDay().toString(),
-                newSchedule.getStartTime().toString(),
-                newSchedule.getEndTime().toString()
-        );
+        String newDay = newSchedule.getDay().toString();
+        String newStartTime = newSchedule.getStartTime().toString();
+        String newEndTime = newSchedule.getEndTime().toString();
 
-        // Update data dari schedule
+        reservasi.editAsPacilian(newDay, newStartTime, newEndTime);
         reservasi.setIdSchedule(newSchedule);
-        reservasi.setDay(newSchedule.getDay().toString());
-        reservasi.setStartTime(newSchedule.getStartTime());
-        reservasi.setEndTime(newSchedule.getEndTime());
 
         return repository.save(reservasi);
     }

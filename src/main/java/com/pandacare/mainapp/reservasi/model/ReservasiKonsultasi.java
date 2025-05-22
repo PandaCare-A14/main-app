@@ -24,34 +24,17 @@ public class ReservasiKonsultasi {
     @Id
     @Column(name = "id")
     private String id;
-    private String idDokter;
-    private String idPasien;
-
-    @Column(name = "appointment_day")
-    private String day;
-    private LocalTime startTime;
-    private LocalTime endTime;
 
     @Enumerated(EnumType.STRING)
     private StatusReservasiKonsultasi statusReservasi;
 
-    private boolean changeReservasi;
-
-    @Column(name = "new_appointment_day")
-    private String newDay;
-    private LocalTime newStartTime;
-    private LocalTime newEndTime;
-
-    @PrePersist
-    protected void onCreate() {
-        if (id == null) {
-            id = UUID.randomUUID().toString();
-        }
-    }
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_schedule")
     private CaregiverSchedule idSchedule;
+
+    @ManyToOne(fetch = FetchType.EAGER) // For rescheduling
+    @JoinColumn(name = "proposed_schedule_id")
+    private CaregiverSchedule proposedSchedule;
 
     @Column
     private String idPacilian;
@@ -71,6 +54,13 @@ public class ReservasiKonsultasi {
     @Transient
     @JsonIgnore
     private ReservasiStatePacilian statePacilian;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            id = UUID.randomUUID().toString();
+        }
+    }
 
     public ReservasiKonsultasi() {
         this.id = UUID.randomUUID().toString();
@@ -172,5 +162,22 @@ public class ReservasiKonsultasi {
             throw new IllegalStateException("State Pacilian belum diset.");
         }
         statePacilian.rejectChange(this);
+    }
+
+    // Access methods for schedule properties
+    public String getDay() {
+        return idSchedule != null ? idSchedule.getDay().toString() : null;
+    }
+
+    public LocalTime getStartTime() {
+        return idSchedule != null ? idSchedule.getStartTime() : null;
+    }
+
+    public LocalTime getEndTime() {
+        return idSchedule != null ? idSchedule.getEndTime() : null;
+    }
+
+    public String getIdCareGiver() {
+        return idSchedule != null ? idSchedule.getIdCaregiver().toString() : null;
     }
 }
