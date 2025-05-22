@@ -85,6 +85,14 @@ class ReservasiKonsultasiControllerTest {
 
     @Test
     void testEditReservasi_success() throws Exception {
+        UUID newScheduleId = UUID.randomUUID();
+        CaregiverSchedule newSchedule = new CaregiverSchedule();
+        newSchedule.setId(newScheduleId);
+        newSchedule.setDay(DayOfWeek.TUESDAY);
+        newSchedule.setStartTime(LocalTime.of(10, 0));
+        newSchedule.setEndTime(LocalTime.of(11, 0));
+        newSchedule.setStatus(ScheduleStatus.AVAILABLE);
+
         ReservasiKonsultasi updatedReservasi = new ReservasiKonsultasi();
         updatedReservasi.setId("RSV001");
         updatedReservasi.setIdDokter("dok123");
@@ -93,47 +101,39 @@ class ReservasiKonsultasiControllerTest {
         updatedReservasi.setStartTime(LocalTime.of(10, 0));
         updatedReservasi.setEndTime(LocalTime.of(11, 0));
         updatedReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
-        updatedReservasi.setIdSchedule(schedule);
+        updatedReservasi.setIdSchedule(newSchedule);
 
-        when(reservasiService.editReservasi(
-                eq("RSV001"),
-                eq("TUESDAY"),
-                eq("10:00"),
-                eq("11:00")
-        )).thenReturn(updatedReservasi);
+        when(reservasiService.editReservasi(eq("RSV001"), any(UUID.class)))
+                .thenReturn(updatedReservasi);
 
         mockMvc.perform(post("/api/reservasi-konsultasi/{id}/edit", "RSV001")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                    {
-                        "day": "TUESDAY",
-                        "startTime": "10:00",
-                        "endTime": "11:00"
-                    }
-                """))
+                        .content(String.format("""
+                {
+                    "idSchedule": "%s"
+                }
+                """, newScheduleId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Reservasi updated successfully"))
                 .andExpect(jsonPath("$.reservasi.day").value("TUESDAY"))
                 .andExpect(jsonPath("$.reservasi.startTime").value("10:00:00"))
                 .andExpect(jsonPath("$.reservasi.endTime").value("11:00:00"));
 
-        verify(reservasiService).editReservasi("RSV001", "TUESDAY", "10:00", "11:00");
+        verify(reservasiService).editReservasi("RSV001", newScheduleId);
     }
 
     @Test
     void testEditReservasi_error_invalidStatus() throws Exception {
-        when(reservasiService.editReservasi(any(), any(), any(), any()))
+        when(reservasiService.editReservasi(any(), any(UUID.class)))
                 .thenThrow(new IllegalStateException("Only schedules with status WAITING can be edited"));
 
         mockMvc.perform(post("/api/reservasi-konsultasi/{id}/edit", "RSV001")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {
-                                "day": "TUESDAY",
-                                "startTime": "10:00",
-                                "endTime": "11:00"
-                            }
-                        """))
+                        .content(String.format("""
+                    {
+                        "idSchedule": "%s"
+                    }
+                    """, UUID.randomUUID())))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Only schedules with status WAITING can be edited"));
     }
@@ -245,18 +245,16 @@ class ReservasiKonsultasiControllerTest {
 
     @Test
     void testEditReservasi_notFound_shouldReturn400() throws Exception {
-        when(reservasiService.editReservasi(eq("not_found"), any(), any(), any()))
+        when(reservasiService.editReservasi(eq("not_found"), any(UUID.class)))
                 .thenThrow(new IllegalArgumentException("Schedule not found"));
 
         mockMvc.perform(post("/api/reservasi-konsultasi/not_found/edit")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                        {
-                            "day": "MONDAY",
-                            "startTime": "09:00",
-                            "endTime": "10:00"
-                        }
-                    """))
+                        .content(String.format("""
+                {
+                    "idSchedule": "%s"
+                }
+                """, UUID.randomUUID())))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Schedule not found"));
     }
