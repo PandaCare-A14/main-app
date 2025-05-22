@@ -1,3 +1,5 @@
+package com.pandacare.mainapp.reservasi.model.statepacilian;
+
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.statepacilian.ApprovedState;
 import org.junit.jupiter.api.Test;
