@@ -44,7 +44,14 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation ("org.postgresql:postgresql:42.7.1")
+	implementation ("jakarta.validation:jakarta.validation-api:3.0.2")
+	implementation ("org.hibernate.validator:hibernate-validator:8.0.0.Final")
+
 	runtimeOnly ("com.h2database:h2")
+	testImplementation ("org.springframework.boot:spring-boot-starter-test")
+
+	runtimeOnly ("org.postgresql:postgresql")
 	testImplementation ("org.springframework.boot:spring-boot-starter-test")
 
 	compileOnly("org.projectlombok:lombok")

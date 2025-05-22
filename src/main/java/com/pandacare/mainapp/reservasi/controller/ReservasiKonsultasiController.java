@@ -7,8 +7,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/reservasi-konsultasi")
@@ -20,13 +22,10 @@ public class ReservasiKonsultasiController {
     @PostMapping("/request")
     public ResponseEntity<?> requestReservasi(@RequestBody Map<String, String> body) {
         try {
-            ReservasiKonsultasi result = reservasiService.requestReservasi(
-                    body.get("idDokter"),
-                    body.get("idPasien"),
-                    body.get("day"),
-                    body.get("startTime"),
-                    body.get("endTime")
-            );
+            UUID idSchedule = UUID.fromString(body.get("idSchedule")); // Ambil ID jadwal langsung
+            String idPacilian = body.get("idPacilian"); // Ambil ID pasien
+
+            ReservasiKonsultasi result = reservasiService.requestReservasi(idSchedule, idPacilian);
 
             return ResponseEntity.ok(Map.of(
                     "message", "Jadwal konsultasi berhasil diajukan",
@@ -39,20 +38,20 @@ public class ReservasiKonsultasiController {
     }
 
     @PostMapping("/{id}/edit")
-    public ResponseEntity<?> editReservasi(@PathVariable String id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> editReservasi(@PathVariable String id, @RequestBody Map<String, String> request) {
         try {
-            String day = body.get("day");
-            String startTime = body.get("startTime");
-            String endTime = body.get("endTime");
-
-            ReservasiKonsultasi updated = reservasiService.editReservasi(id, day, startTime, endTime);
-
-            return ResponseEntity.ok(Map.of(
-                    "message", "Jadwal berhasil diperbarui",
-                    "reservasi", updated
-            ));
-        } catch (IllegalStateException | IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+            ReservasiKonsultasi updated = reservasiService.editReservasi(
+                    id,
+                    request.get("day"),
+                    request.get("startTime"),
+                    request.get("endTime")
+            );
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Reservasi updated successfully");
+            response.put("reservasi", updated);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -66,10 +65,10 @@ public class ReservasiKonsultasiController {
     public ResponseEntity<?> acceptChangeReservasi(@PathVariable String id) {
         try {
             ReservasiKonsultasi updated = reservasiService.acceptChangeReservasi(id);
-            return ResponseEntity.ok(Map.of(
-                    "message", "Perubahan reservasi diterima",
-                    "reservasi", updated
-            ));
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Perubahan reservasi diterima");
+            response.put("reservasi", updated); // Can handle null values
+            return ResponseEntity.ok(response);
         } catch (IllegalStateException | IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));
