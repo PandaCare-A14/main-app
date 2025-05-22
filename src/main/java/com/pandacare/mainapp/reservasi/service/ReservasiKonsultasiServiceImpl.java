@@ -45,12 +45,34 @@ public class ReservasiKonsultasiServiceImpl {
         return repository.save(reservasi);
     }
 
-    public ReservasiKonsultasi editReservasi(String id, String newDay, String newStartTime, String newEndTime) {
+    public ReservasiKonsultasi editReservasi(String id, UUID newScheduleId) {
         ReservasiKonsultasi reservasi = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservasi tidak ditemukan"));
 
+        if (reservasi.getStatusReservasi() != StatusReservasiKonsultasi.WAITING) {
+            throw new IllegalStateException("Tidak bisa mengedit reservasi yang sudah disetujui.");
+        }
+
+        CaregiverSchedule newSchedule = scheduleService.getById(newScheduleId);
+
+        if (!scheduleService.isScheduleAvailable(newScheduleId)) {
+            throw new IllegalArgumentException("Jadwal baru tidak tersedia");
+        }
+
         reservasi.setStatePacilian(StateFactory.from(reservasi.getStatusReservasi()));
-        reservasi.editAsPacilian(newDay, newStartTime, newEndTime);
+
+        // Extract and pass the day, startTime, and endTime as strings to editAsPacilian
+        reservasi.editAsPacilian(
+                newSchedule.getDay().toString(),
+                newSchedule.getStartTime().toString(),
+                newSchedule.getEndTime().toString()
+        );
+
+        // Update data dari schedule
+        reservasi.setIdSchedule(newSchedule);
+        reservasi.setDay(newSchedule.getDay().toString());
+        reservasi.setStartTime(newSchedule.getStartTime());
+        reservasi.setEndTime(newSchedule.getEndTime());
 
         return repository.save(reservasi);
     }
