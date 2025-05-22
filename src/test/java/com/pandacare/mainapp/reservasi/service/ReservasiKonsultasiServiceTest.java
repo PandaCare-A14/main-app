@@ -188,7 +188,7 @@ public class ReservasiKonsultasiServiceTest {
     }
 
     @Test
-    void rejectChangeReservasi_shouldClearChangeRequest() {
+    void rejectChangeReservasi_shouldSetStatusToRejected() {
         ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
         reservasi.setId(reservationId);
         reservasi.setIdPacilian("pac123");
@@ -197,11 +197,15 @@ public class ReservasiKonsultasiServiceTest {
         reservasi.setIdSchedule(schedule);
 
         when(repository.findById(reservationId)).thenReturn(Optional.of(reservasi));
+        when(repository.save(any(ReservasiKonsultasi.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.rejectChangeReservasi(reservationId);
 
+        assertEquals(StatusReservasiKonsultasi.REJECTED, reservasi.getStatusReservasi());
+
         verify(repository).findById(reservationId);
-        verify(repository).deleteById(reservationId);
+        verify(repository).save(reservasi);
+        verify(repository, never()).deleteById(anyString());
     }
 
     @Test
