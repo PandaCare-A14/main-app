@@ -73,7 +73,6 @@ public class ReservasiKonsultasiServiceImpl {
         reservasi.rejectChangeAsPacilian();
 
         repository.save(reservasi);
-        repository.deleteById(id);
     }
 
     public ReservasiKonsultasi findById(String id) {
