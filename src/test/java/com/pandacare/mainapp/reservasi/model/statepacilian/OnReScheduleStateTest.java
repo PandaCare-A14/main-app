@@ -1,7 +1,8 @@
+package com.pandacare.mainapp.reservasi.model.statepacilian;
+
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.model.statepacilian.OnReScheduleState;
 import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;
