@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/reservasi-konsultasi")
@@ -60,8 +61,12 @@ public class ReservasiKonsultasiController {
 
     @GetMapping("/{idPasien}")
     public ResponseEntity<?> getAllReservasiByPasien(@PathVariable String idPasien) {
-        List<ReservasiKonsultasi> reservasiList = reservasiService.findAllByPasien(idPasien);
-        return ResponseEntity.ok(reservasiList);
+        try {
+            List<?> reservations = reservasiService.findAllByPasien(idPasien).get();
+            return ResponseEntity.ok(reservations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PostMapping("/{id}/accept-change")
