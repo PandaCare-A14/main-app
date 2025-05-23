@@ -43,18 +43,6 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation ("jakarta.validation:jakarta.validation-api:3.0.2")
-	implementation ("org.hibernate.validator:hibernate-validator:7.0.1.Final")
-	implementation ("org.postgresql:postgresql:42.7.2")
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation ("org.postgresql:postgresql:42.7.1")
-	implementation("org.springframework.boot:spring-boot-starter-actuator")
-
-	runtimeOnly ("org.postgresql:postgresql")
-	runtimeOnly ("com.h2database:h2")
-
-	implementation ("jakarta.validation:jakarta.validation-api:3.0.2")
-	implementation ("org.hibernate.validator:hibernate-validator:8.0.0.Final")
 
 	compileOnly("org.projectlombok:lombok")
 
@@ -70,9 +58,15 @@ dependencies {
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
 	testImplementation ("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("com.h2database:h2")
+    testImplementation("org.springframework.security:spring-security-test")
 
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+
+  	// For authorization
+  	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
 }
 
 tasks.register<Test>("unitTest") {
