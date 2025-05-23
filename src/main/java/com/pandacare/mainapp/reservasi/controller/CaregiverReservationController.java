@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/api/doctors")
+@RequestMapping("/api/caregivers")
 public class CaregiverReservationController {
     private final CaregiverReservationService reservationService;
     private static final Set<String> ALLOWED_STATUSES = Arrays.stream(StatusReservasiKonsultasi.values())

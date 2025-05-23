@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/doctors")
+@RequestMapping("/api/caregivers")
 @CrossOrigin(origins = "*")
 public class CaregiverScheduleController {
     private final CaregiverScheduleService scheduleService;

@@ -1,4 +1,4 @@
-package com.pandacare.mainapp.reservasi.model.statepacilian;
+package com.pandacare.mainapp.reservasi.model.statePacilian;
 
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;

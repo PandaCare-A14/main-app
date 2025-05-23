@@ -1,5 +1,5 @@
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.model.statepacilian.RejectedState;
+import com.pandacare.mainapp.reservasi.model.statePacilian.RejectedState;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

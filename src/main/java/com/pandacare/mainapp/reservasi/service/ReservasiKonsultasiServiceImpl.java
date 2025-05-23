@@ -3,7 +3,7 @@ package com.pandacare.mainapp.reservasi.service;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.model.statepacilian.StateFactory;
+import com.pandacare.mainapp.reservasi.model.statePacilian.StateFactory;
 import com.pandacare.mainapp.reservasi.repository.ReservasiKonsultasiRepository;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
 //import com.pandacare.mainapp.reservasi.service.template.AcceptChangeReservasiHandler;

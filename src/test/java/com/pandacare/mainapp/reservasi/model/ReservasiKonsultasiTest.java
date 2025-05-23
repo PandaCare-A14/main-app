@@ -2,7 +2,7 @@ package com.pandacare.mainapp.reservasi.model;
 
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.model.state.*;
+import com.pandacare.mainapp.reservasi.model.stateCaregiver.*;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

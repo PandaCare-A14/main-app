@@ -3,9 +3,9 @@ package com.pandacare.mainapp.reservasi.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.model.statepacilian.ReservasiStatePacilian;
+import com.pandacare.mainapp.reservasi.model.statePacilian.ReservasiStatePacilian;
 import jakarta.persistence.*;
-import com.pandacare.mainapp.reservasi.model.state.*;
+import com.pandacare.mainapp.reservasi.model.stateCaregiver.*;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
 import jakarta.annotation.PostConstruct;
 
@@ -13,7 +13,7 @@ import lombok.Data;
 
 import java.time.LocalTime;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.context.annotation.Lazy;
 
 
@@ -31,10 +31,6 @@ public class ReservasiKonsultasi {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_schedule")
     private CaregiverSchedule idSchedule;
-
-    @ManyToOne(fetch = FetchType.EAGER) // For rescheduling
-    @JoinColumn(name = "proposed_schedule_id")
-    private CaregiverSchedule proposedSchedule;
 
     @Column
     private String idPacilian;
