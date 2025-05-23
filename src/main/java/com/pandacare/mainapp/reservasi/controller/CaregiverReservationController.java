@@ -56,7 +56,7 @@ public class CaregiverReservationController {
 
     @PatchMapping("/reservations/{reservationId}/status")
     public ResponseEntity<ReservasiKonsultasi> updateStatus(
-            @PathVariable String reservationId,
+            @PathVariable UUID reservationId,
             @RequestBody @Valid UpdateStatusDTO dto) {
         try {
             if (dto.getStatus() == StatusReservasiKonsultasi.ON_RESCHEDULE && dto.getNewScheduleId() == null) {
@@ -96,7 +96,7 @@ public class CaregiverReservationController {
     }
 
     @GetMapping("/reservations/{reservationId}")
-    public ResponseEntity<ReservasiKonsultasi> getReservationById(@PathVariable String reservationId) {
+    public ResponseEntity<ReservasiKonsultasi> getReservationById(@PathVariable UUID reservationId) {
         try {
             ReservasiKonsultasi reservation = reservationService.getReservationOrThrow(reservationId);
             return ResponseEntity.ok(reservation);
