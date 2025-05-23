@@ -3,10 +3,12 @@ package com.pandacare.mainapp.doctor_profile.service;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileListResponse;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileResponse;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface DoctorProfileService {
-    DoctorProfileListResponse findAll();
-    DoctorProfileResponse findById(String id);
-    DoctorProfileListResponse findByName(String name);
-    DoctorProfileListResponse findBySpeciality(String speciality);
-    DoctorProfileListResponse findByWorkSchedule(String workSchedule);
+    CompletableFuture<DoctorProfileListResponse> findAll();
+    CompletableFuture<DoctorProfileResponse> findById(String id);
+    CompletableFuture<DoctorProfileListResponse> findByName(String name);
+    CompletableFuture<DoctorProfileListResponse> findBySpeciality(String speciality);
+    CompletableFuture<DoctorProfileListResponse> findByWorkSchedule(String workSchedule);
 }

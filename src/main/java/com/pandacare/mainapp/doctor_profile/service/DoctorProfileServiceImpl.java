@@ -8,6 +8,7 @@ import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.service.RatingService;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,24 +35,24 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public DoctorProfileListResponse findAll() {
+    @Async
+    public CompletableFuture<DoctorProfileListResponse> findAll() {
         List<Caregiver> caregivers = doctorProfileRepository.findAll();
-        return getDoctorProfileListResponse(caregivers);
+        return CompletableFuture.completedFuture(getDoctorProfileListResponse(caregivers));
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public DoctorProfileResponse findById(String id) {
+    @Async
+    public CompletableFuture<DoctorProfileResponse> findById(String id) {
         try {
             UUID uuid = UUID.fromString(id);
             Caregiver caregiver = doctorProfileRepository.findById(uuid).orElse(null);
             if (caregiver == null) {
-                return null;
+                return CompletableFuture.completedFuture(null);  // Changed from return null
             }
 
             RatingListResponse ratingResponse = ratingService.getRatingsByDokter(id);
-            return new DoctorProfileResponse(
+            return CompletableFuture.completedFuture(new DoctorProfileResponse(
                     id,
                     caregiver.getName(),
                     caregiver.getEmail(),
@@ -60,35 +62,35 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
                     caregiver.getSpeciality(),
                     ratingResponse != null ? ratingResponse.getAverageRating() : 0.0,
                     ratingResponse != null ? ratingResponse.getTotalRatings() : 0
-            );
+            ));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid doctor ID format");
         }
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public DoctorProfileListResponse findByName(String name) {
+    @Async
+    public CompletableFuture<DoctorProfileListResponse> findByName(String name) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Name parameter cannot be empty");
         }
         List<Caregiver> caregivers = doctorProfileRepository.findByNameContainingIgnoreCase(name);
-        return getDoctorProfileListResponse(caregivers);
+        return CompletableFuture.completedFuture(getDoctorProfileListResponse(caregivers));
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public DoctorProfileListResponse findBySpeciality(String speciality) {
+    @Async
+    public CompletableFuture<DoctorProfileListResponse> findBySpeciality(String speciality) {
         if (speciality == null || speciality.trim().isEmpty()) {
             throw new IllegalArgumentException("Speciality parameter cannot be empty");
         }
         List<Caregiver> caregivers = doctorProfileRepository.findBySpecialityContainingIgnoreCase(speciality);
-        return getDoctorProfileListResponse(caregivers);
+        return CompletableFuture.completedFuture(getDoctorProfileListResponse(caregivers));
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public DoctorProfileListResponse findByWorkSchedule(String workSchedule) {
+    @Async
+    public CompletableFuture<DoctorProfileListResponse> findByWorkSchedule(String workSchedule) {
         if (workSchedule == null || workSchedule.trim().isEmpty()) {
             throw new IllegalArgumentException("Work schedule parameter cannot be empty");
         }
@@ -112,8 +114,8 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
                 throw new IllegalArgumentException("Start time cannot be after end time");
             }
 
-            List<Caregiver> caregivers = doctorProfileRepository.findByWorkScheduleAvailable(day, searchStart, searchEnd);
-            return getDoctorProfileListResponse(caregivers);
+            List<Caregiver> caregivers = doctorProfileRepository.findByWorkingSchedulesAvailable(day, searchStart, searchEnd);
+            return CompletableFuture.completedFuture(getDoctorProfileListResponse(caregivers));
 
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Invalid time format. Use HH:mm format for times");
