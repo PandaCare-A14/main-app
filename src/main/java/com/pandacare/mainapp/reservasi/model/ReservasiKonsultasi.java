@@ -3,44 +3,67 @@ package com.pandacare.mainapp.reservasi.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
+import com.pandacare.mainapp.reservasi.model.statepacilian.ReservasiStatePacilian;
+import jakarta.persistence.*;
 import com.pandacare.mainapp.reservasi.model.state.*;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
 import jakarta.annotation.PostConstruct;
-import jakarta.persistence.*;
 
 import lombok.Data;
+
+import java.time.LocalTime;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
-import java.util.UUID;
 
 @Entity
 @Table(name = "reservasi_konsultasi")
 @Data
 public class ReservasiKonsultasi {
     @Id
-    private String idReservasi;
-    @OneToOne
-    @JoinColumn(name = "schedule_id")
-    private CaregiverSchedule idSchedule;
-    @Column(name = "pacilian_id", nullable = false)
-    private String idPacilian;
+    @Column(name = "id")
+    private String id;
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "status_reservasi", nullable = false)
     private StatusReservasiKonsultasi statusReservasi;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_schedule")
+    private CaregiverSchedule idSchedule;
+
+    @ManyToOne(fetch = FetchType.EAGER) // For rescheduling
+    @JoinColumn(name = "proposed_schedule_id")
+    private CaregiverSchedule proposedSchedule;
+
+    @Column
+    private String idPacilian;
+
     @Column
     private String pacilianNote;
+
     @Transient
     @JsonIgnore
     private ReservasiState currentState;
+
     @Transient
     @JsonIgnore
-    @Autowired
     @Lazy
     private ScheduleService scheduleService;
 
+    @Transient
+    @JsonIgnore
+    private ReservasiStatePacilian statePacilian;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            id = UUID.randomUUID().toString();
+        }
+    }
+
     public ReservasiKonsultasi() {
-        this.idReservasi = UUID.randomUUID().toString();
+        this.id = UUID.randomUUID().toString();
         this.statusReservasi = StatusReservasiKonsultasi.WAITING;
     }
 
@@ -113,5 +136,48 @@ public class ReservasiKonsultasi {
             default:
                 this.currentState = new RequestedState(scheduleService);
         }
+    }
+
+    // State methods for pacilian
+    public void setStatePacilian(ReservasiStatePacilian status) {
+        this.statePacilian = status;
+    }
+
+    public void editAsPacilian(String newDay, String newStartTime, String newEndTime) {
+        if (statePacilian == null) {
+            throw new IllegalStateException("State Pacilian belum diset.");
+        }
+        statePacilian.edit(this, newDay, newStartTime, newEndTime);
+    }
+
+    public void acceptChangeAsPacilian() {
+        if (statePacilian == null) {
+            throw new IllegalStateException("State Pacilian belum diset.");
+        }
+        statePacilian.acceptChange(this);
+    }
+
+    public void rejectChangeAsPacilian() {
+        if (statePacilian == null) {
+            throw new IllegalStateException("State Pacilian belum diset.");
+        }
+        statePacilian.rejectChange(this);
+    }
+
+    // Access methods for schedule properties
+    public String getDay() {
+        return idSchedule != null ? idSchedule.getDay().toString() : null;
+    }
+
+    public LocalTime getStartTime() {
+        return idSchedule != null ? idSchedule.getStartTime() : null;
+    }
+
+    public LocalTime getEndTime() {
+        return idSchedule != null ? idSchedule.getEndTime() : null;
+    }
+
+    public String getIdCareGiver() {
+        return idSchedule != null ? idSchedule.getIdCaregiver().toString() : null;
     }
 }

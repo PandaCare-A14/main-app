@@ -113,8 +113,8 @@ class ReservasiKonsultasiTest {
 
     @Test
     void testConstructorGeneratesId() {
-        assertNotNull(reservasi.getIdReservasi());
-        assertFalse(reservasi.getIdReservasi().isEmpty());
+        assertNotNull(reservasi.getId());
+        assertFalse(reservasi.getId().isEmpty());
     }
 
     @Test
@@ -198,8 +198,8 @@ class ReservasiKonsultasiTest {
     @Test
     void testSetIdReservasi() {
         String customId = "CUSTOM-ID-123";
-        reservasi.setIdReservasi(customId);
-        assertEquals(customId, reservasi.getIdReservasi());
+        reservasi.setId(customId);
+        assertEquals(customId, reservasi.getId());
     }
 
     @Test

@@ -52,7 +52,7 @@ class CaregiverReservationServiceImplTest {
         schedule.setStatus(ScheduleStatus.AVAILABLE);
 
         reservation = new ReservasiKonsultasi();
-        reservation.setIdReservasi(reservationId);
+        reservation.setId(reservationId);
         reservation.setIdPacilian("PAT12345");
         reservation.setIdSchedule(schedule);
         reservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
@@ -65,7 +65,7 @@ class CaregiverReservationServiceImplTest {
         List<ReservasiKonsultasi> result = service.getReservationsForCaregiver(caregiverId);
 
         assertEquals(1, result.size());
-        assertEquals(reservationId, result.getFirst().getIdReservasi());
+        assertEquals(reservationId, result.getFirst().getId());
         verify(reservasiRepository).findByCaregiverId(caregiverId);
     }
 
@@ -78,7 +78,7 @@ class CaregiverReservationServiceImplTest {
                 caregiverId, StatusReservasiKonsultasi.WAITING);
 
         assertEquals(1, result.size());
-        assertEquals(reservationId, result.getFirst().getIdReservasi());
+        assertEquals(reservationId, result.getFirst().getId());
         assertEquals(StatusReservasiKonsultasi.WAITING, result.getFirst().getStatusReservasi());
         verify(reservasiRepository).findByCaregiverIdAndStatus(caregiverId, StatusReservasiKonsultasi.WAITING);
     }
@@ -92,7 +92,7 @@ class CaregiverReservationServiceImplTest {
                 caregiverId, DayOfWeek.MONDAY);
 
         assertEquals(1, result.size());
-        assertEquals(reservationId, result.getFirst().getIdReservasi());
+        assertEquals(reservationId, result.getFirst().getId());
         assertEquals(DayOfWeek.MONDAY, result.getFirst().getIdSchedule().getDay());
         verify(reservasiRepository).findByCaregiverIdAndDay(caregiverId, DayOfWeek.MONDAY);
     }
@@ -105,7 +105,7 @@ class CaregiverReservationServiceImplTest {
         List<ReservasiKonsultasi> result = service.getWaitingReservations(caregiverId);
 
         assertEquals(1, result.size());
-        assertEquals(reservationId, result.getFirst().getIdReservasi());
+        assertEquals(reservationId, result.getFirst().getId());
         verify(reservasiRepository).findByCaregiverIdAndStatus(caregiverId, StatusReservasiKonsultasi.WAITING);
     }
 
@@ -117,7 +117,7 @@ class CaregiverReservationServiceImplTest {
 
         ReservasiKonsultasi result = service.approveReservation(reservationId);
 
-        assertEquals(reservationId, result.getIdReservasi());
+        assertEquals(reservationId, result.getId());
         assertEquals(StatusReservasiKonsultasi.APPROVED, result.getStatusReservasi());
         verify(reservasiRepository).findById(reservationId);
         verify(scheduleService).updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
@@ -132,7 +132,7 @@ class CaregiverReservationServiceImplTest {
 
         ReservasiKonsultasi result = service.rejectReservation(reservationId);
 
-        assertEquals(reservationId, result.getIdReservasi());
+        assertEquals(reservationId, result.getId());
         assertEquals(StatusReservasiKonsultasi.REJECTED, result.getStatusReservasi());
         verify(reservasiRepository).findById(reservationId);
         verify(scheduleService).updateScheduleStatus(schedule, ScheduleStatus.AVAILABLE);
@@ -151,7 +151,7 @@ class CaregiverReservationServiceImplTest {
 
         ReservasiKonsultasi result = service.changeSchedule(reservationId, newScheduleId);
 
-        assertEquals(reservationId, result.getIdReservasi());
+        assertEquals(reservationId, result.getId());
         verify(scheduleService).updateScheduleStatus(schedule, ScheduleStatus.AVAILABLE);
         verify(scheduleService).updateScheduleStatus(newSchedule, ScheduleStatus.UNAVAILABLE);
         verify(reservasiRepository).save(any(ReservasiKonsultasi.class));
@@ -164,7 +164,7 @@ class CaregiverReservationServiceImplTest {
 
         ReservasiKonsultasi result = service.getReservationOrThrow(reservationId);
 
-        assertEquals(reservationId, result.getIdReservasi());
+        assertEquals(reservationId, result.getId());
         verify(reservasiRepository).findById(reservationId);
     }
 

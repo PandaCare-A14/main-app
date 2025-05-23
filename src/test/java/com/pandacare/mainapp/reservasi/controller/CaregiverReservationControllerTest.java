@@ -39,7 +39,7 @@ public class CaregiverReservationControllerTest {
         caregiverId = UUID.randomUUID();
 
         mockReservation = new ReservasiKonsultasi();
-        mockReservation.setIdReservasi("RES-001");
+        mockReservation.setId("RES-001");
         mockReservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
     }
 
@@ -49,7 +49,7 @@ public class CaregiverReservationControllerTest {
 
         mockMvc.perform(get("/api/doctors/{caregiverId}/reservations", caregiverId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].idReservasi").value(reservationId));
+                .andExpect(jsonPath("$[0].id").value(reservationId));
     }
 
     @Test
@@ -68,7 +68,7 @@ public class CaregiverReservationControllerTest {
 
         mockMvc.perform(get("/api/doctors/reservations/RES-001"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.idReservasi").value("RES-001"));
+                .andExpect(jsonPath("$.id").value("RES-001"));
     }
 
     @Test
