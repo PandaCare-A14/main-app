@@ -12,18 +12,22 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
+@EnableAsync
 class DoctorProfileServiceImplTest {
 
     @InjectMocks
@@ -66,12 +70,13 @@ class DoctorProfileServiceImplTest {
     }
 
     @Test
-    void findAll_ShouldReturnDoctorProfileListResponse() {
+    void findAll_ShouldReturnDoctorProfileListResponse() throws ExecutionException, InterruptedException {
         when(doctorProfileRepository.findAll()).thenReturn(caregivers);
         when(ratingService.getRatingsByDokter(anyString()))
                 .thenReturn(new RatingListResponse(4.5, 10, Collections.emptyList()));
 
-        DoctorProfileListResponse response = doctorProfileService.findAll();
+        CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.findAll();
+        DoctorProfileListResponse response = future.get();
 
         assertNotNull(response);
         assertEquals(2, response.getDoctorProfiles().size());
@@ -81,13 +86,14 @@ class DoctorProfileServiceImplTest {
     }
 
     @Test
-    void findById_ShouldReturnDoctorProfileResponse() {
+    void findById_ShouldReturnDoctorProfileResponse() throws ExecutionException, InterruptedException {
         UUID doctorId = caregivers.get(0).getId();
         when(doctorProfileRepository.findById(doctorId)).thenReturn(Optional.of(caregivers.get(0)));
         when(ratingService.getRatingsByDokter(doctorId.toString()))
                 .thenReturn(new RatingListResponse(4.9, 15, Collections.emptyList()));
 
-        DoctorProfileResponse response = doctorProfileService.findById(doctorId.toString());
+        CompletableFuture<DoctorProfileResponse> future = doctorProfileService.findById(doctorId.toString());
+        DoctorProfileResponse response = future.get();
 
         assertNotNull(response);
         assertEquals("Dr. Hafiz", response.getName());
@@ -100,29 +106,31 @@ class DoctorProfileServiceImplTest {
     @Test
     void findById_ShouldThrowException_WhenInvalidIdFormat() {
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findById("invalid-uuid");
+            doctorProfileService.findById("invalid-uuid").join();
         });
     }
 
     @Test
-    void findById_ShouldReturnNull_WhenNotFound() {
+    void findById_ShouldReturnNull_WhenNotFound() throws ExecutionException, InterruptedException {
         UUID nonExistentId = UUID.randomUUID();
         when(doctorProfileRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        DoctorProfileResponse response = doctorProfileService.findById(nonExistentId.toString());
+        CompletableFuture<DoctorProfileResponse> future = doctorProfileService.findById(nonExistentId.toString());
+        DoctorProfileResponse response = future.get();
 
         assertNull(response);
     }
 
     @Test
-    void findByName_ShouldReturnFilteredDoctors() {
+    void findByName_ShouldReturnFilteredDoctors() throws ExecutionException, InterruptedException {
         String searchName = "Hafiz";
         when(doctorProfileRepository.findByNameContainingIgnoreCase(searchName))
                 .thenReturn(Collections.singletonList(caregivers.get(0)));
         when(ratingService.getRatingsByDokter(anyString()))
                 .thenReturn(new RatingListResponse(4.9, 15, Collections.emptyList()));
 
-        DoctorProfileListResponse response = doctorProfileService.findByName(searchName);
+        CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.findByName(searchName);
+        DoctorProfileListResponse response = future.get();
 
         assertNotNull(response);
         assertEquals(1, response.getDoctorProfiles().size());
@@ -132,23 +140,24 @@ class DoctorProfileServiceImplTest {
     @Test
     void findByName_ShouldThrowException_WhenNameEmpty() {
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findByName("");
+            doctorProfileService.findByName("").join();
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findByName(null);
+            doctorProfileService.findByName(null).join();
         });
     }
 
     @Test
-    void findBySpeciality_ShouldReturnFilteredDoctors() {
+    void findBySpeciality_ShouldReturnFilteredDoctors() throws ExecutionException, InterruptedException {
         String speciality = "Cardio";
         when(doctorProfileRepository.findBySpecialityContainingIgnoreCase(speciality))
                 .thenReturn(Collections.singletonList(caregivers.get(0)));
         when(ratingService.getRatingsByDokter(anyString()))
                 .thenReturn(new RatingListResponse(4.9, 15, Collections.emptyList()));
 
-        DoctorProfileListResponse response = doctorProfileService.findBySpeciality(speciality);
+        CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.findBySpeciality(speciality);
+        DoctorProfileListResponse response = future.get();
 
         assertNotNull(response);
         assertEquals(1, response.getDoctorProfiles().size());
@@ -158,16 +167,16 @@ class DoctorProfileServiceImplTest {
     @Test
     void findBySpeciality_ShouldThrowException_WhenSpecialityEmpty() {
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findBySpeciality("");
+            doctorProfileService.findBySpeciality("").join();
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findBySpeciality(null);
+            doctorProfileService.findBySpeciality(null).join();
         });
     }
 
     @Test
-    void findByWorkSchedule_ShouldReturnAvailableDoctors() {
+    void findByWorkSchedule_ShouldReturnAvailableDoctors() throws ExecutionException, InterruptedException {
         String schedule = "MONDAY 10:00-11:00";
         when(doctorProfileRepository.findByWorkingSchedulesAvailable(
                 DayOfWeek.MONDAY,
@@ -177,7 +186,8 @@ class DoctorProfileServiceImplTest {
         when(ratingService.getRatingsByDokter(anyString()))
                 .thenReturn(new RatingListResponse(4.9, 15, Collections.emptyList()));
 
-        DoctorProfileListResponse response = doctorProfileService.findByWorkSchedule(schedule);
+        CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.findByWorkSchedule(schedule);
+        DoctorProfileListResponse response = future.get();
 
         assertNotNull(response);
         assertEquals(1, response.getDoctorProfiles().size());
@@ -186,38 +196,38 @@ class DoctorProfileServiceImplTest {
     @Test
     void findByWorkSchedule_ShouldThrowException_WhenInvalidFormat() {
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findByWorkSchedule("InvalidFormat");
+            doctorProfileService.findByWorkSchedule("InvalidFormat").join();
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findByWorkSchedule("MondayWithoutTime");
+            doctorProfileService.findByWorkSchedule("MondayWithoutTime").join();
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findByWorkSchedule("Monday 10:00-");
+            doctorProfileService.findByWorkSchedule("Monday 10:00-").join();
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findByWorkSchedule("Monday 25:00-12:00");
+            doctorProfileService.findByWorkSchedule("Monday 25:00-12:00").join();
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findByWorkSchedule("InvalidDay 10:00-11:00");
+            doctorProfileService.findByWorkSchedule("InvalidDay 10:00-11:00").join();
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findByWorkSchedule("MONDAY 11:00-10:00");
+            doctorProfileService.findByWorkSchedule("MONDAY 11:00-10:00").join();
         });
     }
 
     @Test
     void findByWorkSchedule_ShouldThrowException_WhenEmpty() {
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findByWorkSchedule("");
+            doctorProfileService.findByWorkSchedule("").join();
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findByWorkSchedule(null);
+            doctorProfileService.findByWorkSchedule(null).join();
         });
     }
 
