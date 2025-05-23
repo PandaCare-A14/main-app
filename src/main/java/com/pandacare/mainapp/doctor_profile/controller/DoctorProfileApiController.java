@@ -7,103 +7,183 @@ import com.pandacare.mainapp.doctor_profile.facade.DoctorFacade;
 import com.pandacare.mainapp.doctor_profile.service.DoctorProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/doctors")
+@EnableAsync
 public class DoctorProfileApiController {
 
     private final DoctorProfileService doctorProfileService;
     private final DoctorFacade doctorFacade;
+    private static final long ASYNC_TIMEOUT = 5000; // 5 seconds timeout
 
     public DoctorProfileApiController(DoctorProfileService doctorProfileService, DoctorFacade doctorFacade) {
         this.doctorProfileService = doctorProfileService;
         this.doctorFacade = doctorFacade;
     }
 
-    @GetMapping("/{doctorId}/actions")
-    public ResponseEntity<DoctorProfileResponse> getDoctorWithActions(
-            @PathVariable String doctorId,
-            @RequestParam String patientId
-    ) {
-        try {
-            DoctorProfileResponse response = doctorFacade.getDoctorProfileWithActions(doctorId, patientId);
-            return response != null ?
-                    ResponseEntity.ok(response) :
-                    ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+@GetMapping("/{doctorId}/actions")
+public DeferredResult<ResponseEntity<DoctorProfileResponse>> getDoctorWithActions(
+        @PathVariable String doctorId,
+        @RequestParam String patientId) {
+
+    DeferredResult<ResponseEntity<DoctorProfileResponse>> deferredResult = new DeferredResult<>(ASYNC_TIMEOUT);
+
+    doctorFacade.getDoctorProfileWithActions(doctorId, patientId)
+            .<ResponseEntity<DoctorProfileResponse>>thenApply(response ->
+                    response != null ?
+                            ResponseEntity.ok(response) :
+                            ResponseEntity.<DoctorProfileResponse>notFound().build())
+            .exceptionally(ex ->
+                    ResponseEntity.<DoctorProfileResponse>status(HttpStatus.INTERNAL_SERVER_ERROR).build())
+            .thenAccept(deferredResult::setResult);
+
+    deferredResult.onTimeout(() ->
+            deferredResult.setErrorResult(
+                    ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                            .body(new ErrorResponse("Request timeout occurred"))));
+
+    return deferredResult;
+}
 
     @GetMapping
-    public ResponseEntity<DoctorProfileListResponse> getAllDoctorProfiles() {
-        try {
-            DoctorProfileListResponse response = doctorProfileService.findAll();
-            return response != null ?
-                    ResponseEntity.ok(response) :
-                    ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public DeferredResult<ResponseEntity<DoctorProfileListResponse>> getAllDoctorProfiles() {
+        DeferredResult<ResponseEntity<DoctorProfileListResponse>> deferredResult = new DeferredResult<>(ASYNC_TIMEOUT);
+
+        doctorProfileService.findAll()
+                .<ResponseEntity<DoctorProfileListResponse>>thenApply(response ->
+                        response != null ?
+                                ResponseEntity.ok(response) :
+                                ResponseEntity.<DoctorProfileListResponse>notFound().build())
+                .exceptionally(ex ->
+                        ResponseEntity.<DoctorProfileListResponse>status(HttpStatus.INTERNAL_SERVER_ERROR).build())
+                .thenAccept(deferredResult::setResult);
+
+        deferredResult.onTimeout(() ->
+                deferredResult.setErrorResult(
+                        ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                                .body(new ErrorResponse("Request timeout occurred"))));
+
+        return deferredResult;
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DoctorProfileResponse> getDoctorProfile(@PathVariable String id) {
-        try {
-            DoctorProfileResponse response = doctorProfileService.findById(id);
-            return response != null ?
-                    ResponseEntity.ok(response) :
-                    ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public DeferredResult<ResponseEntity<?>> getDoctorProfile(@PathVariable String id) {
+        DeferredResult<ResponseEntity<?>> deferredResult = new DeferredResult<>(ASYNC_TIMEOUT);
+
+        doctorProfileService.findById(id)
+                .<ResponseEntity<?>>thenApply(response ->
+                        response != null ?
+                                ResponseEntity.ok(response) :
+                                ResponseEntity.notFound().build())
+                .exceptionally(ex -> {
+                    if (ex.getCause() instanceof IllegalArgumentException) {
+                        return ResponseEntity.badRequest()
+                                .body(new ErrorResponse(ex.getCause().getMessage()));
+                    }
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                })
+                .thenAccept(deferredResult::setResult);
+
+        deferredResult.onTimeout(() ->
+                deferredResult.setErrorResult(
+                        ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                                .body(new ErrorResponse("Request timeout occurred"))));
+
+        return deferredResult;
     }
 
     @GetMapping("/search/by-name")
-    public ResponseEntity<DoctorProfileListResponse> searchDoctorsByName(
+    public DeferredResult<ResponseEntity<?>> searchDoctorsByName(
             @RequestParam String name) {
-        try {
-            DoctorProfileListResponse response = doctorProfileService.findByName(name);
-            return response != null ?
-                    ResponseEntity.ok(response) :
-                    ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+
+        DeferredResult<ResponseEntity<?>> deferredResult = new DeferredResult<>(ASYNC_TIMEOUT);
+
+        doctorProfileService.findByName(name)
+                .<ResponseEntity<?>>thenApply(response ->
+                        response != null ?
+                                ResponseEntity.ok(response) :
+                                ResponseEntity.notFound().build())
+                .exceptionally(ex -> {
+                    if (ex.getCause() instanceof IllegalArgumentException) {
+                        return ResponseEntity.badRequest()
+                                .body(new ErrorResponse(ex.getCause().getMessage()));
+                    }
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                })
+                .thenAccept(deferredResult::setResult);
+
+        deferredResult.onTimeout(() ->
+                deferredResult.setErrorResult(
+                        ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                                .body(new ErrorResponse("Request timeout occurred"))));
+
+        return deferredResult;
     }
 
     @GetMapping("/search/by-speciality")
-    public ResponseEntity<DoctorProfileListResponse> searchDoctorsBySpeciality(
+    public DeferredResult<ResponseEntity<?>> searchDoctorsBySpeciality(
             @RequestParam String speciality) {
-        try {
-            DoctorProfileListResponse response = doctorProfileService.findBySpeciality(speciality);
-            return response != null ?
-                    ResponseEntity.ok(response) :
-                    ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+
+        DeferredResult<ResponseEntity<?>> deferredResult = new DeferredResult<>(ASYNC_TIMEOUT);
+
+        doctorProfileService.findBySpeciality(speciality)
+                .<ResponseEntity<?>>thenApply(response ->
+                        response != null ?
+                                ResponseEntity.ok(response) :
+                                ResponseEntity.notFound().build())
+                .exceptionally(ex -> {
+                    if (ex.getCause() instanceof IllegalArgumentException) {
+                        return ResponseEntity.badRequest()
+                                .body(new ErrorResponse(ex.getCause().getMessage()));
+                    }
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                })
+                .thenAccept(deferredResult::setResult);
+
+        deferredResult.onTimeout(() ->
+                deferredResult.setErrorResult(
+                        ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                                .body(new ErrorResponse("Request timeout occurred"))));
+
+        return deferredResult;
     }
 
     @GetMapping("/search/by-schedule")
-    public ResponseEntity<?> searchDoctorsBySchedule(
+    public DeferredResult<ResponseEntity<?>> searchDoctorsBySchedule(
             @RequestParam String day,
             @RequestParam String startTime,
             @RequestParam String endTime) {
-        try {
-            // Combine parameters into the expected format "Day HH:mm-HH:mm"
-            String workSchedule = String.format("%s %s-%s", day, startTime, endTime);
-            DoctorProfileListResponse response = doctorProfileService.findByWorkSchedule(workSchedule);
-            return response != null ?
-                    ResponseEntity.ok(response) :
-                    ResponseEntity.notFound().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse("Invalid schedule format: " + e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+
+        DeferredResult<ResponseEntity<?>> deferredResult = new DeferredResult<>(ASYNC_TIMEOUT);
+
+        String workSchedule = String.format("%s %s-%s", day, startTime, endTime);
+
+        doctorProfileService.findByWorkSchedule(workSchedule)
+                .<ResponseEntity<?>>thenApply(response ->
+                        response != null ?
+                                ResponseEntity.ok(response) :
+                                ResponseEntity.notFound().build())
+                .exceptionally(ex -> {
+                    if (ex.getCause() instanceof IllegalArgumentException) {
+                        return ResponseEntity.badRequest()
+                                .body(new ErrorResponse(ex.getCause().getMessage()));
+                    }
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                })
+                .thenAccept(deferredResult::setResult);
+
+        deferredResult.onTimeout(() ->
+                deferredResult.setErrorResult(
+                        ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                                .body(new ErrorResponse("Request timeout occurred"))));
+
+        return deferredResult;
     }
 }
