@@ -1,40 +1,44 @@
 package com.pandacare.mainapp.authentication.controller;
 
-import com.pandacare.mainapp.authentication.dto.AuthLoginRequest;
-import com.pandacare.mainapp.authentication.dto.AuthTokenResponse;
-import com.pandacare.mainapp.authentication.dto.AuthUserRegistrationRequest;
-import com.pandacare.mainapp.authentication.service.AuthService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private final AuthService authService;
+    private final RestTemplate restTemplate;
+    @Value("${rust.auth.base-url}")
+    private String rustAuthBaseUrl;
 
-    public AuthController(AuthService authService) {
-        this.authService = authService;
+    public AuthController(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthTokenResponse> login(@RequestBody AuthLoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
+        String url = rustAuthBaseUrl + "/token/obtain";
+        return restTemplate.postForEntity(url, request, Object.class);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody AuthUserRegistrationRequest request) {
-        return ResponseEntity.ok(authService.register(request));
+    public ResponseEntity<?> register(@RequestBody Map<String, Object> request) {
+        String url = rustAuthBaseUrl + "/register";
+        return restTemplate.postForEntity(url, request, Object.class);
     }
 
     @PostMapping("/token/refresh")
-    public ResponseEntity<AuthTokenResponse> refreshToken(@RequestBody Map<String, String> request) {
-        return ResponseEntity.ok(authService.refreshToken(request.get("refresh_token")));
+    public ResponseEntity<?> refresh(@RequestBody Map<String, String> request) {
+        String url = rustAuthBaseUrl + "/token/refresh";
+        return restTemplate.postForEntity(url, request, Object.class);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestBody Map<String, String> request) {
-        return ResponseEntity.ok(authService.logout(request.get("refresh_token")));
+    public ResponseEntity<?> logout(@RequestBody Map<String, String> request) {
+        String url = rustAuthBaseUrl + "/token/revoke";
+        return restTemplate.postForEntity(url, request, Object.class);
     }
 }

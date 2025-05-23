@@ -50,20 +50,19 @@ dependencies {
 	testImplementation ("org.springframework.boot:spring-boot-starter-test")
 	implementation ("jakarta.validation:jakarta.validation-api:3.0.2")
 	implementation ("org.hibernate.validator:hibernate-validator:8.0.0.Final")
-
+	implementation ("io.micrometer:micrometer-registry-prometheus")
+	implementation ("org.springframework.boot:spring-boot-starter-actuator")
+	implementation ("org.springframework.boot:spring-boot-starter-security")
+	implementation ("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 	compileOnly("org.projectlombok:lombok")
-
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
-
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	annotationProcessor("org.projectlombok:lombok")
-
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.seleniumhq.selenium:selenium-java:$seleniumJavaVersion")
 	testImplementation("io.github.bonigarcia:selenium-jupiter:$seleniumJupiterVersion")
 	testImplementation("io.github.bonigarcia:webdrivermanager:$webdrivermanagerVersion")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 }
