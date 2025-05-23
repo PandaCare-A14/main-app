@@ -7,9 +7,9 @@ public class WaitingState implements ReservasiStatePacilian {
 
     @Override
     public void edit(ReservasiKonsultasi r, String newDay, String newStartTime, String newEndTime) {
-        r.setDay(newDay);
-        r.setStartTime(LocalTime.parse(newStartTime));
-        r.setEndTime(LocalTime.parse(newEndTime));
+    //        r.setDay(newDay);
+    //        r.setStartTime(LocalTime.parse(newStartTime));
+    //        r.setEndTime(LocalTime.parse(newEndTime));
     }
 
     @Override

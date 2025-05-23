@@ -34,23 +34,35 @@ public class ReservasiKonsultasiServiceImpl {
         }
 
         ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
-        reservasi.setIdDokter(schedule.getIdCaregiver().toString());
         reservasi.setIdPacilian(idPacilian);
         reservasi.setIdSchedule(schedule);
-        reservasi.setDay(schedule.getDay().toString());
-        reservasi.setStartTime(schedule.getStartTime());
-        reservasi.setEndTime(schedule.getEndTime());
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
 
         return repository.save(reservasi);
     }
 
-    public ReservasiKonsultasi editReservasi(String id, String newDay, String newStartTime, String newEndTime) {
+    public ReservasiKonsultasi editReservasi(String id, UUID newScheduleId) {
         ReservasiKonsultasi reservasi = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservasi tidak ditemukan"));
 
+        if (reservasi.getStatusReservasi() != StatusReservasiKonsultasi.WAITING) {
+            throw new IllegalStateException("Tidak bisa mengedit reservasi yang sudah disetujui.");
+        }
+
+        CaregiverSchedule newSchedule = scheduleService.getById(newScheduleId);
+
+        if (!scheduleService.isScheduleAvailable(newScheduleId)) {
+            throw new IllegalArgumentException("Jadwal baru tidak tersedia");
+        }
+
         reservasi.setStatePacilian(StateFactory.from(reservasi.getStatusReservasi()));
+
+        String newDay = newSchedule.getDay().toString();
+        String newStartTime = newSchedule.getStartTime().toString();
+        String newEndTime = newSchedule.getEndTime().toString();
+
         reservasi.editAsPacilian(newDay, newStartTime, newEndTime);
+        reservasi.setIdSchedule(newSchedule);
 
         return repository.save(reservasi);
     }

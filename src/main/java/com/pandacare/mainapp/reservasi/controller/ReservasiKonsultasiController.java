@@ -22,14 +22,21 @@ public class ReservasiKonsultasiController {
     @PostMapping("/request")
     public ResponseEntity<?> requestReservasi(@RequestBody Map<String, String> body) {
         try {
-            UUID idSchedule = UUID.fromString(body.get("idSchedule")); // Ambil ID jadwal langsung
-            String idPacilian = body.get("idPacilian"); // Ambil ID pasien
+            UUID idSchedule = UUID.fromString(body.get("idSchedule"));
+            String idPacilian = body.get("idPacilian");
 
             ReservasiKonsultasi result = reservasiService.requestReservasi(idSchedule, idPacilian);
 
+            Map<String, Object> reservasiMap = new HashMap<>();
+            reservasiMap.put("idReservasi", result.getId());
+            reservasiMap.put("idSchedule", result.getIdSchedule());
+            reservasiMap.put("idPacilian", result.getIdPacilian());
+            reservasiMap.put("statusReservasi", result.getStatusReservasi());
+            reservasiMap.put("pacilianNote", result.getPacilianNote());
+
             return ResponseEntity.ok(Map.of(
                     "message", "Jadwal konsultasi berhasil diajukan",
-                    "reservasi", result
+                    "reservasi", reservasiMap
             ));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -40,12 +47,8 @@ public class ReservasiKonsultasiController {
     @PostMapping("/{id}/edit")
     public ResponseEntity<?> editReservasi(@PathVariable String id, @RequestBody Map<String, String> request) {
         try {
-            ReservasiKonsultasi updated = reservasiService.editReservasi(
-                    id,
-                    request.get("day"),
-                    request.get("startTime"),
-                    request.get("endTime")
-            );
+            UUID newScheduleId = UUID.fromString(request.get("idSchedule"));
+            ReservasiKonsultasi updated = reservasiService.editReservasi(id, newScheduleId);
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Reservasi updated successfully");
             response.put("reservasi", updated);

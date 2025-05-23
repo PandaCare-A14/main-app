@@ -7,5 +7,4 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface PacillianRepository extends JpaRepository<Pacillian, UUID> {
-}
+public interface PacillianRepository extends JpaRepository<Pacillian, UUID> {}
