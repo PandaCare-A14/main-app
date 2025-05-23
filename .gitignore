@@ -38,3 +38,5 @@ out/
 .vscode/
 
 target
+.env
+env

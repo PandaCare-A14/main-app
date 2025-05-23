@@ -1,10 +1,11 @@
 package com.pandacare.mainapp.konsultasi_dokter.service;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.konsultasi_dokter.model.strategy.CreateIntervalStrategy;
 import com.pandacare.mainapp.konsultasi_dokter.model.strategy.CreateManualStrategy;
 import com.pandacare.mainapp.konsultasi_dokter.repository.CaregiverScheduleRepository;
+
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,8 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,10 +22,12 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
     private final CaregiverScheduleRepository repository;
     private final CreateManualStrategy manualStrategy;
     private final CreateIntervalStrategy intervalStrategy;
+    private final SlotValidatorService slotValidator;
 
     @Autowired
-    public CaregiverScheduleServiceImpl(CaregiverScheduleRepository repository) {
+    public CaregiverScheduleServiceImpl(CaregiverScheduleRepository repository, SlotValidatorService slotValidator) {
         this.repository = repository;
+        this.slotValidator = slotValidator;
         this.manualStrategy = new CreateManualStrategy();
         this.intervalStrategy = new CreateIntervalStrategy();
     }
@@ -67,9 +70,11 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
 
     @Override
     @Transactional
-    public List<CaregiverSchedule> createRepeatedMultipleSchedules(UUID idCaregiver, DayOfWeek day, LocalTime startTime, LocalTime endTime, int weeks) {
+    public List<CaregiverSchedule> createRepeatedMultipleSchedules(UUID idCaregiver, DayOfWeek day,
+                                                                   LocalTime startTime, LocalTime endTime, int weeks) {
         List<CaregiverSchedule> allSlots = intervalStrategy.createRepeated(idCaregiver, day, startTime, endTime, weeks);
-        List<CaregiverSchedule> availableSlots = filterAvailableSlotsWithDate(allSlots);
+
+        List<CaregiverSchedule> availableSlots = filterAvailableSlotsAsync(allSlots);
 
         if (availableSlots.isEmpty()) {
             throw new RuntimeException("All requested slots overlap with existing schedules.");
@@ -95,7 +100,8 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
 
     @Override
     public CaregiverSchedule getSchedulesByCaregiverAndIdSchedule(UUID idCaregiver, UUID idSchedule) {
-        return repository.findByIdCaregiverAndIdSchedule(idCaregiver, idSchedule).orElseThrow(() -> new EntityNotFoundException("Schedule not found with id: " + idSchedule + " and caregiver: " + idCaregiver));
+        return repository.findByIdCaregiverAndIdSchedule(idCaregiver, idSchedule)
+                .orElseThrow(() -> new EntityNotFoundException("Schedule not found with id: " + idSchedule + " and caregiver: " + idCaregiver));
     }
 
     @Override
@@ -125,5 +131,23 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
                         slot.getIdCaregiver(), slot.getDay(), slot.getDate(),
                         slot.getStartTime(), slot.getEndTime()))
                 .collect(Collectors.toList());
+    }
+
+    private List<CaregiverSchedule> filterAvailableSlotsAsync(List<CaregiverSchedule> slots) {
+        List<CompletableFuture<Boolean>> futures = new ArrayList<>();
+        for (CaregiverSchedule slot : slots) {
+            futures.add(slotValidator.isSlotValid(slot));
+        }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        List<CaregiverSchedule> validSlots = new ArrayList<>();
+        for (int i = 0; i < slots.size(); i++) {
+            if (futures.get(i).join()) {
+                validSlots.add(slots.get(i));
+            }
+        }
+
+        return validSlots;
     }
 }
