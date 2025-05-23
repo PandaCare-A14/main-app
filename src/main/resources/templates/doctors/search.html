@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Doctors - PandaCare</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchTypeSelect = document.getElementById('searchType');
+            const keywordField = document.getElementById('keywordField');
+            const scheduleFields = document.getElementById('scheduleFields');
+
+            function toggleFields() {
+                if (searchTypeSelect.value === 'schedule') {
+                    keywordField.classList.add('hidden');
+                    scheduleFields.classList.remove('hidden');
+                } else {
+                    keywordField.classList.remove('hidden');
+                    scheduleFields.classList.add('hidden');
+                }
+            }
+
+            // Initial check
+            toggleFields();
+
+            // Change event listener
+            searchTypeSelect.addEventListener('change', toggleFields);
+        });
+    </script>
+</head>
+<body class="bg-gray-50">
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-8">Find Doctors</h1>
+
+    <!-- Search Form -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <form th:action="@{/doctors/search}" method="get" class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                <label for="searchType" class="block text-sm font-medium text-gray-700 mb-1">Search By</label>
+                <select id="searchType" name="searchType" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="name" th:selected="${searchType == 'name'}">Name</option>
+                    <option value="speciality" th:selected="${searchType == 'speciality'}">Speciality</option>
+                    <option value="schedule" th:selected="${searchType == 'schedule'}">Work Schedule</option>
+                </select>
+            </div>
+
+            <!-- Default Keyword Input -->
+            <div class="flex-1" id="keywordField">
+                <label for="keyword" class="block text-sm font-medium text-gray-700 mb-1">Keyword</label>
+                <input type="text" id="keyword" name="keyword" th:value="${keyword != null} ? ${keyword} : ''"
+                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       placeholder="Enter search term...">
+            </div>
+
+            <!-- Schedule Fields (Hidden by default) -->
+            <div class="hidden flex-1" id="scheduleFields">
+                <div class="flex flex-col md:flex-row gap-2">
+                    <div class="flex-1">
+                        <label for="day" class="block text-sm font-medium text-gray-700">Day</label>
+                        <select id="day" name="day" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label for="startTime" class="block text-sm font-medium text-gray-700">Start Time</label>
+                        <input type="time" id="startTime" name="startTime"
+                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div class="flex-1">
+                        <label for="endTime" class="block text-sm font-medium text-gray-700">End Time</label>
+                        <input type="time" id="endTime" name="endTime"
+                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-end">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition duration-200">
+                    Search
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Error Message -->
+    <div th:if="${error}" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+        <p th:text="${error}"></p>
+    </div>
+
+    <!-- Doctors List -->
+    <div th:if="${not #lists.isEmpty(doctors)}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div th:each="doctor : ${doctors}" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-200">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-100 text-blue-800 rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl">
+                        <span th:text="${doctor.name.substring(0,1)}"></span>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="font-bold text-lg text-gray-800" th:text="${doctor.name}"></h3>
+                        <p class="text-sm text-gray-600" th:text="${doctor.speciality}"></p>
+                    </div>
+                </div>
+                <div class="space-y-2 text-sm text-gray-600 mb-4">
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span th:text="${doctor.workAddress}"></span>
+                    </div>
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span th:text="${#maps.size(doctor.workSchedule)} + ' days available'"></span>
+                    </div>
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                        <span th:text="${doctor.rating} + ' / 5.0'"></span>
+                    </div>
+                </div>
+                <a th:href="@{/doctors/{id}(id=${doctor.id})}"
+                   class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-md transition duration-200">
+                    View Profile
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div th:if="${#lists.isEmpty(doctors)}" class="bg-white rounded-lg shadow-md p-8 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <h3 class="mt-2 text-lg font-medium text-gray-900">No doctors found</h3>
+        <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filter to find what you're looking for.</p>
+    </div>
+</div>
+</body>
+</html>

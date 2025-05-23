@@ -30,7 +30,8 @@ public class AuthController {
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(request, headers);
 
         try {
-            return restTemplate.postForEntity(url, entity, Object.class);
+            ResponseEntity<Object> response = restTemplate.postForEntity(url, entity, Object.class);
+            return response;
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Login failed", "details", e.getMessage()));
