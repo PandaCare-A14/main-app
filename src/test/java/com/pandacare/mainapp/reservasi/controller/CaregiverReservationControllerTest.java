@@ -30,16 +30,16 @@ public class CaregiverReservationControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
     private ReservasiKonsultasi mockReservation;
-    private String reservationId;
+    private UUID reservationId;
     private UUID caregiverId;
 
     @BeforeEach
     void setUp() {
-        reservationId = "RES-001";
+        reservationId = UUID.randomUUID();
         caregiverId = UUID.randomUUID();
 
         mockReservation = new ReservasiKonsultasi();
-        mockReservation.setId("RES-001");
+        mockReservation.setId(reservationId);
         mockReservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
     }
 
@@ -49,7 +49,7 @@ public class CaregiverReservationControllerTest {
 
         mockMvc.perform(get("/api/doctors/{caregiverId}/reservations", caregiverId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(reservationId));
+                .andExpect(jsonPath("$[0].id").value(reservationId.toString()));
     }
 
     @Test
@@ -64,19 +64,20 @@ public class CaregiverReservationControllerTest {
 
     @Test
     void testGetReservationById_Success() throws Exception {
-        when(reservationService.getReservationOrThrow("RES-001")).thenReturn(mockReservation);
+        when(reservationService.getReservationOrThrow(reservationId)).thenReturn(mockReservation);
 
-        mockMvc.perform(get("/api/doctors/reservations/RES-001"))
+        mockMvc.perform(get("/api/doctors/reservations/{id}", reservationId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("RES-001"));
+                .andExpect(jsonPath("$.id").value(reservationId.toString()));
     }
 
     @Test
     void testGetReservationById_NotFound() throws Exception {
-        when(reservationService.getReservationOrThrow("RES-404"))
+        UUID notFoundId = UUID.randomUUID();
+        when(reservationService.getReservationOrThrow(notFoundId))
                 .thenThrow(new EntityNotFoundException());
 
-        mockMvc.perform(get("/api/doctors/reservations/RES-404"))
+        mockMvc.perform(get("/api/doctors/reservations/{id}", notFoundId))
                 .andExpect(status().isNotFound());
     }
 
@@ -85,9 +86,9 @@ public class CaregiverReservationControllerTest {
         UpdateStatusDTO dto = new UpdateStatusDTO();
         dto.setStatus(StatusReservasiKonsultasi.APPROVED);
 
-        when(reservationService.approveReservation("RES-001")).thenReturn(mockReservation);
+        when(reservationService.approveReservation(reservationId)).thenReturn(mockReservation);
 
-        mockMvc.perform(patch("/api/doctors/reservations/RES-001/status")
+        mockMvc.perform(patch("/api/doctors/reservations/{id}/status", reservationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk());
@@ -98,9 +99,9 @@ public class CaregiverReservationControllerTest {
         UpdateStatusDTO dto = new UpdateStatusDTO();
         dto.setStatus(StatusReservasiKonsultasi.REJECTED);
 
-        when(reservationService.rejectReservation("RES-001")).thenReturn(mockReservation);
+        when(reservationService.rejectReservation(reservationId)).thenReturn(mockReservation);
 
-        mockMvc.perform(patch("/api/doctors/reservations/RES-001/status")
+        mockMvc.perform(patch("/api/doctors/reservations/{id}/status", reservationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk());
@@ -114,9 +115,9 @@ public class CaregiverReservationControllerTest {
         dto.setStatus(StatusReservasiKonsultasi.ON_RESCHEDULE);
         dto.setNewScheduleId(newScheduleId);
 
-        when(reservationService.changeSchedule("RES-001", newScheduleId)).thenReturn(mockReservation);
+        when(reservationService.changeSchedule(reservationId, newScheduleId)).thenReturn(mockReservation);
 
-        mockMvc.perform(patch("/api/doctors/reservations/RES-001/status")
+        mockMvc.perform(patch("/api/doctors/reservations/{id}/status", reservationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk());
@@ -127,7 +128,7 @@ public class CaregiverReservationControllerTest {
         UpdateStatusDTO dto = new UpdateStatusDTO();
         dto.setStatus(StatusReservasiKonsultasi.ON_RESCHEDULE);
 
-        mockMvc.perform(patch("/api/doctors/reservations/RES-001/status")
+        mockMvc.perform(patch("/api/doctors/reservations/{id}/status", reservationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
@@ -138,10 +139,10 @@ public class CaregiverReservationControllerTest {
         UpdateStatusDTO dto = new UpdateStatusDTO();
         dto.setStatus(StatusReservasiKonsultasi.APPROVED);
 
-        when(reservationService.approveReservation("RES-001"))
+        when(reservationService.approveReservation(reservationId))
                 .thenThrow(new IllegalStateException());
 
-        mockMvc.perform(patch("/api/doctors/reservations/RES-001/status")
+        mockMvc.perform(patch("/api/doctors/reservations/{id}/status", reservationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isConflict());
@@ -152,10 +153,10 @@ public class CaregiverReservationControllerTest {
         UpdateStatusDTO dto = new UpdateStatusDTO();
         dto.setStatus(StatusReservasiKonsultasi.APPROVED);
 
-        when(reservationService.approveReservation("RES-001"))
+        when(reservationService.approveReservation(reservationId))
                 .thenThrow(new EntityNotFoundException());
 
-        mockMvc.perform(patch("/api/doctors/reservations/RES-001/status")
+        mockMvc.perform(patch("/api/doctors/reservations/{id}/status", reservationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isNotFound());
