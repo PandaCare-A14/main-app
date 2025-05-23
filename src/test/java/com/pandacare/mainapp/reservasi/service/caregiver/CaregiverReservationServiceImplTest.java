@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -23,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class CaregiverReservationServiceImplTest {
     @Mock
@@ -42,9 +40,9 @@ class CaregiverReservationServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        reservationId = UUID.randomUUID();
-        caregiverId = UUID.randomUUID();
         UUID scheduleId = UUID.randomUUID();
+        caregiverId = UUID.randomUUID();
+        reservationId = UUID.randomUUID();
 
         schedule = new CaregiverSchedule();
         schedule.setId(scheduleId);
@@ -56,7 +54,7 @@ class CaregiverReservationServiceImplTest {
 
         reservation = new ReservasiKonsultasi();
         reservation.setId(reservationId);
-        reservation.setIdPacilian(UUID.randomUUID()); // assuming Pacilian ID is UUID now too
+        reservation.setIdPacilian(UUID.randomUUID());
         reservation.setIdSchedule(schedule);
         reservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
     }

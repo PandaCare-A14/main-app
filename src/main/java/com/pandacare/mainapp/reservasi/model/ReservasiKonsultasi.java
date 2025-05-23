@@ -13,9 +13,6 @@ import lombok.Data;
 
 import java.time.LocalTime;
 import java.util.UUID;
-
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -176,22 +173,7 @@ public class ReservasiKonsultasi {
         return idSchedule != null ? idSchedule.getEndTime() : null;
     }
 
-    public UUID getIdCaregiver() {
-        return idSchedule != null ? idSchedule.getIdCaregiver() : null;
-    }
-
-    public UUID setIdCaregiver(UUID id) {
-        if (idSchedule != null) {
-            idSchedule.setIdCaregiver(id);
-        }
-        return id;
-    }
-
-    public UUID getIdPasien() {
-        return idPacilian;
-    }
-
-    public void setIdPasien(UUID id) {
-        this.idPacilian = id;
+    public String getIdCareGiver() {
+        return idSchedule != null ? idSchedule.getIdCaregiver().toString() : null;
     }
 }

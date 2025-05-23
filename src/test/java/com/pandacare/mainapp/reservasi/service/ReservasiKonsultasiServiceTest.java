@@ -11,19 +11,19 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ActiveProfiles("test")
 public class ReservasiKonsultasiServiceTest {
 
     @Mock
@@ -40,16 +40,12 @@ public class ReservasiKonsultasiServiceTest {
     private CaregiverSchedule schedule;
     private UUID scheduleId;
     private UUID reservationId;
-    private UUID pacilianId;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
         scheduleId = UUID.randomUUID();
-        pacilianId = UUID.randomUUID();
-        reservationId = UUID.randomUUID();
-
         schedule = new CaregiverSchedule();
         schedule.setId(scheduleId);
         schedule.setDay(DayOfWeek.MONDAY);
@@ -57,15 +53,17 @@ public class ReservasiKonsultasiServiceTest {
         schedule.setEndTime(LocalTime.of(10, 0));
         schedule.setStatus(ScheduleStatus.AVAILABLE);
 
+        reservationId = UUID.randomUUID();
+
         waitingReservasi = new ReservasiKonsultasi();
         waitingReservasi.setId(reservationId);
-        waitingReservasi.setIdPacilian(pacilianId);
+        waitingReservasi.setIdPacilian(UUID.randomUUID());
         waitingReservasi.setIdSchedule(schedule);
         waitingReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
 
         approvedReservasi = new ReservasiKonsultasi();
-        approvedReservasi.setId(UUID.randomUUID());
-        approvedReservasi.setIdPacilian(pacilianId);
+        approvedReservasi.setId(UUID.randomUUID()); // Change from String to UUID
+        approvedReservasi.setIdPacilian(UUID.randomUUID());
         approvedReservasi.setIdSchedule(schedule);
         approvedReservasi.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
 
@@ -77,6 +75,7 @@ public class ReservasiKonsultasiServiceTest {
     void requestReservasi_shouldReturnWaitingStatus() {
         UUID scheduleId = UUID.randomUUID();
         UUID caregiverId = UUID.randomUUID();
+        UUID pacilianId = UUID.randomUUID();
 
         CaregiverSchedule schedule = new CaregiverSchedule();
         schedule.setId(scheduleId);
@@ -144,10 +143,11 @@ public class ReservasiKonsultasiServiceTest {
     @Test
     void editReservasi_shouldThrowException_whenReservasiNotFound() {
         UUID newScheduleId = UUID.randomUUID();
-        when(repository.findById(null)).thenReturn(Optional.empty());
+        UUID nonexistentId = UUID.randomUUID();
+        when(repository.findById(nonexistentId)).thenReturn(Optional.empty());
 
         Exception ex = assertThrows(IllegalArgumentException.class, () ->
-                service.editReservasi(UUID.randomUUID(), newScheduleId)
+                service.editReservasi(nonexistentId, newScheduleId)
         );
 
         assertEquals("Reservasi tidak ditemukan", ex.getMessage());
@@ -155,19 +155,56 @@ public class ReservasiKonsultasiServiceTest {
 
     @Test
     void editReservasi_shouldThrowException_whenStatusIsNotWaiting() {
-        when(repository.findById(approvedReservasi.getId())).thenReturn(Optional.of(approvedReservasi));
+        UUID jadwalId = UUID.randomUUID();
+        when(repository.findById(jadwalId)).thenReturn(Optional.of(approvedReservasi));
 
         Exception ex = assertThrows(IllegalStateException.class, () ->
-                service.editReservasi(approvedReservasi.getId(), UUID.randomUUID())
+                service.editReservasi(jadwalId, UUID.randomUUID())
         );
 
         assertEquals("Tidak bisa mengedit reservasi yang sudah disetujui.", ex.getMessage());
     }
 
     @Test
+    void acceptChangeReservasi_shouldApplyRequestedChanges() {
+        // Create a Thursday schedule
+        UUID proposedScheduleId = UUID.randomUUID();
+        CaregiverSchedule proposedSchedule = new CaregiverSchedule();
+        proposedSchedule.setId(proposedScheduleId);
+        proposedSchedule.setDay(DayOfWeek.THURSDAY);
+        proposedSchedule.setStartTime(LocalTime.of(10, 0));
+        proposedSchedule.setEndTime(LocalTime.of(11, 0));
+        proposedSchedule.setStatus(ScheduleStatus.AVAILABLE);
+
+        // Create reservation with ON_RESCHEDULE status
+        ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
+        reservasi.setId(reservationId);
+        UUID pacilianId = UUID.randomUUID();
+        reservasi.setIdPacilian(pacilianId);
+        reservasi.setStatusReservasi(StatusReservasiKonsultasi.ON_RESCHEDULE);
+        reservasi.setIdSchedule(proposedSchedule);
+
+        when(repository.findById(reservationId)).thenReturn(Optional.of(reservasi));
+        when(repository.save(any(ReservasiKonsultasi.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Call the service method
+        ReservasiKonsultasi result = service.acceptChangeReservasi(reservationId);
+
+        // Verify the result
+        assertEquals(StatusReservasiKonsultasi.APPROVED, result.getStatusReservasi());
+        // The schedule should remain the same - just verify the ID matches
+        assertEquals(proposedScheduleId, result.getIdSchedule().getId());
+
+        verify(repository).findById(reservationId);
+        verify(repository).save(any(ReservasiKonsultasi.class));
+        verify(repository, never()).deleteById(any(UUID.class));
+    }
+
+    @Test
     void rejectChangeReservasi_shouldSetStatusToRejected() {
         ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
         reservasi.setId(reservationId);
+        UUID pacilianId = UUID.randomUUID();
         reservasi.setIdPacilian(pacilianId);
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.ON_RESCHEDULE);
         reservasi.setIdSchedule(schedule);
@@ -181,16 +218,29 @@ public class ReservasiKonsultasiServiceTest {
 
         verify(repository).findById(reservationId);
         verify(repository).save(reservasi);
-        verify(repository, never()).deleteById(UUID.randomUUID());
+        verify(repository, never()).deleteById(any(UUID.class));
     }
 
     @Test
     void findAllByPasien_shouldReturnAllReservasiForGivenUser() {
         List<ReservasiKonsultasi> reservasiList = List.of(waitingReservasi, approvedReservasi);
+        UUID pacilianId = UUID.randomUUID();
+
+        waitingReservasi.setIdPacilian(pacilianId);
+        approvedReservasi.setIdPacilian(pacilianId);
 
         when(repository.findAllByIdPasien(pacilianId)).thenReturn(reservasiList);
 
-        List<ReservasiKonsultasi> result = service.findAllByPasien(pacilianId);
+        CompletableFuture<List<ReservasiKonsultasi>> futureResult = service.findAllByPasien(pacilianId);
+
+        // Wait for and get the result
+        List<ReservasiKonsultasi> result;
+        try {
+            result = futureResult.get();
+        } catch (InterruptedException | ExecutionException e) {
+            fail("Exception while getting future result: " + e.getMessage());
+            return;
+        }
 
         assertEquals(2, result.size());
         assertEquals(pacilianId, result.get(0).getIdPacilian());

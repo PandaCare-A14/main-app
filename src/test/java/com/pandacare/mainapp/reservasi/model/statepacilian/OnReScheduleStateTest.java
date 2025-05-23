@@ -13,6 +13,30 @@ import static org.junit.jupiter.api.Assertions.*;
 class OnReScheduleStateTest {
 
     @Test
+    void acceptChange_shouldApproveChange() {
+        CaregiverSchedule proposedSchedule = new CaregiverSchedule();
+        proposedSchedule.setId(UUID.randomUUID());
+        proposedSchedule.setDay(DayOfWeek.THURSDAY);
+        proposedSchedule.setStartTime(LocalTime.of(14, 0));
+        proposedSchedule.setEndTime(LocalTime.of(15, 0));
+
+        // Set up reservation with the proposed schedule already set
+        ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
+        reservasi.setIdSchedule(proposedSchedule); // Schedule is already updated
+        reservasi.setStatusReservasi(StatusReservasiKonsultasi.ON_RESCHEDULE);
+
+        OnReScheduleState state = new OnReScheduleState();
+        state.acceptChange(reservasi);
+
+        // Just check the status is updated to APPROVED
+        // The schedule should already be THURSDAY as set above
+        assertEquals(StatusReservasiKonsultasi.APPROVED, reservasi.getStatusReservasi());
+        assertEquals(DayOfWeek.THURSDAY.toString(), reservasi.getDay());
+        assertEquals(LocalTime.of(14, 0), reservasi.getStartTime());
+        assertEquals(LocalTime.of(15, 0), reservasi.getEndTime());
+    }
+
+    @Test
     void rejectChange_shouldRejectChange() {
         ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
         OnReScheduleState state = new OnReScheduleState();

@@ -9,14 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class ReservasiKonsultasiTest {
     private ReservasiKonsultasi reservasi;
@@ -198,9 +196,9 @@ class ReservasiKonsultasiTest {
 
     @Test
     void testSetIdReservasi() {
-        UUID id = UUID.randomUUID();
-        reservasi.setId(id);
-        assertEquals(id, reservasi.getId());
+        UUID customId = UUID.randomUUID();
+        reservasi.setId(customId);
+        assertEquals(customId, reservasi.getId());
     }
 
     @Test
