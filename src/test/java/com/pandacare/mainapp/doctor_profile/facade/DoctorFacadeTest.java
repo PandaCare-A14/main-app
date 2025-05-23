@@ -13,6 +13,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -44,7 +46,7 @@ class DoctorFacadeTest {
     }
 
     @Test
-    void getDoctorProfileWithActions_ShouldReturnProfileAndTriggerActions() {
+    void getDoctorProfileWithActions_ShouldReturnProfileAndTriggerActions() throws ExecutionException, InterruptedException {
         String caregiverId = "eb558e9f-1c39-460e-8860-71af6af63bd6";
         String patientId = "patient456";
         DoctorProfileResponse expectedResponse = new DoctorProfileResponse(
@@ -59,9 +61,10 @@ class DoctorFacadeTest {
                 10
         );
 
-        when(doctorProfileService.findById(caregiverId)).thenReturn(expectedResponse);
+        when(doctorProfileService.findById(caregiverId)).thenReturn(CompletableFuture.completedFuture(expectedResponse));
 
-        DoctorProfileResponse result = doctorFacade.getDoctorProfileWithActions(caregiverId, patientId);
+        CompletableFuture<DoctorProfileResponse> futureResult = doctorFacade.getDoctorProfileWithActions(caregiverId, patientId);
+        DoctorProfileResponse result = futureResult.get();
 
         assertAll(
                 () -> assertNotNull(result, "Result should not be null"),
@@ -74,8 +77,7 @@ class DoctorFacadeTest {
     }
 
     @Test
-    void getDoctorProfileWithActions_ShouldHandleNullPatientId() {
-        // Given
+    void getDoctorProfileWithActions_ShouldHandleNullPatientId() throws ExecutionException, InterruptedException {
         String caregiverId = "eb558e9f-1c39-460e-8860-71af6af63bd6";
         DoctorProfileResponse expectedResponse = new DoctorProfileResponse(
                 caregiverId,
@@ -89,12 +91,11 @@ class DoctorFacadeTest {
                 10
         );
 
-        when(doctorProfileService.findById(caregiverId)).thenReturn(expectedResponse);
+        when(doctorProfileService.findById(caregiverId)).thenReturn(CompletableFuture.completedFuture(expectedResponse));
 
-        // When
-        DoctorProfileResponse result = doctorFacade.getDoctorProfileWithActions(caregiverId, null);
+        CompletableFuture<DoctorProfileResponse> futureResult = doctorFacade.getDoctorProfileWithActions(caregiverId, null);
+        DoctorProfileResponse result = futureResult.get();
 
-        // Then
         assertAll(
                 () -> assertNotNull(result),
                 () -> verify(externalServices).startChat(caregiverId, null),
@@ -103,17 +104,15 @@ class DoctorFacadeTest {
     }
 
     @Test
-    void getDoctorProfileWithActions_ShouldHandleNullResponseFromService() {
-        // Given
+    void getDoctorProfileWithActions_ShouldHandleNullResponseFromService() throws ExecutionException, InterruptedException {
         String caregiverId = "non-existent-id";
         String patientId = "patient456";
 
-        when(doctorProfileService.findById(caregiverId)).thenReturn(null);
+        when(doctorProfileService.findById(caregiverId)).thenReturn(CompletableFuture.completedFuture(null));
 
-        // When
-        DoctorProfileResponse result = doctorFacade.getDoctorProfileWithActions(caregiverId, patientId);
+        CompletableFuture<DoctorProfileResponse> futureResult = doctorFacade.getDoctorProfileWithActions(caregiverId, patientId);
+        DoctorProfileResponse result = futureResult.get();
 
-        // Then
         assertNull(result);
         verify(externalServices, never()).startChat(any(), any());
         verify(externalServices, never()).createAppointment(any(), any(), any());
