@@ -4,21 +4,20 @@ import com.pandacare.mainapp.authentication.model.Caregiver;
 import com.pandacare.mainapp.authentication.model.Pacilian;
 import com.pandacare.mainapp.authentication.repository.CaregiverRepository;
 import com.pandacare.mainapp.authentication.repository.PacilianRepository;
+import com.pandacare.mainapp.authentication.dto.CaregiverProfileDto;
+import com.pandacare.mainapp.authentication.dto.PacilianProfileDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import com.pandacare.mainapp.authentication.dto.CaregiverProfileDto;
-import com.pandacare.mainapp.authentication.dto.PacilianProfileDto;
 
-import java.util.Optional;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/profile")
 public class ProfileController {
-
     private final CaregiverRepository caregiverRepository;
     private final PacilianRepository pacilianRepository;
 
@@ -28,48 +27,106 @@ public class ProfileController {
     }
 
     @GetMapping
-    public ResponseEntity<Object> getProfile(@AuthenticationPrincipal Jwt jwt) {
-        String id = jwt.getClaimAsString("user_id");
-        String role = jwt.getClaimAsString("role");
+    public ResponseEntity<?> getProfile(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = getUserId(jwt);
+        String role = getRole(jwt);
 
-        if (id == null || role == null) {
+        if (userId == null || role == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Missing user_id or role in JWT");
+                    .body(Map.of("error", "Missing user_id or role in JWT"));
         }
 
-        UUID userId = UUID.fromString(id);
-
-        switch (role.toLowerCase()) {
-            case "caregiver": {
-                Optional<Caregiver> caregiver = caregiverRepository.findById(userId);
-                if (caregiver.isPresent()) {
-                    Caregiver c = caregiver.get();
-                    CaregiverProfileDto dto = new CaregiverProfileDto(
+        return switch (role.toLowerCase()) {
+            case "caregiver" -> caregiverRepository.findById(userId)
+                    .<ResponseEntity<?>>map(c -> ResponseEntity.ok(new CaregiverProfileDto(
                             c.getId(), c.getName(), c.getPhoneNumber(),
-                            c.getWorkAddress(), c.getSpeciality()
-                    );
-                    return ResponseEntity.ok(dto);
-                } else {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Caregiver not found");
-                }
-            }
-            case "pacilian": {
-                Optional<Pacilian> pacilian = pacilianRepository.findById(userId);
-                if (pacilian.isPresent()) {
-                    Pacilian p = pacilian.get();
-                    PacilianProfileDto dto = new PacilianProfileDto(
+                            c.getWorkAddress(), c.getSpeciality())))
+                    .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(Map.of("error", "Caregiver not found")));
+            case "pacilian" -> pacilianRepository.findById(userId)
+                    .<ResponseEntity<?>>map(p -> ResponseEntity.ok(new PacilianProfileDto(
                             p.getId(), p.getName(), p.getPhoneNumber(),
-                            p.getAddress(), p.getMedicalHistory()
-                    );
-                    return ResponseEntity.ok(dto);
-                } else {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Pacilian not found");
-                }
-            }
-            default: {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("Invalid role in token: " + role);
-            }
+                            p.getAddress(), p.getMedicalHistory())))
+                    .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(Map.of("error", "Pacilian not found")));
+            default -> ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Invalid role: " + role));
+        };
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createProfile(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, Object> data) {
+        UUID userId = getUserId(jwt);
+        String role = getRole(jwt);
+
+        if (userId == null || role == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Missing user_id or role in JWT"));
         }
+
+        return switch (role.toLowerCase()) {
+            case "pacilian" -> createPacilianProfile(userId, data);
+            case "caregiver" -> createCaregiverProfile(userId, data);
+            default -> ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Invalid role: " + role));
+        };
+    }
+
+    private ResponseEntity<?> createPacilianProfile(UUID userId, Map<String, Object> data) {
+        if (pacilianRepository.existsById(userId)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "Profile already exists"));
+        }
+
+        Pacilian pacilian = new Pacilian();
+        pacilian.setId(userId);
+        pacilian.setName(getString(data, "name"));
+        pacilian.setNik(getString(data, "nik"));
+        pacilian.setPhoneNumber(getString(data, "phone_number"));
+        pacilian.setAddress(getString(data, "address"));
+        pacilian.setMedicalHistory(getString(data, "medical_history"));
+        pacilian.setRole("pacilian");
+
+        Pacilian saved = pacilianRepository.save(pacilian);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new PacilianProfileDto(saved.getId(), saved.getName(),
+                        saved.getPhoneNumber(), saved.getAddress(), saved.getMedicalHistory()));
+    }
+
+    private ResponseEntity<?> createCaregiverProfile(UUID userId, Map<String, Object> data) {
+        if (caregiverRepository.existsById(userId)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "Profile already exists"));
+        }
+
+        Caregiver caregiver = new Caregiver();
+        caregiver.setId(userId);
+        caregiver.setName(getString(data, "name"));
+        caregiver.setNik(getString(data, "nik"));
+        caregiver.setPhoneNumber(getString(data, "phone_number"));
+        caregiver.setWorkAddress(getString(data, "work_address"));
+        caregiver.setSpeciality(getString(data, "speciality"));
+        caregiver.setRole("caregiver");
+
+        Caregiver saved = caregiverRepository.save(caregiver);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new CaregiverProfileDto(saved.getId(), saved.getName(),
+                        saved.getPhoneNumber(), saved.getWorkAddress(), saved.getSpeciality()));
+    }
+
+    private UUID getUserId(Jwt jwt) {
+        String id = jwt.getClaimAsString("user_id");
+        return id != null ? UUID.fromString(id) : null;
+    }
+
+    private String getRole(Jwt jwt) {
+        return jwt.getClaimAsString("role");
+    }
+
+    private String getString(Map<String, Object> data, String key) {
+        Object value = data.get(key);
+        return value != null ? value.toString() : null;
     }
 }

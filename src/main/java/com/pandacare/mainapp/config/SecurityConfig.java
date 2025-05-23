@@ -13,6 +13,7 @@ public class SecurityConfig {
         return http
                 .securityMatcher("/api/**")
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
