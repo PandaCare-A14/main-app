@@ -31,7 +31,7 @@ class ReservasiKonsultasiRepositoryTest {
 
     @Test
     void testFindAllByIdPasien() {
-        String pasienId = "PAT12345";
+        UUID pasienId = UUID.randomUUID();
         UUID caregiverId = UUID.randomUUID();
 
         CaregiverSchedule schedule = new CaregiverSchedule();
@@ -70,7 +70,7 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.persist(schedule);
 
         ReservasiKonsultasi reservation = new ReservasiKonsultasi();
-        reservation.setIdPacilian("PAT67890");
+        reservation.setIdPacilian(UUID.randomUUID());
         reservation.setIdSchedule(schedule);
         reservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
         entityManager.persist(reservation);
@@ -105,13 +105,13 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.persist(schedule2);
 
         ReservasiKonsultasi reservation1 = new ReservasiKonsultasi();
-        reservation1.setIdPacilian("PAT12345");
+        reservation1.setIdPacilian(UUID.randomUUID());
         reservation1.setIdSchedule(schedule1);
         reservation1.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
         entityManager.persist(reservation1);
 
         ReservasiKonsultasi reservation2 = new ReservasiKonsultasi();
-        reservation2.setIdPacilian("PAT67890");
+        reservation2.setIdPacilian(UUID.randomUUID());
         reservation2.setIdSchedule(schedule2);
         reservation2.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
         entityManager.persist(reservation2);
@@ -151,13 +151,13 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.persist(wednesdaySchedule);
 
         ReservasiKonsultasi mondayReservation = new ReservasiKonsultasi();
-        mondayReservation.setIdPacilian("PAT54321");
+        mondayReservation.setIdPacilian(UUID.randomUUID());
         mondayReservation.setIdSchedule(mondaySchedule);
         mondayReservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
         entityManager.persist(mondayReservation);
 
         ReservasiKonsultasi wednesdayReservation = new ReservasiKonsultasi();
-        wednesdayReservation.setIdPacilian("PAT98765");
+        wednesdayReservation.setIdPacilian(UUID.randomUUID());
         wednesdayReservation.setIdSchedule(wednesdaySchedule);
         wednesdayReservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
         entityManager.persist(wednesdayReservation);
@@ -183,8 +183,9 @@ class ReservasiKonsultasiRepositoryTest {
     @Test
     void testNoReservationsFound() {
         UUID caregiverIdInvalid = UUID.randomUUID();
+        UUID nonExistentPasienId = UUID.randomUUID();
 
-        List<ReservasiKonsultasi> emptyResult1 = repository.findAllByIdPasien("NO_PAT");
+        List<ReservasiKonsultasi> emptyResult1 = repository.findAllByIdPasien(nonExistentPasienId);
         List<ReservasiKonsultasi> emptyResult2 = repository.findByCaregiverId(caregiverIdInvalid);
         List<ReservasiKonsultasi> emptyResult3 = repository.findByCaregiverIdAndStatus(caregiverIdInvalid, StatusReservasiKonsultasi.WAITING);
         List<ReservasiKonsultasi> emptyResult4 = repository.findByCaregiverIdAndDay(caregiverIdInvalid, DayOfWeek.MONDAY);
