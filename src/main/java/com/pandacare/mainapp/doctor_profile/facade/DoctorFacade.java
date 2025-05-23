@@ -4,7 +4,10 @@ import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileResponse;
 import com.pandacare.mainapp.doctor_profile.facade.external.ExternalServices;
 import com.pandacare.mainapp.doctor_profile.service.DoctorProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class DoctorFacade {
@@ -20,17 +23,18 @@ public class DoctorFacade {
         this.externalServices = externalServices;
     }
 
-    public DoctorProfileResponse getDoctorProfileWithActions(String caregiverId, String patientId) {
-        DoctorProfileResponse response = doctorProfileService.findById(caregiverId);
+    @Async
+    public CompletableFuture<DoctorProfileResponse> getDoctorProfileWithActions(String caregiverId, String patientId) {
+        DoctorProfileResponse response = doctorProfileService.findById(caregiverId).join();
 
         if (response == null) {
-            return null;
+            return CompletableFuture.completedFuture(null);
         }
 
         System.out.println("=== Action buttons ready for UI ===");
-        externalServices.startChat(caregiverId, patientId); // Mock
-        externalServices.createAppointment(caregiverId, patientId, null); // Mock
+        externalServices.startChat(caregiverId, patientId);
+        externalServices.createAppointment(caregiverId, patientId, null);
 
-        return response;
+        return CompletableFuture.completedFuture(response);
     }
 }
