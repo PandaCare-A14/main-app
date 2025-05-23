@@ -6,16 +6,14 @@ import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.statepacilian.StateFactory;
 import com.pandacare.mainapp.reservasi.repository.ReservasiKonsultasiRepository;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
-//import com.pandacare.mainapp.reservasi.service.template.AcceptChangeReservasiHandler;
-//import com.pandacare.mainapp.reservasi.service.template.EditReservasiHandler;
-//import com.pandacare.mainapp.reservasi.service.template.RejectChangeReservasiHandler;
-//import com.pandacare.mainapp.reservasi.service.template.RequestReservasiHandler;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ReservasiKonsultasiServiceImpl {
@@ -96,7 +94,9 @@ public class ReservasiKonsultasiServiceImpl {
         repository.deleteById(id);
     }
 
-    public List<ReservasiKonsultasi> findAllByPasien(String idPasien) {
-        return repository.findAllByIdPasien(idPasien);
+    @Async
+    public CompletableFuture<List<ReservasiKonsultasi>> findAllByPasien(String idPasien) {
+        List<ReservasiKonsultasi> list = repository.findAllByIdPasien(idPasien);
+        return CompletableFuture.completedFuture(list);
     }
 }
