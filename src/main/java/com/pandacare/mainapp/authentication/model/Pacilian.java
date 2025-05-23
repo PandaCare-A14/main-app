@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "caregivers")
+@Table(name = "pacilians")
 @Setter
 @Getter
 public class Pacilian extends User {
