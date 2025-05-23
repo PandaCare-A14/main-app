@@ -17,6 +17,8 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -224,7 +226,16 @@ public class ReservasiKonsultasiServiceTest {
 
         when(repository.findAllByIdPasien("pac123")).thenReturn(reservasiList);
 
-        List<ReservasiKonsultasi> result = service.findAllByPasien("pac123");
+        CompletableFuture<List<ReservasiKonsultasi>> futureResult = service.findAllByPasien("pac123");
+
+        // Wait for and get the result
+        List<ReservasiKonsultasi> result;
+        try {
+            result = futureResult.get();
+        } catch (InterruptedException | ExecutionException e) {
+            fail("Exception while getting future result: " + e.getMessage());
+            return;
+        }
 
         assertEquals(2, result.size());
         assertEquals("pac123", result.get(0).getIdPacilian());
