@@ -4,6 +4,7 @@ import com.pandacare.mainapp.rating.model.Rating;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -14,6 +15,7 @@ import static org.mockito.Mockito.*;
 /**
  * Integration tests for Observer pattern in Rating module
  */
+@ActiveProfiles("test")
 class RatingObserverIntegrationTest {
 
     private RatingSubject ratingSubject;

@@ -1,12 +1,15 @@
+package com.pandacare.mainapp.reservasi.model.statepacilian;
+
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.model.statepacilian.OnReScheduleState;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
 class OnReScheduleStateTest {
 
     @Test

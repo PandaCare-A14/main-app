@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -14,7 +15,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@DisplayName("UserRepository Tests")
+@ActiveProfiles("test")
 class UserRepositoryTest {
 
     @Autowired

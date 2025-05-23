@@ -6,8 +6,11 @@ import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -16,6 +19,9 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
+@ActiveProfiles("test")
+@EntityScan(basePackages = "com.pandacare.mainapp")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class DoctorProfileRepositoryTest {
 
     @Autowired
@@ -31,10 +37,8 @@ class DoctorProfileRepositoryTest {
     void setUp() {
         // Create caregivers
         caregiver1 = new Caregiver("Dr. Hafiz", "3704892357482376", "08123456789", "RS Pandacare", "Cardiologist");
-        caregiver1.setId(UUID.fromString("eb558e9f-1c39-460e-8860-71af6af63bd6"));
 
         caregiver2 = new Caregiver("Dr. Jonah", "3704892357482377", "08192836789", "RS Pondok Indah", "Orthopedic");
-        caregiver2.setId(UUID.fromString("eb558e9f-1c39-460e-8860-71af6af63ds2"));
 
         // Add working schedules
         CaregiverSchedule schedule1 = new CaregiverSchedule();
@@ -168,7 +172,7 @@ class DoctorProfileRepositoryTest {
         entityManager.persist(caregiver2);
 
         // Search for Monday 10:00-11:00 (should match caregiver1's 9:00-12:00 schedule)
-        List<Caregiver> result = doctorProfileRepository.findByWorkScheduleAvailable(
+        List<Caregiver> result = doctorProfileRepository.findByWorkingSchedulesAvailable(
                 DayOfWeek.MONDAY,
                 LocalTime.of(10, 0),
                 LocalTime.of(11, 0));
@@ -177,7 +181,7 @@ class DoctorProfileRepositoryTest {
         assertEquals(caregiver1.getId(), result.get(0).getId());
 
         // Search for Monday 16:00-17:00 (should match caregiver2's 14:00-17:00 schedule)
-        result = doctorProfileRepository.findByWorkScheduleAvailable(
+        result = doctorProfileRepository.findByWorkingSchedulesAvailable(
                 DayOfWeek.MONDAY,
                 LocalTime.of(16, 0),
                 LocalTime.of(17, 0));
@@ -186,7 +190,7 @@ class DoctorProfileRepositoryTest {
         assertEquals(caregiver2.getId(), result.get(0).getId());
 
         // Search for Wednesday 11:00-12:00 (should match caregiver1's 10:00-13:00 schedule)
-        result = doctorProfileRepository.findByWorkScheduleAvailable(
+        result = doctorProfileRepository.findByWorkingSchedulesAvailable(
                 DayOfWeek.WEDNESDAY,
                 LocalTime.of(11, 0),
                 LocalTime.of(12, 0));
@@ -195,7 +199,7 @@ class DoctorProfileRepositoryTest {
         assertEquals(caregiver1.getId(), result.get(0).getId());
 
         // Search for time with no available caregivers
-        result = doctorProfileRepository.findByWorkScheduleAvailable(
+        result = doctorProfileRepository.findByWorkingSchedulesAvailable(
                 DayOfWeek.FRIDAY,
                 LocalTime.of(9, 0),
                 LocalTime.of(10, 0));

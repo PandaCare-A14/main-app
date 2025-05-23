@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for DoctorStatisticsObserver using TDD approach
  */
+@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class DoctorStatisticsObserverTest {
 

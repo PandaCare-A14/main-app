@@ -1,11 +1,13 @@
 package com.pandacare.mainapp.rating.model;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
 class RatingTest {
 
     @Test

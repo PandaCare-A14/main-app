@@ -3,6 +3,7 @@ package com.pandacare.mainapp.rating.model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for RatingBuilder using TDD approach
  */
+@ActiveProfiles("test")
 class RatingBuilderTest {
 
     private RatingBuilder ratingBuilder;

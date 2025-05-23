@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -21,6 +22,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class DoctorProfileServiceImplTest {
 
@@ -167,7 +169,7 @@ class DoctorProfileServiceImplTest {
     @Test
     void findByWorkSchedule_ShouldReturnAvailableDoctors() {
         String schedule = "MONDAY 10:00-11:00";
-        when(doctorProfileRepository.findByWorkScheduleAvailable(
+        when(doctorProfileRepository.findByWorkingSchedulesAvailable(
                 DayOfWeek.MONDAY,
                 LocalTime.parse("10:00", timeFormatter),
                 LocalTime.parse("11:00", timeFormatter)))

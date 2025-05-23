@@ -24,7 +24,7 @@ public interface DoctorProfileRepository extends CaregiverRepository {
             "AND s.endTime >= :searchStart " +
             "AND FUNCTION('TIMESTAMPDIFF', MINUTE, :searchStart, s.endTime) >= 30 " +
             "AND FUNCTION('TIMESTAMPDIFF', MINUTE, s.startTime, :searchEnd) >= 30")
-    List<Caregiver> findByWorkScheduleAvailable(
+    List<Caregiver> findByWorkingSchedulesAvailable(
             @Param("day") DayOfWeek day,
             @Param("searchStart") LocalTime searchStart,
             @Param("searchEnd") LocalTime searchEnd);

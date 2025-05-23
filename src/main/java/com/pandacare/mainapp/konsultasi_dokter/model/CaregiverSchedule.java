@@ -12,9 +12,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "caregiver_schedules")
 @Setter
 @Getter
+@Table(name = "caregiver_schedules")
 public class CaregiverSchedule {
     @Id
     private UUID id;
