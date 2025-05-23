@@ -7,6 +7,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DoctorProfileResponseTest {
 
     private DoctorProfileResponse response;
-    private static final String ID = "eb558e9f-1c39-460e-8860-71af6af63bd6";
+    private static final UUID ID = UUID.randomUUID();
     private static final String NAME = "Dr. Clara";
     private static final String EMAIL = "clara@pandacare.com";
     private static final String PHONE = "081122334455";
@@ -54,7 +55,7 @@ public class DoctorProfileResponseTest {
     @Test
     void testAllArgsConstructor() {
         DoctorProfileResponse newResponse = new DoctorProfileResponse(
-                "eb558e9f-1c39-460e-8860-71af6af63bd2",
+                UUID.randomUUID(),
                 "Dr. Smith",
                 "smith@pandacare.com",
                 "081133344455",

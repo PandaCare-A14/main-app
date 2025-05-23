@@ -13,6 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -47,8 +48,8 @@ class DoctorFacadeTest {
 
     @Test
     void getDoctorProfileWithActions_ShouldReturnProfileAndTriggerActions() throws ExecutionException, InterruptedException {
-        String caregiverId = "eb558e9f-1c39-460e-8860-71af6af63bd6";
-        String patientId = "patient456";
+        UUID caregiverId = UUID.randomUUID();
+        UUID patientId = UUID.randomUUID();
         DoctorProfileResponse expectedResponse = new DoctorProfileResponse(
                 caregiverId,
                 "Dr. Hafiz",
@@ -78,7 +79,7 @@ class DoctorFacadeTest {
 
     @Test
     void getDoctorProfileWithActions_ShouldHandleNullPatientId() throws ExecutionException, InterruptedException {
-        String caregiverId = "eb558e9f-1c39-460e-8860-71af6af63bd6";
+        UUID caregiverId = UUID.randomUUID();
         DoctorProfileResponse expectedResponse = new DoctorProfileResponse(
                 caregiverId,
                 "Dr. Hafiz",
@@ -105,8 +106,8 @@ class DoctorFacadeTest {
 
     @Test
     void getDoctorProfileWithActions_ShouldHandleNullResponseFromService() throws ExecutionException, InterruptedException {
-        String caregiverId = "non-existent-id";
-        String patientId = "patient456";
+        UUID caregiverId = UUID.randomUUID();
+        UUID patientId = UUID.randomUUID();
 
         when(doctorProfileService.findById(caregiverId)).thenReturn(CompletableFuture.completedFuture(null));
 

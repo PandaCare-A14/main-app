@@ -12,9 +12,7 @@ public class OnReScheduleState implements ReservasiStatePacilian {
 
     @Override
     public void acceptChange(ReservasiKonsultasi r) {
-        r.setIdSchedule(r.getProposedSchedule());
-        r.setProposedSchedule(null);
-        r.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+        r.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
     }
 
     @Override

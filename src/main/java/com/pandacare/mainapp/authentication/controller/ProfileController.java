@@ -85,7 +85,6 @@ public class ProfileController {
         pacillian.setPhoneNumber(getString(data, "phone_number"));
         pacillian.setAddress(getString(data, "address"));
         pacillian.setMedicalHistory(getString(data, "medical_history"));
-        pacillian.setRole("pacillian");
 
         Pacillian saved = pacillianRepository.save(pacillian);
 
@@ -107,7 +106,6 @@ public class ProfileController {
         caregiver.setPhoneNumber(getString(data, "phone_number"));
         caregiver.setWorkAddress(getString(data, "work_address"));
         caregiver.setSpeciality(getString(data, "speciality"));
-        caregiver.setRole("caregiver");
 
         Caregiver saved = caregiverRepository.save(caregiver);
 

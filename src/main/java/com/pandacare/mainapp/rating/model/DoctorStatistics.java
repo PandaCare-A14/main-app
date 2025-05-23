@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Entity class for storing doctor rating statistics
@@ -22,7 +23,7 @@ public class DoctorStatistics {
 
     @Id
     @Column(name = "id_dokter")
-    private String idDokter;
+    private UUID idDokter;
 
     @Column(name = "average_rating", nullable = false)
     private Double averageRating;
@@ -39,7 +40,7 @@ public class DoctorStatistics {
     /**
      * Constructor for creating a new doctor statistics
      */
-    public DoctorStatistics(String idDokter, Double averageRating, Integer totalRatings) {
+    public DoctorStatistics(UUID idDokter, Double averageRating, Integer totalRatings) {
         this.idDokter = idDokter;
         this.averageRating = averageRating;
         this.totalRatings = totalRatings;

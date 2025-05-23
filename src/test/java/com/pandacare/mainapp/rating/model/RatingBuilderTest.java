@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,9 +17,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class RatingBuilderTest {
 
     private RatingBuilder ratingBuilder;
-    private final String VALID_DOCTOR_ID = "dr001";
-    private final String VALID_PATIENT_ID = "p001";
-    private final String VALID_CONSULTATION_ID = "cons001";
+    private final UUID VALID_DOCTOR_ID = UUID.randomUUID();
+    private final UUID VALID_PATIENT_ID = UUID.randomUUID();
+    private final UUID VALID_CONSULTATION_ID = UUID.randomUUID();
     private final Integer VALID_RATING_SCORE = 5;
     private final String VALID_REVIEW = "Excellent service";
 
@@ -65,14 +66,14 @@ class RatingBuilderTest {
 
         // Assert
         assertNotNull(rating.getId());
-        assertTrue(rating.getId().length() > 0);
+        assertTrue(rating.getId() instanceof UUID);
     }
 
     @Test
     @DisplayName("Should use provided ID when explicitly set")
     void shouldUseProvidedId_WhenExplicitlySet() {
         // Arrange
-        String customId = "custom-id-123";
+        UUID customId = UUID.randomUUID();
 
         // Act
         Rating rating = ratingBuilder
@@ -95,23 +96,6 @@ class RatingBuilderTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 ratingBuilder
                         .withIdDokter(null)
-                        .withIdPasien(VALID_PATIENT_ID)
-                        .withIdJadwalKonsultasi(VALID_CONSULTATION_ID)
-                        .withRatingScore(VALID_RATING_SCORE)
-                        .withUlasan(VALID_REVIEW)
-                        .build()
-        );
-
-        assertEquals("idDokter cannot be null or empty", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Should throw exception when doctor ID is empty")
-    void shouldThrowException_WhenDoctorIdIsEmpty() {
-        // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                ratingBuilder
-                        .withIdDokter("")
                         .withIdPasien(VALID_PATIENT_ID)
                         .withIdJadwalKonsultasi(VALID_CONSULTATION_ID)
                         .withRatingScore(VALID_RATING_SCORE)

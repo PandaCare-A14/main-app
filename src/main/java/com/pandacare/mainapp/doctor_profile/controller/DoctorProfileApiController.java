@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -30,8 +31,8 @@ public class DoctorProfileApiController {
 
 @GetMapping("/{doctorId}/actions")
 public DeferredResult<ResponseEntity<DoctorProfileResponse>> getDoctorWithActions(
-        @PathVariable String doctorId,
-        @RequestParam String patientId) {
+        @PathVariable UUID doctorId,
+        @RequestParam UUID patientId) {
 
     DeferredResult<ResponseEntity<DoctorProfileResponse>> deferredResult = new DeferredResult<>(ASYNC_TIMEOUT);
 
@@ -74,7 +75,7 @@ public DeferredResult<ResponseEntity<DoctorProfileResponse>> getDoctorWithAction
     }
 
     @GetMapping("/{id}")
-    public DeferredResult<ResponseEntity<?>> getDoctorProfile(@PathVariable String id) {
+    public DeferredResult<ResponseEntity<?>> getDoctorProfile(@PathVariable UUID id) {
         DeferredResult<ResponseEntity<?>> deferredResult = new DeferredResult<>(ASYNC_TIMEOUT);
 
         doctorProfileService.findById(id)

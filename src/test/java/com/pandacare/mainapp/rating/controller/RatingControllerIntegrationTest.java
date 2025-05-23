@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,9 +45,9 @@ class RatingControllerIntegrationTest {
     private RatingRequest validRatingRequest;
     private RatingResponse validRatingResponse;
 
-    private final String VALID_CONSULTATION_ID = "cons001";
-    private final String VALID_PATIENT_ID = "p001";
-    private final String VALID_DOCTOR_ID = "dr001";
+    private final UUID VALID_CONSULTATION_ID = UUID.randomUUID();
+    private final UUID VALID_PATIENT_ID = UUID.randomUUID();
+    private final UUID VALID_DOCTOR_ID = UUID.randomUUID();
 
     @BeforeEach
     void setUp() {
@@ -57,7 +58,7 @@ class RatingControllerIntegrationTest {
 
         // Setup valid rating response
         validRatingResponse = new RatingResponse();
-        validRatingResponse.setId("rating001");
+        validRatingResponse.setId(UUID.randomUUID());
         validRatingResponse.setIdDokter(VALID_DOCTOR_ID);
         validRatingResponse.setIdPasien(VALID_PATIENT_ID);
         validRatingResponse.setIdJadwalKonsultasi(VALID_CONSULTATION_ID);

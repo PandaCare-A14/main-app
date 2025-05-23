@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -17,7 +18,7 @@ public class DoctorProfileListResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DoctorProfileSummary {
-        private String id;
+        private UUID caregiverId;
         private String name;
         private String speciality;
         private Double averageRating;

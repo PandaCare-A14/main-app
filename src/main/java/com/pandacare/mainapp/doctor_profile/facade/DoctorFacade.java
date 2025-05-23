@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -24,7 +25,7 @@ public class DoctorFacade {
     }
 
     @Async
-    public CompletableFuture<DoctorProfileResponse> getDoctorProfileWithActions(String caregiverId, String patientId) {
+    public CompletableFuture<DoctorProfileResponse> getDoctorProfileWithActions(UUID caregiverId, UUID patientId) {
         DoctorProfileResponse response = doctorProfileService.findById(caregiverId).join();
 
         if (response == null) {

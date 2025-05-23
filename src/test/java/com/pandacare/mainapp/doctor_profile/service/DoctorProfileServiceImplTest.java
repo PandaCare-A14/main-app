@@ -70,9 +70,9 @@ class DoctorProfileServiceImplTest {
     }
 
     @Test
-    void findAll_ShouldReturnDoctorProfileListResponse() throws ExecutionException, InterruptedException {
+    void findAll_ShouldReturnAllDoctorsWithRatings() throws ExecutionException, InterruptedException {
         when(doctorProfileRepository.findAll()).thenReturn(caregivers);
-        when(ratingService.getRatingsByDokter(anyString()))
+        when(ratingService.getRatingsByDokter(any(UUID.class)))
                 .thenReturn(new RatingListResponse(4.5, 10, Collections.emptyList()));
 
         CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.findAll();
@@ -81,52 +81,77 @@ class DoctorProfileServiceImplTest {
         assertNotNull(response);
         assertEquals(2, response.getDoctorProfiles().size());
         assertEquals(2, response.getTotalItems());
+        assertEquals("Dr. Hafiz", response.getDoctorProfiles().get(0).getName());
+        assertEquals("Cardiologist", response.getDoctorProfiles().get(0).getSpeciality());
+        assertEquals(4.5, response.getDoctorProfiles().get(0).getAverageRating());
+        assertEquals(10, response.getDoctorProfiles().get(0).getTotalRatings());
         verify(doctorProfileRepository).findAll();
-        verify(ratingService, times(2)).getRatingsByDokter(anyString());
+        verify(ratingService, times(2)).getRatingsByDokter(any(UUID.class));
     }
 
     @Test
-    void findById_ShouldReturnDoctorProfileResponse() throws ExecutionException, InterruptedException {
+    void findAll_ShouldReturnEmptyListWhenNoDoctors() throws ExecutionException, InterruptedException {
+        when(doctorProfileRepository.findAll()).thenReturn(Collections.emptyList());
+
+        CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.findAll();
+        DoctorProfileListResponse response = future.get();
+
+        assertNotNull(response);
+        assertEquals(0, response.getDoctorProfiles().size());
+        assertEquals(0, response.getTotalItems());
+        verify(doctorProfileRepository).findAll();
+        verify(ratingService, never()).getRatingsByDokter(any(UUID.class));
+    }
+
+    @Test
+    void findById_ShouldReturnDoctorWithDetails() throws ExecutionException, InterruptedException {
         UUID doctorId = caregivers.get(0).getId();
         when(doctorProfileRepository.findById(doctorId)).thenReturn(Optional.of(caregivers.get(0)));
-        when(ratingService.getRatingsByDokter(doctorId.toString()))
+        when(ratingService.getRatingsByDokter(doctorId))
                 .thenReturn(new RatingListResponse(4.9, 15, Collections.emptyList()));
 
-        CompletableFuture<DoctorProfileResponse> future = doctorProfileService.findById(doctorId.toString());
+        CompletableFuture<DoctorProfileResponse> future = doctorProfileService.findById(doctorId);
         DoctorProfileResponse response = future.get();
 
         assertNotNull(response);
+        assertEquals(doctorId, response.getCaregiverId());
         assertEquals("Dr. Hafiz", response.getName());
         assertEquals("hafiz@pandacare.com", response.getEmail());
+        assertEquals("08123456789", response.getPhoneNumber());
+        assertEquals("RS Pandacare", response.getWorkAddress());
         assertEquals("Cardiologist", response.getSpeciality());
         assertEquals(4.9, response.getAverageRating());
         assertEquals(15, response.getTotalRatings());
+        verify(doctorProfileRepository).findById(doctorId);
+        verify(ratingService).getRatingsByDokter(doctorId);
     }
 
     @Test
-    void findById_ShouldThrowException_WhenInvalidIdFormat() {
+    void findById_ShouldReturnNullWhenNotFound() throws ExecutionException, InterruptedException {
+        UUID nonExistentId = UUID.randomUUID();
+        when(doctorProfileRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        CompletableFuture<DoctorProfileResponse> future = doctorProfileService.findById(nonExistentId);
+        DoctorProfileResponse response = future.get();
+
+        assertNull(response);
+        verify(doctorProfileRepository).findById(nonExistentId);
+        verify(ratingService, never()).getRatingsByDokter(any(UUID.class));
+    }
+
+    @Test
+    void findById_ShouldThrowExceptionWhenIdIsNull() {
         assertThrows(IllegalArgumentException.class, () -> {
-            doctorProfileService.findById("invalid-uuid").join();
+            doctorProfileService.findById(null).join();
         });
     }
 
     @Test
-    void findById_ShouldReturnNull_WhenNotFound() throws ExecutionException, InterruptedException {
-        UUID nonExistentId = UUID.randomUUID();
-        when(doctorProfileRepository.findById(nonExistentId)).thenReturn(Optional.empty());
-
-        CompletableFuture<DoctorProfileResponse> future = doctorProfileService.findById(nonExistentId.toString());
-        DoctorProfileResponse response = future.get();
-
-        assertNull(response);
-    }
-
-    @Test
-    void findByName_ShouldReturnFilteredDoctors() throws ExecutionException, InterruptedException {
+    void findByName_ShouldReturnMatchingDoctors() throws ExecutionException, InterruptedException {
         String searchName = "Hafiz";
         when(doctorProfileRepository.findByNameContainingIgnoreCase(searchName))
                 .thenReturn(Collections.singletonList(caregivers.get(0)));
-        when(ratingService.getRatingsByDokter(anyString()))
+        when(ratingService.getRatingsByDokter(any(UUID.class)))
                 .thenReturn(new RatingListResponse(4.9, 15, Collections.emptyList()));
 
         CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.findByName(searchName);
@@ -135,10 +160,30 @@ class DoctorProfileServiceImplTest {
         assertNotNull(response);
         assertEquals(1, response.getDoctorProfiles().size());
         assertEquals("Dr. Hafiz", response.getDoctorProfiles().get(0).getName());
+        assertEquals(4.9, response.getDoctorProfiles().get(0).getAverageRating());
+        assertEquals(15, response.getDoctorProfiles().get(0).getTotalRatings());
+        verify(doctorProfileRepository).findByNameContainingIgnoreCase(searchName);
+        verify(ratingService).getRatingsByDokter(any(UUID.class));
     }
 
     @Test
-    void findByName_ShouldThrowException_WhenNameEmpty() {
+    void findByName_ShouldReturnEmptyListWhenNoMatches() throws ExecutionException, InterruptedException {
+        String searchName = "NonExistent";
+        when(doctorProfileRepository.findByNameContainingIgnoreCase(searchName))
+                .thenReturn(Collections.emptyList());
+
+        CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.findByName(searchName);
+        DoctorProfileListResponse response = future.get();
+
+        assertNotNull(response);
+        assertEquals(0, response.getDoctorProfiles().size());
+        assertEquals(0, response.getTotalItems());
+        verify(doctorProfileRepository).findByNameContainingIgnoreCase(searchName);
+        verify(ratingService, never()).getRatingsByDokter(any(UUID.class));
+    }
+
+    @Test
+    void findByName_ShouldThrowExceptionWhenNameIsEmptyOrNull() {
         assertThrows(IllegalArgumentException.class, () -> {
             doctorProfileService.findByName("").join();
         });
@@ -149,11 +194,11 @@ class DoctorProfileServiceImplTest {
     }
 
     @Test
-    void findBySpeciality_ShouldReturnFilteredDoctors() throws ExecutionException, InterruptedException {
+    void findBySpeciality_ShouldReturnMatchingDoctors() throws ExecutionException, InterruptedException {
         String speciality = "Cardio";
         when(doctorProfileRepository.findBySpecialityContainingIgnoreCase(speciality))
                 .thenReturn(Collections.singletonList(caregivers.get(0)));
-        when(ratingService.getRatingsByDokter(anyString()))
+        when(ratingService.getRatingsByDokter(any(UUID.class)))
                 .thenReturn(new RatingListResponse(4.9, 15, Collections.emptyList()));
 
         CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.findBySpeciality(speciality);
@@ -162,10 +207,30 @@ class DoctorProfileServiceImplTest {
         assertNotNull(response);
         assertEquals(1, response.getDoctorProfiles().size());
         assertEquals("Cardiologist", response.getDoctorProfiles().get(0).getSpeciality());
+        assertEquals(4.9, response.getDoctorProfiles().get(0).getAverageRating());
+        assertEquals(15, response.getDoctorProfiles().get(0).getTotalRatings());
+        verify(doctorProfileRepository).findBySpecialityContainingIgnoreCase(speciality);
+        verify(ratingService).getRatingsByDokter(any(UUID.class));
     }
 
     @Test
-    void findBySpeciality_ShouldThrowException_WhenSpecialityEmpty() {
+    void findBySpeciality_ShouldReturnEmptyListWhenNoMatches() throws ExecutionException, InterruptedException {
+        String speciality = "NonExistent";
+        when(doctorProfileRepository.findBySpecialityContainingIgnoreCase(speciality))
+                .thenReturn(Collections.emptyList());
+
+        CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.findBySpeciality(speciality);
+        DoctorProfileListResponse response = future.get();
+
+        assertNotNull(response);
+        assertEquals(0, response.getDoctorProfiles().size());
+        assertEquals(0, response.getTotalItems());
+        verify(doctorProfileRepository).findBySpecialityContainingIgnoreCase(speciality);
+        verify(ratingService, never()).getRatingsByDokter(any(UUID.class));
+    }
+
+    @Test
+    void findBySpeciality_ShouldThrowExceptionWhenSpecialityIsEmptyOrNull() {
         assertThrows(IllegalArgumentException.class, () -> {
             doctorProfileService.findBySpeciality("").join();
         });
@@ -183,7 +248,7 @@ class DoctorProfileServiceImplTest {
                 LocalTime.parse("10:00", timeFormatter),
                 LocalTime.parse("11:00", timeFormatter)))
                 .thenReturn(Collections.singletonList(caregivers.get(0)));
-        when(ratingService.getRatingsByDokter(anyString()))
+        when(ratingService.getRatingsByDokter(any(UUID.class)))
                 .thenReturn(new RatingListResponse(4.9, 15, Collections.emptyList()));
 
         CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.findByWorkSchedule(schedule);
@@ -191,10 +256,40 @@ class DoctorProfileServiceImplTest {
 
         assertNotNull(response);
         assertEquals(1, response.getDoctorProfiles().size());
+        assertEquals("Dr. Hafiz", response.getDoctorProfiles().get(0).getName());
+        assertEquals(4.9, response.getDoctorProfiles().get(0).getAverageRating());
+        assertEquals(15, response.getDoctorProfiles().get(0).getTotalRatings());
+        verify(doctorProfileRepository).findByWorkingSchedulesAvailable(
+                DayOfWeek.MONDAY,
+                LocalTime.parse("10:00", timeFormatter),
+                LocalTime.parse("11:00", timeFormatter));
+        verify(ratingService).getRatingsByDokter(any(UUID.class));
     }
 
     @Test
-    void findByWorkSchedule_ShouldThrowException_WhenInvalidFormat() {
+    void findByWorkSchedule_ShouldReturnEmptyListWhenNoMatches() throws ExecutionException, InterruptedException {
+        String schedule = "SUNDAY 10:00-11:00";
+        when(doctorProfileRepository.findByWorkingSchedulesAvailable(
+                DayOfWeek.SUNDAY,
+                LocalTime.parse("10:00", timeFormatter),
+                LocalTime.parse("11:00", timeFormatter)))
+                .thenReturn(Collections.emptyList());
+
+        CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.findByWorkSchedule(schedule);
+        DoctorProfileListResponse response = future.get();
+
+        assertNotNull(response);
+        assertEquals(0, response.getDoctorProfiles().size());
+        assertEquals(0, response.getTotalItems());
+        verify(doctorProfileRepository).findByWorkingSchedulesAvailable(
+                DayOfWeek.SUNDAY,
+                LocalTime.parse("10:00", timeFormatter),
+                LocalTime.parse("11:00", timeFormatter));
+        verify(ratingService, never()).getRatingsByDokter(any(UUID.class));
+    }
+
+    @Test
+    void findByWorkSchedule_ShouldThrowExceptionForInvalidFormats() {
         assertThrows(IllegalArgumentException.class, () -> {
             doctorProfileService.findByWorkSchedule("InvalidFormat").join();
         });
@@ -221,7 +316,7 @@ class DoctorProfileServiceImplTest {
     }
 
     @Test
-    void findByWorkSchedule_ShouldThrowException_WhenEmpty() {
+    void findByWorkSchedule_ShouldThrowExceptionWhenScheduleIsEmptyOrNull() {
         assertThrows(IllegalArgumentException.class, () -> {
             doctorProfileService.findByWorkSchedule("").join();
         });
@@ -233,7 +328,7 @@ class DoctorProfileServiceImplTest {
 
     @Test
     void getDoctorProfileListResponse_ShouldHandleNullRatings() {
-        when(ratingService.getRatingsByDokter(anyString())).thenReturn(null);
+        when(ratingService.getRatingsByDokter(any(UUID.class))).thenReturn(null);
 
         DoctorProfileListResponse response = doctorProfileService.getDoctorProfileListResponse(caregivers);
 
@@ -241,6 +336,7 @@ class DoctorProfileServiceImplTest {
         assertEquals(2, response.getDoctorProfiles().size());
         assertEquals(0.0, response.getDoctorProfiles().get(0).getAverageRating());
         assertEquals(0, response.getDoctorProfiles().get(0).getTotalRatings());
+        verify(ratingService, times(2)).getRatingsByDokter(any(UUID.class));
     }
 
     @Test
@@ -250,5 +346,19 @@ class DoctorProfileServiceImplTest {
         assertNotNull(response);
         assertEquals(0, response.getDoctorProfiles().size());
         assertEquals(0, response.getTotalItems());
+        verify(ratingService, never()).getRatingsByDokter(any(UUID.class));
+    }
+
+    @Test
+    void getDoctorProfileListResponse_ShouldHandleRatingServiceException() {
+        when(ratingService.getRatingsByDokter(any(UUID.class))).thenThrow(new RuntimeException("Rating service error"));
+
+        DoctorProfileListResponse response = doctorProfileService.getDoctorProfileListResponse(caregivers);
+
+        assertNotNull(response);
+        assertEquals(2, response.getDoctorProfiles().size());
+        assertEquals(0.0, response.getDoctorProfiles().get(0).getAverageRating());
+        assertEquals(0, response.getDoctorProfiles().get(0).getTotalRatings());
+        verify(ratingService, times(2)).getRatingsByDokter(any(UUID.class));
     }
 }

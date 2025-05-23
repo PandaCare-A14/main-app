@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Observer for updating doctor statistics when ratings change using JPA
@@ -74,7 +75,7 @@ public class DoctorStatisticsObserver implements RatingObserver {
     /**
      * Update doctor statistics in the database using JPA and Builder pattern
      */
-    private void updateDoctorStatistics(String idDokter) {
+    private void updateDoctorStatistics(UUID idDokter) {
         try {
             log.debug("Starting statistics update for doctor: {}", idDokter);
 

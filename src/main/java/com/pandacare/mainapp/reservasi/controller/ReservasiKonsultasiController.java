@@ -23,7 +23,7 @@ public class ReservasiKonsultasiController {
     public ResponseEntity<?> requestReservasi(@RequestBody Map<String, String> body) {
         try {
             UUID idSchedule = UUID.fromString(body.get("idSchedule"));
-            String idPacilian = body.get("idPacilian");
+            UUID idPacilian = UUID.fromString(body.get("idPacilian"));
 
             ReservasiKonsultasi result = reservasiService.requestReservasi(idSchedule, idPacilian);
 
@@ -45,7 +45,7 @@ public class ReservasiKonsultasiController {
     }
 
     @PostMapping("/{id}/edit")
-    public ResponseEntity<?> editReservasi(@PathVariable String id, @RequestBody Map<String, String> request) {
+    public ResponseEntity<?> editReservasi(@PathVariable UUID id, @RequestBody Map<String, String> request) {
         try {
             UUID newScheduleId = UUID.fromString(request.get("idSchedule"));
             ReservasiKonsultasi updated = reservasiService.editReservasi(id, newScheduleId);
@@ -59,13 +59,13 @@ public class ReservasiKonsultasiController {
     }
 
     @GetMapping("/{idPasien}")
-    public ResponseEntity<?> getAllReservasiByPasien(@PathVariable String idPasien) {
+    public ResponseEntity<?> getAllReservasiByPasien(@PathVariable UUID idPasien) {
         List<ReservasiKonsultasi> reservasiList = reservasiService.findAllByPasien(idPasien);
         return ResponseEntity.ok(reservasiList);
     }
 
     @PostMapping("/{id}/accept-change")
-    public ResponseEntity<?> acceptChangeReservasi(@PathVariable String id) {
+    public ResponseEntity<?> acceptChangeReservasi(@PathVariable UUID id) {
         try {
             ReservasiKonsultasi updated = reservasiService.acceptChangeReservasi(id);
             Map<String, Object> response = new HashMap<>();
@@ -79,7 +79,7 @@ public class ReservasiKonsultasiController {
     }
 
     @PostMapping("/{id}/reject-change")
-    public ResponseEntity<?> rejectChangeReservasi(@PathVariable String id) {
+    public ResponseEntity<?> rejectChangeReservasi(@PathVariable UUID id) {
         try {
             reservasiService.rejectChangeReservasi(id);
             return ResponseEntity.ok(Map.of(

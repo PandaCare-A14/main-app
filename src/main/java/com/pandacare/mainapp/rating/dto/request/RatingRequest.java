@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.UUID;
 
 /**
  * DTO for receiving rating data from client
@@ -24,7 +25,7 @@ public class RatingRequest {
     @NotBlank(message = "Ulasan tidak boleh kosong")
     private String ulasan;
 
-    private String idJadwalKonsultasi;
+    private UUID idJadwalKonsultasi;
 //
 //    public void validate() {
 //        if (ratingScore == null) {

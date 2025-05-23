@@ -37,13 +37,14 @@ class CaregiverReservationServiceImplTest {
 
     private ReservasiKonsultasi reservation;
     private CaregiverSchedule schedule;
-    private final String reservationId = "RES12345";
+    private UUID reservationId;
     private UUID caregiverId;
 
     @BeforeEach
     void setUp() {
-        UUID scheduleId = UUID.randomUUID();
+        reservationId = UUID.randomUUID();
         caregiverId = UUID.randomUUID();
+        UUID scheduleId = UUID.randomUUID();
 
         schedule = new CaregiverSchedule();
         schedule.setId(scheduleId);
@@ -55,7 +56,7 @@ class CaregiverReservationServiceImplTest {
 
         reservation = new ReservasiKonsultasi();
         reservation.setId(reservationId);
-        reservation.setIdPacilian("PAT12345");
+        reservation.setIdPacilian(UUID.randomUUID()); // assuming Pacilian ID is UUID now too
         reservation.setIdSchedule(schedule);
         reservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
     }
@@ -172,7 +173,7 @@ class CaregiverReservationServiceImplTest {
 
     @Test
     void testGetReservationOrThrowNotFound() {
-        String nonExistentId = "NON_EXISTENT";
+        UUID nonExistentId = UUID.randomUUID();
         when(reservasiRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(IllegalArgumentException.class,

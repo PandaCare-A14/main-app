@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * REST Controller for managing consultation ratings
@@ -34,9 +35,9 @@ public class RatingController {
      */
     @PostMapping("/consultations/{idJadwalKonsultasi}/ratings")
     public ResponseEntity<?> addRating(
-            @PathVariable String idJadwalKonsultasi,
+            @PathVariable UUID idJadwalKonsultasi,
             @RequestBody @Valid RatingRequest ratingRequest,
-            @RequestHeader("X-User-ID") String idPasien) {
+            @RequestHeader("X-User-ID") UUID idPasien) {
 
         try {
             log.info("Adding rating for consultation: {}, by patient: {}", idJadwalKonsultasi, idPasien);
@@ -73,9 +74,9 @@ public class RatingController {
      */
     @PutMapping("/consultations/{idJadwalKonsultasi}/ratings")
     public ResponseEntity<?> updateRating(
-            @PathVariable String idJadwalKonsultasi,
+            @PathVariable UUID idJadwalKonsultasi,
             @RequestBody @Valid RatingRequest ratingRequest,
-            @RequestHeader("X-User-ID") String idPasien) {
+            @RequestHeader("X-User-ID") UUID idPasien) {
 
         try {
             log.info("Updating rating for consultation: {}, by patient: {}", idJadwalKonsultasi, idPasien);
@@ -111,8 +112,8 @@ public class RatingController {
      */
     @DeleteMapping("/consultations/{idJadwalKonsultasi}/ratings")
     public ResponseEntity<?> deleteRating(
-            @PathVariable String idJadwalKonsultasi,
-            @RequestHeader("X-User-ID") String idPasien) {
+            @PathVariable UUID idJadwalKonsultasi,
+            @RequestHeader("X-User-ID") UUID idPasien) {
 
         try {
             log.info("Deleting rating for consultation: {}, by patient: {}", idJadwalKonsultasi, idPasien);
@@ -142,7 +143,7 @@ public class RatingController {
      * GET: Get all ratings for a doctor
      */
     @GetMapping("/doctors/{idDokter}/ratings")
-    public ResponseEntity<?> getRatingsByDokter(@PathVariable String idDokter) {
+    public ResponseEntity<?> getRatingsByDokter(@PathVariable UUID idDokter) {
         log.info("Fetching ratings for doctor: {}", idDokter);
 
         RatingListResponse response = ratingService.getRatingsByDokter(idDokter);
@@ -158,8 +159,8 @@ public class RatingController {
      */
     @GetMapping("/patients/{idPasien}/ratings")
     public ResponseEntity<?> getRatingsByPasien(
-            @PathVariable String idPasien,
-            @RequestHeader("X-User-ID") String requesterId) {
+            @PathVariable UUID idPasien,
+            @RequestHeader("X-User-ID") UUID requesterId) {
 
         // Security check: Only allow patients to view their own ratings
         if (!idPasien.equals(requesterId)) {
@@ -183,8 +184,8 @@ public class RatingController {
      */
     @GetMapping("/consultations/{idJadwalKonsultasi}/rating/status")
     public ResponseEntity<?> hasRatedKonsultasi(
-            @PathVariable String idJadwalKonsultasi,
-            @RequestHeader("X-User-ID") String idPasien) {
+            @PathVariable UUID idJadwalKonsultasi,
+            @RequestHeader("X-User-ID") UUID idPasien) {
 
         log.info("Checking rating status for consultation: {} by patient: {}", idJadwalKonsultasi, idPasien);
 
@@ -201,8 +202,8 @@ public class RatingController {
      */
     @GetMapping("/consultations/{idJadwalKonsultasi}/ratings")
     public ResponseEntity<?> getRatingByKonsultasi(
-            @PathVariable String idJadwalKonsultasi,
-            @RequestHeader("X-User-ID") String idPasien) {
+            @PathVariable UUID idJadwalKonsultasi,
+            @RequestHeader("X-User-ID") UUID idPasien) {
 
         try {
             log.info("Fetching rating for consultation: {} by patient: {}", idJadwalKonsultasi, idPasien);

@@ -7,10 +7,10 @@ import java.util.UUID;
  * Builder class for Rating entity
  */
 public class RatingBuilder {
-    private String id;
-    private String idDokter;
-    private String idPasien;
-    private String idJadwalKonsultasi;
+    private UUID id;
+    private UUID idDokter;
+    private UUID idPasien;
+    private UUID idJadwalKonsultasi;
     private Integer ratingScore;
     private String ulasan;
     private LocalDateTime createdAt;
@@ -18,27 +18,27 @@ public class RatingBuilder {
 
     public RatingBuilder() {
         // Default values
-        this.id = UUID.randomUUID().toString();
+        this.id = UUID.randomUUID();
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
-    public RatingBuilder withId(String id) {
+    public RatingBuilder withId(UUID id) {
         this.id = id;
         return this;
     }
 
-    public RatingBuilder withIdDokter(String idDokter) {
+    public RatingBuilder withIdDokter(UUID idDokter) {
         this.idDokter = idDokter;
         return this;
     }
 
-    public RatingBuilder withIdPasien(String idPasien) {
+    public RatingBuilder withIdPasien(UUID idPasien) {
         this.idPasien = idPasien;
         return this;
     }
 
-    public RatingBuilder withIdJadwalKonsultasi(String idJadwalKonsultasi) {
+    public RatingBuilder withIdJadwalKonsultasi(UUID idJadwalKonsultasi) {
         this.idJadwalKonsultasi = idJadwalKonsultasi;
         return this;
     }
@@ -65,15 +65,15 @@ public class RatingBuilder {
 
     public Rating build() {
         // Validate required fields
-        if (idDokter == null || idDokter.isEmpty()) {
+        if (idDokter == null) {
             throw new IllegalArgumentException("idDokter cannot be null or empty");
         }
 
-        if (idPasien == null || idPasien.isEmpty()) {
+        if (idPasien == null) {
             throw new IllegalArgumentException("idPasien cannot be null or empty");
         }
 
-        if (idJadwalKonsultasi == null || idJadwalKonsultasi.isEmpty()) {
+        if (idJadwalKonsultasi == null) {
             throw new IllegalArgumentException("idJadwalKonsultasi cannot be null or empty");
         }
 

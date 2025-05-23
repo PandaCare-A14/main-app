@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class DoctorStatisticsBuilderTest {
 
     private DoctorStatisticsBuilder builder;
-    private final String VALID_DOCTOR_ID = "dr001";
+    private final UUID VALID_DOCTOR_ID = UUID.randomUUID();
     private final Double VALID_AVERAGE_RATING = 4.5;
     private final Integer VALID_TOTAL_RATINGS = 10;
 
@@ -66,17 +67,6 @@ class DoctorStatisticsBuilderTest {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 builder.withIdDokter(null).build()
-        );
-
-        assertEquals("idDokter cannot be null or empty", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Should throw exception when doctor ID is empty")
-    void shouldThrowException_WhenDoctorIdIsEmpty() {
-        // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                builder.withIdDokter("").build()
         );
 
         assertEquals("idDokter cannot be null or empty", exception.getMessage());

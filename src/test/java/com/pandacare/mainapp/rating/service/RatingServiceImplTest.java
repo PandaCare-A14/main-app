@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -48,9 +49,9 @@ class RatingServiceImplTest {
     private ReservasiKonsultasi validKonsultasi;
     private Rating validRating;
 
-    private final String VALID_PATIENT_ID = "p001";
-    private final String VALID_DOCTOR_ID = "dr001";
-    private final String VALID_CONSULTATION_ID = "cons001";
+    private final UUID VALID_PATIENT_ID = UUID.randomUUID();
+    private final UUID VALID_DOCTOR_ID = UUID.randomUUID();
+    private final UUID VALID_CONSULTATION_ID = UUID.randomUUID();
     private final Integer VALID_RATING_SCORE = 5;
     private final String VALID_REVIEW = "Excellent service";
 
@@ -65,13 +66,13 @@ class RatingServiceImplTest {
         // Setup valid consultation
         validKonsultasi = new ReservasiKonsultasi();
         validKonsultasi.setId(VALID_CONSULTATION_ID);
-        validKonsultasi.setIdDokter(VALID_DOCTOR_ID);
+        validKonsultasi.setIdCaregiver(VALID_DOCTOR_ID);
         validKonsultasi.setIdPasien(VALID_PATIENT_ID);
         validKonsultasi.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
 
         // Setup valid rating
         validRating = new Rating();
-        validRating.setId("rating001");
+        validRating.setId(UUID.randomUUID());
         validRating.setIdDokter(VALID_DOCTOR_ID);
         validRating.setIdPasien(VALID_PATIENT_ID);
         validRating.setIdJadwalKonsultasi(VALID_CONSULTATION_ID);
@@ -132,7 +133,7 @@ class RatingServiceImplTest {
     @DisplayName("Should throw exception when patient doesn't match consultation")
     void shouldThrowException_WhenPatientDoesntMatchConsultation() {
         // Arrange
-        String differentPatientId = "p999";
+        UUID differentPatientId = UUID.randomUUID();
         when(reservasiKonsultasiRepository.findById(VALID_CONSULTATION_ID))
                 .thenReturn(Optional.of(validKonsultasi));
 
@@ -191,7 +192,7 @@ class RatingServiceImplTest {
     void shouldSuccessfullyUpdateRating_WhenRatingExists() {
         // Arrange
         Rating existingRating = new Rating();
-        existingRating.setId("existing-rating-id");
+        existingRating.setId(UUID.randomUUID());
         existingRating.setIdDokter(VALID_DOCTOR_ID);
         existingRating.setIdPasien(VALID_PATIENT_ID);
         existingRating.setIdJadwalKonsultasi(VALID_CONSULTATION_ID);

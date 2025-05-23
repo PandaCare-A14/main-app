@@ -43,12 +43,11 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
 
     @Override
     @Async
-    public CompletableFuture<DoctorProfileResponse> findById(String id) {
+    public CompletableFuture<DoctorProfileResponse> findById(UUID id) {
         try {
-            UUID uuid = UUID.fromString(id);
-            Caregiver caregiver = doctorProfileRepository.findById(uuid).orElse(null);
+            Caregiver caregiver = doctorProfileRepository.findById(id).orElse(null);
             if (caregiver == null) {
-                return CompletableFuture.completedFuture(null);  // Changed from return null
+                return CompletableFuture.completedFuture(null);
             }
 
             RatingListResponse ratingResponse = ratingService.getRatingsByDokter(id);
@@ -135,9 +134,9 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
 
         response.setDoctorProfiles(caregivers.stream()
                 .map(caregiver -> {
-                    RatingListResponse ratings = ratingService.getRatingsByDokter(caregiver.getId().toString());
+                    RatingListResponse ratings = ratingService.getRatingsByDokter(caregiver.getId());
                     return new DoctorProfileListResponse.DoctorProfileSummary(
-                            caregiver.getId().toString(),
+                            caregiver.getId(),
                             caregiver.getName(),
                             caregiver.getSpeciality(),
                             ratings != null ? ratings.getAverageRating() : 0.0,

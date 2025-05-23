@@ -6,6 +6,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,11 +14,16 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DoctorProfileListResponseTest {
 
     private DoctorProfileListResponse response;
+    private UUID doctor1Id;
+    private UUID doctor2Id;
 
     @BeforeEach
     void setUp() {
+        doctor1Id = UUID.randomUUID();
+        doctor2Id = UUID.randomUUID();
+
         DoctorProfileListResponse.DoctorProfileSummary doctor1 = new DoctorProfileListResponse.DoctorProfileSummary(
-                "eb558e9f-1c39-460e-8860-71af6af63bd6",
+                doctor1Id,
                 "Dr. Alice",
                 "Dermatology",
                 4.5,
@@ -25,7 +31,7 @@ public class DoctorProfileListResponseTest {
         );
 
         DoctorProfileListResponse.DoctorProfileSummary doctor2 = new DoctorProfileListResponse.DoctorProfileSummary(
-                "eb558e9f-1c39-460e-8860-71af6af63bi4",
+                doctor2Id,
                 "Dr. Bob",
                 "Cardiology",
                 4.8,
@@ -34,17 +40,19 @@ public class DoctorProfileListResponseTest {
 
         List<DoctorProfileListResponse.DoctorProfileSummary> doctors = Arrays.asList(doctor1, doctor2);
 
-        response = new DoctorProfileListResponse(doctors, 100);
+        response = new DoctorProfileListResponse();
+        response.setDoctorProfiles(doctors);
+        response.setTotalItems(2);
     }
 
     @Test
     void testListResponseFields() {
-        assertEquals(100, response.getTotalItems());
+        assertEquals(2, response.getTotalItems());
         assertNotNull(response.getDoctorProfiles());
         assertEquals(2, response.getDoctorProfiles().size());
 
         DoctorProfileListResponse.DoctorProfileSummary first = response.getDoctorProfiles().get(0);
-        assertEquals("eb558e9f-1c39-460e-8860-71af6af63bd6", first.getId());
+        assertEquals(doctor1Id, first.getCaregiverId());
         assertEquals("Dr. Alice", first.getName());
         assertEquals("Dermatology", first.getSpeciality());
         assertEquals(4.5, first.getAverageRating());
@@ -53,16 +61,42 @@ public class DoctorProfileListResponseTest {
 
     @Test
     void testDoctorProfileSummary() {
+        UUID doctorId = UUID.randomUUID();
         DoctorProfileListResponse.DoctorProfileSummary summary = new DoctorProfileListResponse.DoctorProfileSummary(
-                "eb558e9f-1c39-460e-8860-71af6af63op0",
+                doctorId,
                 "Dr. Charlie",
                 "Pediatrics",
                 4.9,
                 20
         );
 
-        assertEquals("eb558e9f-1c39-460e-8860-71af6af63op0", summary.getId());
+        assertEquals(doctorId, summary.getCaregiverId());
         assertEquals("Dr. Charlie", summary.getName());
+        assertEquals("Pediatrics", summary.getSpeciality());
         assertEquals(4.9, summary.getAverageRating());
+        assertEquals(20, summary.getTotalRatings());
+    }
+
+    @Test
+    void testEmptyConstructor() {
+        DoctorProfileListResponse emptyResponse = new DoctorProfileListResponse();
+        assertNull(emptyResponse.getDoctorProfiles());
+        assertEquals(0, emptyResponse.getTotalItems());
+    }
+
+    @Test
+    void testSettersAndGetters() {
+        DoctorProfileListResponse testResponse = new DoctorProfileListResponse();
+
+        List<DoctorProfileListResponse.DoctorProfileSummary> doctors = Arrays.asList(
+                new DoctorProfileListResponse.DoctorProfileSummary(
+                        UUID.randomUUID(), "Dr. Test", "Testing", 5.0, 1)
+        );
+
+        testResponse.setDoctorProfiles(doctors);
+        testResponse.setTotalItems(42);
+
+        assertEquals(doctors, testResponse.getDoctorProfiles());
+        assertEquals(42, testResponse.getTotalItems());
     }
 }

@@ -1,5 +1,6 @@
 package com.pandacare.mainapp.doctor_profile.facade.external;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +11,8 @@ import org.springframework.test.context.ActiveProfiles;
 import java.time.LocalDateTime;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,52 +28,59 @@ class MockExternalServicesTest {
 
     @BeforeEach
     void setUp() {
+        // Redirect system out to capture console output
         System.setOut(new PrintStream(outputStream));
     }
 
-    @BeforeEach
+    @AfterEach
     void tearDown() {
+        // Restore original System.out
         System.setOut(originalOut);
     }
 
     @Test
-    void startChat_ShouldPrintCorrectMessage() {
+    void startChat_ShouldPrintCorrectMessage() throws Exception {
         // Arrange
-        String doctorId = "doc123";
-        String patientId = "patient456";
-        String expectedOutput = "[MOCK] Chat initiated - Doctor: doc123, Patient: patient456";
+        UUID caregiverId = UUID.randomUUID();
+        UUID patientId = UUID.randomUUID();
+        String expectedOutput = "[MOCK] Chat initiated - Doctor: " + caregiverId + ", Patient: " + patientId;
 
         // Act
-        mockExternalServices.startChat(doctorId, patientId);
+        CompletableFuture<Void> future = mockExternalServices.startChat(caregiverId, patientId);
+        future.get(); // Wait for async operation to complete
 
         // Assert
         assertTrue(outputStream.toString().contains(expectedOutput));
     }
 
     @Test
-    void createAppointment_WithValidTime_ShouldPrintCorrectMessage() {
+    void createAppointment_WithValidTime_ShouldPrintCorrectMessage() throws Exception {
         // Arrange
-        String doctorId = "doc123";
-        String patientId = "patient456";
-        LocalDateTime time = LocalDateTime.of(2023, 12, 25, 14, 30);
-        String expectedOutput = "[MOCK] Appointment created - Doctor: doc123, Patient: patient456, Time: 2023-12-25T14:30";
+        UUID caregiverId = UUID.randomUUID();
+        UUID patientId = UUID.randomUUID();
+        LocalDateTime time = LocalDateTime.now().plusDays(1);
+        String expectedOutput = "[MOCK] Appointment created - Doctor: " + caregiverId +
+                ", Patient: " + patientId + ", Time: " + time;
 
         // Act
-        mockExternalServices.createAppointment(doctorId, patientId, time);
+        CompletableFuture<Void> future = mockExternalServices.createAppointment(caregiverId, patientId, time);
+        future.get(); // Wait for async operation to complete
 
         // Assert
         assertTrue(outputStream.toString().contains(expectedOutput));
     }
 
     @Test
-    void createAppointment_WithNullTime_ShouldPrintCorrectMessage() {
+    void createAppointment_WithNullTime_ShouldNotFail() throws Exception {
         // Arrange
-        String doctorId = "doc123";
-        String patientId = "patient456";
-        String expectedOutput = "[MOCK] Appointment created - Doctor: doc123, Patient: patient456, Time: null";
+        UUID caregiverId = UUID.randomUUID();
+        UUID patientId = UUID.randomUUID();
+        String expectedOutput = "[MOCK] Appointment created - Doctor: " + caregiverId +
+                ", Patient: " + patientId + ", Time: null";
 
         // Act
-        mockExternalServices.createAppointment(doctorId, patientId, null);
+        CompletableFuture<Void> future = mockExternalServices.createAppointment(caregiverId, patientId, null);
+        future.get(); // Wait for async operation to complete
 
         // Assert
         assertTrue(outputStream.toString().contains(expectedOutput));

@@ -43,7 +43,7 @@ public class CaregiverReservationServiceImpl implements CaregiverReservationServ
 
     @Override
     @Transactional
-    public ReservasiKonsultasi approveReservation(String reservationId) {
+    public ReservasiKonsultasi approveReservation(UUID reservationId) {
         ReservasiKonsultasi reservation = getReservationOrThrow(reservationId);
 
         validateReservationStatusForAction(reservation, "approve");
@@ -60,7 +60,7 @@ public class CaregiverReservationServiceImpl implements CaregiverReservationServ
 
     @Override
     @Transactional
-    public ReservasiKonsultasi rejectReservation(String reservationId) {
+    public ReservasiKonsultasi rejectReservation(UUID reservationId) {
         ReservasiKonsultasi reservation = getReservationOrThrow(reservationId);
         validateReservationStatusForAction(reservation, "reject");
 
@@ -76,7 +76,7 @@ public class CaregiverReservationServiceImpl implements CaregiverReservationServ
 
     @Override
     @Transactional
-    public ReservasiKonsultasi changeSchedule(String reservationId, UUID newScheduleId) {
+    public ReservasiKonsultasi changeSchedule(UUID reservationId, UUID newScheduleId) {
         ReservasiKonsultasi reservation = getReservationOrThrow(reservationId);
         validateReservationStatusForAction(reservation, "change schedule");
 
@@ -107,7 +107,7 @@ public class CaregiverReservationServiceImpl implements CaregiverReservationServ
     }
 
     @Override
-    public ReservasiKonsultasi getReservationOrThrow(String reservationId) {
+    public ReservasiKonsultasi getReservationOrThrow(UUID reservationId) {
         return reservasiRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("Reservation with ID " + reservationId + " not found"));
     }
 }

@@ -1,7 +1,7 @@
 package com.pandacare.mainapp.reservasi.repository;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 import org.junit.jupiter.api.Test;
@@ -9,7 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -24,14 +23,16 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @ActiveProfiles("test")
 class ReservasiKonsultasiRepositoryTest {
+
     @Autowired
     private TestEntityManager entityManager;
+
     @Autowired
     private ReservasiKonsultasiRepository repository;
 
     @Test
     void testFindAllByIdPasien() {
-        String pasienId = "PAT12345";
+        UUID pasienId = UUID.randomUUID();
         UUID caregiverId = UUID.randomUUID();
 
         CaregiverSchedule schedule = new CaregiverSchedule();
@@ -52,7 +53,6 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.clear();
 
         List<ReservasiKonsultasi> found = repository.findAllByIdPasien(pasienId);
-
         assertEquals(1, found.size());
         assertEquals(pasienId, found.getFirst().getIdPacilian());
     }
@@ -70,7 +70,7 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.persist(schedule);
 
         ReservasiKonsultasi reservation = new ReservasiKonsultasi();
-        reservation.setIdPacilian("PAT67890");
+        reservation.setIdPacilian(UUID.randomUUID());
         reservation.setIdSchedule(schedule);
         reservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
         entityManager.persist(reservation);
@@ -105,13 +105,13 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.persist(schedule2);
 
         ReservasiKonsultasi reservation1 = new ReservasiKonsultasi();
-        reservation1.setIdPacilian("PAT12345");
+        reservation1.setIdPacilian(UUID.randomUUID());
         reservation1.setIdSchedule(schedule1);
         reservation1.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
         entityManager.persist(reservation1);
 
         ReservasiKonsultasi reservation2 = new ReservasiKonsultasi();
-        reservation2.setIdPacilian("PAT67890");
+        reservation2.setIdPacilian(UUID.randomUUID());
         reservation2.setIdSchedule(schedule2);
         reservation2.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
         entityManager.persist(reservation2);
@@ -120,12 +120,10 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.clear();
 
         List<ReservasiKonsultasi> waitingReservations = repository.findByCaregiverIdAndStatus(caregiverId, StatusReservasiKonsultasi.WAITING);
-
         assertEquals(1, waitingReservations.size());
         assertEquals(StatusReservasiKonsultasi.WAITING, waitingReservations.getFirst().getStatusReservasi());
 
         List<ReservasiKonsultasi> approvedReservations = repository.findByCaregiverIdAndStatus(caregiverId, StatusReservasiKonsultasi.APPROVED);
-
         assertEquals(1, approvedReservations.size());
         assertEquals(StatusReservasiKonsultasi.APPROVED, approvedReservations.getFirst().getStatusReservasi());
     }
@@ -151,13 +149,13 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.persist(wednesdaySchedule);
 
         ReservasiKonsultasi mondayReservation = new ReservasiKonsultasi();
-        mondayReservation.setIdPacilian("PAT54321");
+        mondayReservation.setIdPacilian(UUID.randomUUID());
         mondayReservation.setIdSchedule(mondaySchedule);
         mondayReservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
         entityManager.persist(mondayReservation);
 
         ReservasiKonsultasi wednesdayReservation = new ReservasiKonsultasi();
-        wednesdayReservation.setIdPacilian("PAT98765");
+        wednesdayReservation.setIdPacilian(UUID.randomUUID());
         wednesdayReservation.setIdSchedule(wednesdaySchedule);
         wednesdayReservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
         entityManager.persist(wednesdayReservation);
@@ -166,28 +164,26 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.clear();
 
         List<ReservasiKonsultasi> mondayReservations = repository.findByCaregiverIdAndDay(caregiverId, DayOfWeek.MONDAY);
-
         assertEquals(1, mondayReservations.size());
         assertEquals(DayOfWeek.MONDAY, mondayReservations.getFirst().getIdSchedule().getDay());
 
         List<ReservasiKonsultasi> wednesdayReservations = repository.findByCaregiverIdAndDay(caregiverId, DayOfWeek.WEDNESDAY);
-
         assertEquals(1, wednesdayReservations.size());
         assertEquals(DayOfWeek.WEDNESDAY, wednesdayReservations.getFirst().getIdSchedule().getDay());
 
         List<ReservasiKonsultasi> fridayReservations = repository.findByCaregiverIdAndDay(caregiverId, DayOfWeek.FRIDAY);
-
         assertTrue(fridayReservations.isEmpty());
     }
 
     @Test
     void testNoReservationsFound() {
-        UUID caregiverIdInvalid = UUID.randomUUID();
+        UUID invalidCaregiverId = UUID.randomUUID();
+        UUID invalidPatientId = UUID.randomUUID();
 
-        List<ReservasiKonsultasi> emptyResult1 = repository.findAllByIdPasien("NO_PAT");
-        List<ReservasiKonsultasi> emptyResult2 = repository.findByCaregiverId(caregiverIdInvalid);
-        List<ReservasiKonsultasi> emptyResult3 = repository.findByCaregiverIdAndStatus(caregiverIdInvalid, StatusReservasiKonsultasi.WAITING);
-        List<ReservasiKonsultasi> emptyResult4 = repository.findByCaregiverIdAndDay(caregiverIdInvalid, DayOfWeek.MONDAY);
+        List<ReservasiKonsultasi> emptyResult1 = repository.findAllByIdPasien(invalidPatientId);
+        List<ReservasiKonsultasi> emptyResult2 = repository.findByCaregiverId(invalidCaregiverId);
+        List<ReservasiKonsultasi> emptyResult3 = repository.findByCaregiverIdAndStatus(invalidCaregiverId, StatusReservasiKonsultasi.WAITING);
+        List<ReservasiKonsultasi> emptyResult4 = repository.findByCaregiverIdAndDay(invalidCaregiverId, DayOfWeek.MONDAY);
 
         assertTrue(emptyResult1.isEmpty());
         assertTrue(emptyResult2.isEmpty());

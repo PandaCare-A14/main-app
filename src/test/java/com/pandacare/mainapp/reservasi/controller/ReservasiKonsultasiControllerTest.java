@@ -41,12 +41,16 @@ class ReservasiKonsultasiControllerTest {
     private ScheduleService scheduleService;
 
     private UUID scheduleId;
+    private UUID pacilianId;
+    private UUID reservationId;
     private CaregiverSchedule schedule;
     private ReservasiKonsultasi waitingReservasi;
 
     @BeforeEach
     void setup() {
         scheduleId = UUID.randomUUID();
+        pacilianId = UUID.randomUUID();
+        reservationId = UUID.randomUUID();
         UUID caregiverId = UUID.randomUUID();
 
         schedule = new CaregiverSchedule();
@@ -58,37 +62,36 @@ class ReservasiKonsultasiControllerTest {
         schedule.setStatus(ScheduleStatus.AVAILABLE);
 
         waitingReservasi = new ReservasiKonsultasi();
-        waitingReservasi.setId("RSV001");
-        waitingReservasi.setIdPacilian("pac123");
+        waitingReservasi.setId(reservationId);
+        waitingReservasi.setIdPacilian(pacilianId);
         waitingReservasi.setIdSchedule(schedule);
         waitingReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
     }
 
     @Test
     void testRequestReservasi_success() throws Exception {
-        when(reservasiService.requestReservasi(any(UUID.class), anyString())).thenReturn(waitingReservasi);
+        when(reservasiService.requestReservasi(any(UUID.class), any(UUID.class))).thenReturn(waitingReservasi);
 
         mockMvc.perform(post("/api/reservasi-konsultasi/request")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format("""
                         {
                             "idSchedule": "%s",
-                            "idPacilian": "pac123"
+                            "idPacilian": "%s"
                         }
-                    """, scheduleId)))
+                    """, scheduleId, pacilianId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Jadwal konsultasi berhasil diajukan"))
-                .andExpect(jsonPath("$.reservasi.idPacilian").value("pac123"))
-                .andExpect(jsonPath("$.reservasi.idReservasi").value("RSV001"));
+                .andExpect(jsonPath("$.reservasi.idPacilian").value(pacilianId.toString()))
+                .andExpect(jsonPath("$.reservasi.idReservasi").value(reservationId.toString()));
 
-        verify(reservasiService).requestReservasi(any(UUID.class), eq("pac123"));
+        verify(reservasiService).requestReservasi(eq(scheduleId), eq(pacilianId));
     }
 
     @Test
     void testEditReservasi_success() throws Exception {
-        // Create a new schedule for the update
         UUID newScheduleId = UUID.randomUUID();
-        UUID caregiverId = UUID.randomUUID(); // Doctor's ID
+        UUID caregiverId = UUID.randomUUID();
 
         CaregiverSchedule newSchedule = new CaregiverSchedule();
         newSchedule.setId(newScheduleId);
@@ -98,17 +101,16 @@ class ReservasiKonsultasiControllerTest {
         newSchedule.setEndTime(LocalTime.of(11, 0));
         newSchedule.setStatus(ScheduleStatus.AVAILABLE);
 
-        // Create updated reservation using the same pattern as in setup()
         ReservasiKonsultasi updatedReservasi = new ReservasiKonsultasi();
-        updatedReservasi.setId("RSV001");
-        updatedReservasi.setIdPacilian("pac123");
-        updatedReservasi.setIdSchedule(newSchedule); // Set the new schedule
+        updatedReservasi.setId(reservationId);
+        updatedReservasi.setIdPacilian(pacilianId);
+        updatedReservasi.setIdSchedule(newSchedule);
         updatedReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
 
-        when(reservasiService.editReservasi(eq("RSV001"), any(UUID.class)))
+        when(reservasiService.editReservasi(eq(reservationId), any(UUID.class)))
                 .thenReturn(updatedReservasi);
 
-        mockMvc.perform(post("/api/reservasi-konsultasi/{id}/edit", "RSV001")
+        mockMvc.perform(post("/api/reservasi-konsultasi/{id}/edit", reservationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format("""
             {
@@ -121,15 +123,15 @@ class ReservasiKonsultasiControllerTest {
                 .andExpect(jsonPath("$.reservasi.startTime").value("10:00:00"))
                 .andExpect(jsonPath("$.reservasi.endTime").value("11:00:00"));
 
-        verify(reservasiService).editReservasi("RSV001", newScheduleId);
+        verify(reservasiService).editReservasi(reservationId, newScheduleId);
     }
 
     @Test
     void testEditReservasi_error_invalidStatus() throws Exception {
-        when(reservasiService.editReservasi(any(), any(UUID.class)))
+        when(reservasiService.editReservasi(any(UUID.class), any(UUID.class)))
                 .thenThrow(new IllegalStateException("Only schedules with status WAITING can be edited"));
 
-        mockMvc.perform(post("/api/reservasi-konsultasi/{id}/edit", "RSV001")
+        mockMvc.perform(post("/api/reservasi-konsultasi/{id}/edit", reservationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format("""
                     {
@@ -142,7 +144,6 @@ class ReservasiKonsultasiControllerTest {
 
     @Test
     void testGetAllReservasiByIdPasien_success() throws Exception {
-        // Create a second schedule for reservasi2
         UUID scheduleId2 = UUID.randomUUID();
         UUID caregiverId2 = UUID.randomUUID();
 
@@ -154,28 +155,27 @@ class ReservasiKonsultasiControllerTest {
         schedule2.setEndTime(LocalTime.of(12, 0));
         schedule2.setStatus(ScheduleStatus.AVAILABLE);
 
-        // Create second reservation with the new schedule
+        UUID reservationId2 = UUID.randomUUID();
         ReservasiKonsultasi reservasi2 = new ReservasiKonsultasi();
-        reservasi2.setId("RSV002");
-        reservasi2.setIdPacilian("pac123");
+        reservasi2.setId(reservationId2);
+        reservasi2.setIdPacilian(pacilianId);
         reservasi2.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
         reservasi2.setIdSchedule(schedule2);
 
-        when(reservasiService.findAllByPasien("pac123")).thenReturn(List.of(waitingReservasi, reservasi2));
+        when(reservasiService.findAllByPasien(pacilianId)).thenReturn(List.of(waitingReservasi, reservasi2));
 
-        mockMvc.perform(get("/api/reservasi-konsultasi/pac123"))
+        mockMvc.perform(get("/api/reservasi-konsultasi/{id}", pacilianId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("RSV001"))
-                .andExpect(jsonPath("$[1].id").value("RSV002"))
-                .andExpect(jsonPath("$[0].idPacilian").value("pac123"))
+                .andExpect(jsonPath("$[0].id").value(reservationId.toString()))
+                .andExpect(jsonPath("$[1].id").value(reservationId2.toString()))
+                .andExpect(jsonPath("$[0].idPacilian").value(pacilianId.toString()))
                 .andExpect(jsonPath("$.length()").value(2));
 
-        verify(reservasiService).findAllByPasien("pac123");
+        verify(reservasiService).findAllByPasien(pacilianId);
     }
 
     @Test
     void testAcceptChangeReservasi_success() throws Exception {
-        // Create a schedule for Thursday 15:00-16:00
         UUID updatedScheduleId = UUID.randomUUID();
         UUID caregiverId = UUID.randomUUID();
 
@@ -187,16 +187,15 @@ class ReservasiKonsultasiControllerTest {
         updatedSchedule.setEndTime(LocalTime.of(16, 0));
         updatedSchedule.setStatus(ScheduleStatus.AVAILABLE);
 
-        // Create the updated reservation object
         ReservasiKonsultasi updated = new ReservasiKonsultasi();
-        updated.setId("RSV001");
-        updated.setIdPacilian("pac123");
+        updated.setId(reservationId);
+        updated.setIdPacilian(pacilianId);
         updated.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
         updated.setIdSchedule(updatedSchedule);
 
-        when(reservasiService.acceptChangeReservasi("RSV001")).thenReturn(updated);
+        when(reservasiService.acceptChangeReservasi(reservationId)).thenReturn(updated);
 
-        mockMvc.perform(post("/api/reservasi-konsultasi/RSV001/accept-change"))
+        mockMvc.perform(post("/api/reservasi-konsultasi/{id}/accept-change", reservationId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Perubahan reservasi diterima"))
                 .andExpect(jsonPath("$.reservasi.day").value("THURSDAY"))
@@ -205,30 +204,30 @@ class ReservasiKonsultasiControllerTest {
 
     @Test
     void testRejectChangeReservasi_success() throws Exception {
-        doNothing().when(reservasiService).rejectChangeReservasi("RSV001");
+        doNothing().when(reservasiService).rejectChangeReservasi(reservationId);
 
-        mockMvc.perform(post("/api/reservasi-konsultasi/RSV001/reject-change"))
+        mockMvc.perform(post("/api/reservasi-konsultasi/{id}/reject-change", reservationId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Perubahan jadwal ditolak"));
 
-        verify(reservasiService).rejectChangeReservasi("RSV001");
+        verify(reservasiService).rejectChangeReservasi(reservationId);
     }
 
     @Test
     void testRejectChangeReservasi_fail() throws Exception {
         doThrow(new IllegalStateException("No change request exists for this schedule"))
-                .when(reservasiService).rejectChangeReservasi("RSV001");
+                .when(reservasiService).rejectChangeReservasi(reservationId);
 
-        mockMvc.perform(post("/api/reservasi-konsultasi/RSV001/reject-change"))
+        mockMvc.perform(post("/api/reservasi-konsultasi/{id}/reject-change", reservationId))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("No change request exists for this schedule"));
 
-        verify(reservasiService).rejectChangeReservasi("RSV001");
+        verify(reservasiService).rejectChangeReservasi(reservationId);
     }
 
     @Test
     void testRequestReservasi_invalidTime_shouldReturn400() throws Exception {
-        when(reservasiService.requestReservasi(any(UUID.class), anyString()))
+        when(reservasiService.requestReservasi(any(UUID.class), any(UUID.class)))
                 .thenThrow(new IllegalArgumentException("Selected schedule is not available"));
 
         mockMvc.perform(post("/api/reservasi-konsultasi/request")
@@ -236,39 +235,42 @@ class ReservasiKonsultasiControllerTest {
                         .content(String.format("""
                         {
                             "idSchedule": "%s",
-                            "idPacilian": "pac123"
+                            "idPacilian": "%s"
                         }
-                    """, scheduleId)))
+                    """, scheduleId, pacilianId)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Selected schedule is not available"));
     }
 
     @Test
     void testAcceptChangeReservasi_notFound_shouldReturn400() throws Exception {
-        when(reservasiService.acceptChangeReservasi("not_found"))
+        UUID notFoundId = UUID.randomUUID();
+        when(reservasiService.acceptChangeReservasi(notFoundId))
                 .thenThrow(new IllegalArgumentException("Schedule not found"));
 
-        mockMvc.perform(post("/api/reservasi-konsultasi/not_found/accept-change"))
+        mockMvc.perform(post("/api/reservasi-konsultasi/{id}/accept-change", notFoundId))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Schedule not found"));
     }
 
     @Test
     void testRejectChangeReservasi_notFound_shouldReturn400() throws Exception {
+        UUID notFoundId = UUID.randomUUID();
         doThrow(new IllegalArgumentException("Schedule not found"))
-                .when(reservasiService).rejectChangeReservasi("not_found");
+                .when(reservasiService).rejectChangeReservasi(notFoundId);
 
-        mockMvc.perform(post("/api/reservasi-konsultasi/not_found/reject-change"))
+        mockMvc.perform(post("/api/reservasi-konsultasi/{id}/reject-change", notFoundId))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Schedule not found"));
     }
 
     @Test
     void testEditReservasi_notFound_shouldReturn400() throws Exception {
-        when(reservasiService.editReservasi(eq("not_found"), any(UUID.class)))
+        UUID notFoundId = UUID.randomUUID();
+        when(reservasiService.editReservasi(eq(notFoundId), any(UUID.class)))
                 .thenThrow(new IllegalArgumentException("Schedule not found"));
 
-        mockMvc.perform(post("/api/reservasi-konsultasi/not_found/edit")
+        mockMvc.perform(post("/api/reservasi-konsultasi/{id}/edit", notFoundId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format("""
                 {

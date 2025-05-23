@@ -25,7 +25,7 @@ public class ReservasiKonsultasiServiceImpl {
     @Autowired
     private ScheduleService scheduleService;
 
-    public ReservasiKonsultasi requestReservasi(UUID idSchedule, String idPacilian) {
+    public ReservasiKonsultasi requestReservasi(UUID idSchedule, UUID idPacilian) {
         // Validasi apakah jadwal tersedia
         CaregiverSchedule schedule = scheduleService.getById(idSchedule);
 
@@ -41,7 +41,7 @@ public class ReservasiKonsultasiServiceImpl {
         return repository.save(reservasi);
     }
 
-    public ReservasiKonsultasi editReservasi(String id, UUID newScheduleId) {
+    public ReservasiKonsultasi editReservasi(UUID id, UUID newScheduleId) {
         ReservasiKonsultasi reservasi = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservasi tidak ditemukan"));
 
@@ -67,7 +67,7 @@ public class ReservasiKonsultasiServiceImpl {
         return repository.save(reservasi);
     }
 
-    public ReservasiKonsultasi acceptChangeReservasi(String id) {
+    public ReservasiKonsultasi acceptChangeReservasi(UUID id) {
         ReservasiKonsultasi reservasi = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservasi tidak ditemukan"));
 
@@ -77,7 +77,7 @@ public class ReservasiKonsultasiServiceImpl {
         return repository.save(reservasi);
     }
 
-    public void rejectChangeReservasi(String id) {
+    public void rejectChangeReservasi(UUID id) {
         ReservasiKonsultasi reservasi = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservasi tidak ditemukan"));
 
@@ -87,16 +87,16 @@ public class ReservasiKonsultasiServiceImpl {
         repository.save(reservasi);
     }
 
-    public ReservasiKonsultasi findById(String id) {
+    public ReservasiKonsultasi findById(UUID id) {
         return repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
     }
 
-    public void deleteById(String id) {
+    public void deleteById(UUID id) {
         repository.deleteById(id);
     }
 
-    public List<ReservasiKonsultasi> findAllByPasien(String idPasien) {
+    public List<ReservasiKonsultasi> findAllByPasien(UUID idPasien) {
         return repository.findAllByIdPasien(idPasien);
     }
 }

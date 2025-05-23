@@ -13,6 +13,9 @@ import lombok.Data;
 
 import java.time.LocalTime;
 import java.util.UUID;
+
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -23,7 +26,7 @@ import org.springframework.context.annotation.Lazy;
 public class ReservasiKonsultasi {
     @Id
     @Column(name = "id")
-    private String id;
+    private UUID id;
 
     @Enumerated(EnumType.STRING)
     private StatusReservasiKonsultasi statusReservasi;
@@ -32,12 +35,8 @@ public class ReservasiKonsultasi {
     @JoinColumn(name = "id_schedule")
     private CaregiverSchedule idSchedule;
 
-    @ManyToOne(fetch = FetchType.EAGER) // For rescheduling
-    @JoinColumn(name = "proposed_schedule_id")
-    private CaregiverSchedule proposedSchedule;
-
     @Column
-    private String idPacilian;
+    private UUID idPacilian;
 
     @Column
     private String pacilianNote;
@@ -58,12 +57,12 @@ public class ReservasiKonsultasi {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            id = UUID.randomUUID().toString();
+            id = UUID.randomUUID();
         }
     }
 
     public ReservasiKonsultasi() {
-        this.id = UUID.randomUUID().toString();
+        this.id = UUID.randomUUID();
         this.statusReservasi = StatusReservasiKonsultasi.WAITING;
     }
 
@@ -177,7 +176,22 @@ public class ReservasiKonsultasi {
         return idSchedule != null ? idSchedule.getEndTime() : null;
     }
 
-    public String getIdCareGiver() {
-        return idSchedule != null ? idSchedule.getIdCaregiver().toString() : null;
+    public UUID getIdCaregiver() {
+        return idSchedule != null ? idSchedule.getIdCaregiver() : null;
+    }
+
+    public UUID setIdCaregiver(UUID id) {
+        if (idSchedule != null) {
+            idSchedule.setIdCaregiver(id);
+        }
+        return id;
+    }
+
+    public UUID getIdPasien() {
+        return idPacilian;
+    }
+
+    public void setIdPasien(UUID id) {
+        this.idPacilian = id;
     }
 }

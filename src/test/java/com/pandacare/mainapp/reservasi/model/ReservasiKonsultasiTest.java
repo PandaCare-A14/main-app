@@ -30,7 +30,7 @@ class ReservasiKonsultasiTest {
     @BeforeEach
     void setUp() {
         reservasi = new ReservasiKonsultasi();
-        reservasi.setIdPacilian("PATIENT1");
+        reservasi.setIdPacilian(UUID.randomUUID());
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
     }
 
@@ -116,7 +116,6 @@ class ReservasiKonsultasiTest {
     @Test
     void testConstructorGeneratesId() {
         assertNotNull(reservasi.getId());
-        assertFalse(reservasi.getId().isEmpty());
     }
 
     @Test
@@ -199,9 +198,9 @@ class ReservasiKonsultasiTest {
 
     @Test
     void testSetIdReservasi() {
-        String customId = "CUSTOM-ID-123";
-        reservasi.setId(customId);
-        assertEquals(customId, reservasi.getId());
+        UUID id = UUID.randomUUID();
+        reservasi.setId(id);
+        assertEquals(id, reservasi.getId());
     }
 
     @Test

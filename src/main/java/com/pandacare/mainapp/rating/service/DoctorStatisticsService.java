@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service for handling doctor statistics operations
@@ -34,7 +35,7 @@ public class DoctorStatisticsService {
      * Get doctor statistics by ID
      */
     @Transactional(readOnly = true)
-    public Optional<DoctorStatistics> getStatisticsByDoctor(String idDokter) {
+    public Optional<DoctorStatistics> getStatisticsByDoctor(UUID idDokter) {
         return doctorStatisticsRepository.findByIdDokter(idDokter);
     }
 
@@ -42,7 +43,7 @@ public class DoctorStatisticsService {
      * Update statistics for a doctor
      */
     @Transactional
-    public DoctorStatistics updateStatistics(String idDokter) {
+    public DoctorStatistics updateStatistics(UUID idDokter) {
         log.info("Updating statistics for doctor: {}", idDokter);
 
         // Calculate average rating for doctor
@@ -93,7 +94,7 @@ public class DoctorStatisticsService {
      * Calculate and retrieve fresh statistics for a doctor
      */
     @Transactional(readOnly = true)
-    public DoctorStatistics calculateStatistics(String idDokter) {
+    public DoctorStatistics calculateStatistics(UUID idDokter) {
         Double averageRating = ratingRepository.calculateAverageRatingByDokter(idDokter);
         Integer totalRatings = ratingRepository.countRatingsByDokter(idDokter);
 
