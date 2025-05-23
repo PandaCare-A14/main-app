@@ -18,6 +18,7 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -159,10 +160,15 @@ class ReservasiKonsultasiControllerTest {
         reservasi2.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
         reservasi2.setIdSchedule(schedule2);
 
-        when(reservasiService.findAllByPasien("pac123")).thenReturn(List.of(waitingReservasi, reservasi2));
+        // Return a CompletableFuture instead of a List
+        when(reservasiService.findAllByPasien("pac123"))
+                .thenReturn(CompletableFuture.completedFuture(List.of(waitingReservasi, reservasi2)));
 
+        // Use andReturn to capture the result and add .andDo(print()) to see the response
         mockMvc.perform(get("/api/reservasi-konsultasi/pac123"))
+
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[0].id").value("RSV001"))
                 .andExpect(jsonPath("$[1].id").value("RSV002"))
                 .andExpect(jsonPath("$[0].idPacilian").value("pac123"))
