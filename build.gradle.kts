@@ -43,14 +43,21 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-web")
-
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation ("org.postgresql:postgresql:42.7.1")
+	runtimeOnly ("org.postgresql:postgresql")
+	runtimeOnly ("com.h2database:h2")
+	testImplementation ("org.springframework.boot:spring-boot-starter-test")
+	implementation ("jakarta.validation:jakarta.validation-api:3.0.2")
+	implementation ("org.hibernate.validator:hibernate-validator:8.0.0.Final")
+	implementation ("io.micrometer:micrometer-registry-prometheus")
+	implementation ("org.springframework.boot:spring-boot-starter-actuator")
+	implementation ("org.springframework.boot:spring-boot-starter-security")
+	implementation ("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 	compileOnly("org.projectlombok:lombok")
-
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
-
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	annotationProcessor("org.projectlombok:lombok")
-
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	implementation("org.apache.httpcomponents:httpclient:4.5.14")
 	implementation("com.fasterxml.jackson.core:jackson-databind")
@@ -59,7 +66,6 @@ dependencies {
 	testImplementation("io.github.bonigarcia:selenium-jupiter:$seleniumJupiterVersion")
 	testImplementation("io.github.bonigarcia:webdrivermanager:$webdrivermanagerVersion")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 }
