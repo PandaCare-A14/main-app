@@ -5,7 +5,7 @@ import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.statepacilian.ReservasiStatePacilian;
 import jakarta.persistence.*;
-import com.pandacare.mainapp.reservasi.model.state.*;
+import com.pandacare.mainapp.reservasi.model.stateCaregiver.*;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
 import jakarta.annotation.PostConstruct;
 
@@ -13,7 +13,7 @@ import lombok.Data;
 
 import java.time.LocalTime;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.context.annotation.Lazy;
 
 

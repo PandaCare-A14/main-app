@@ -134,20 +134,25 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
     }
 
     private List<CaregiverSchedule> filterAvailableSlotsAsync(List<CaregiverSchedule> slots) {
-        List<CompletableFuture<Boolean>> futures = new ArrayList<>();
-        for (CaregiverSchedule slot : slots) {
-            futures.add(slotValidator.isSlotValid(slot));
-        }
+        List<CompletableFuture<Optional<CaregiverSchedule>>> futures = slots.stream()
+                .map(slot ->
+                        slotValidator.isSlotValid(slot)
+                                .thenApply(valid -> valid ? Optional.of(slot) : Optional.<CaregiverSchedule>empty())
+                ).toList();
 
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        CompletableFuture<List<Optional<CaregiverSchedule>>> combinedFuture =
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                        .thenApply(v ->
+                                futures.stream()
+                                        .map(CompletableFuture::join)
+                                        .toList()
+                        );
 
-        List<CaregiverSchedule> validSlots = new ArrayList<>();
-        for (int i = 0; i < slots.size(); i++) {
-            if (futures.get(i).join()) {
-                validSlots.add(slots.get(i));
-            }
-        }
+        List<Optional<CaregiverSchedule>> optionalResults = combinedFuture.join();
 
-        return validSlots;
+        return optionalResults.stream()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
     }
 }

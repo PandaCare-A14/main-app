@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/api/doctors")
+@RequestMapping("/api/caregivers")
 public class CaregiverReservationController {
     private final CaregiverReservationService reservationService;
     @Autowired
@@ -44,7 +44,6 @@ public class CaregiverReservationController {
             }
 
             Caregiver caregiver = caregiverOpt.get();
-
             Map<String, Object> response = new HashMap<>();
             response.put("caregiverId", caregiverId);
             response.put("name", caregiver.getName());
