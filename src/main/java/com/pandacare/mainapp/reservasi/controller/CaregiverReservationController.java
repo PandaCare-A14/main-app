@@ -28,12 +28,10 @@ public class CaregiverReservationController {
     @Autowired
     public CaregiverReservationController(CaregiverReservationService reservationService) {
         this.reservationService = reservationService;
-    }
-
-    @GetMapping("/{caregiverId}/reservations")
+    }    @GetMapping("/{caregiverId}/reservations")
     public ResponseEntity<List<ReservasiKonsultasi>> getReservationsByCaregiver(
-            @PathVariable UUID caregiverId,
-            @RequestParam(required = false) String status) {
+            @PathVariable("caregiverId") UUID caregiverId,
+            @RequestParam(value = "status", required = false) String status) {
         try {
             List<ReservasiKonsultasi> reservations;
             if (status != null && ALLOWED_STATUSES.contains(status.toUpperCase())) {
@@ -52,11 +50,9 @@ public class CaregiverReservationController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-    }
-
-    @PatchMapping("/reservations/{reservationId}/status")
+    }    @PatchMapping("/reservations/{reservationId}/status")
     public ResponseEntity<ReservasiKonsultasi> updateStatus(
-            @PathVariable UUID reservationId,
+            @PathVariable("reservationId") UUID reservationId,
             @RequestBody @Valid UpdateStatusDTO dto) {
         try {
             if (dto.getStatus() == StatusReservasiKonsultasi.ON_RESCHEDULE && dto.getNewScheduleId() == null) {
@@ -93,10 +89,8 @@ public class CaregiverReservationController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-    }
-
-    @GetMapping("/reservations/{reservationId}")
-    public ResponseEntity<ReservasiKonsultasi> getReservationById(@PathVariable UUID reservationId) {
+    }    @GetMapping("/reservations/{reservationId}")
+    public ResponseEntity<ReservasiKonsultasi> getReservationById(@PathVariable("reservationId") UUID reservationId) {
         try {
             ReservasiKonsultasi reservation = reservationService.getReservationOrThrow(reservationId);
             return ResponseEntity.ok(reservation);
