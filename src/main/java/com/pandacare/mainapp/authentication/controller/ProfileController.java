@@ -44,7 +44,7 @@ public class ProfileController {    private final CaregiverRepository caregiverR
                             c.getWorkAddress(), c.getSpeciality())))
                     .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
                             .body(Map.of("error", "Caregiver not found")));
-            case "pacillian" -> pacillianRepository.findById(userId)
+            case "pacilian" -> pacillianRepository.findById(userId)
                     .<ResponseEntity<?>>map(p -> ResponseEntity.ok(new PacillianProfileDto(
                             p.getId(), p.getName(), p.getPhoneNumber(),
                             p.getAddress(), p.getMedicalHistory())))
@@ -66,7 +66,7 @@ public class ProfileController {    private final CaregiverRepository caregiverR
         }
 
         return switch (role.toLowerCase()) {
-            case "pacillian" -> createPacillianProfile(userId, data);
+            case "pacilian" -> createPacillianProfile(userId, data);
             case "caregiver" -> createCaregiverProfile(userId, data);
             default -> ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "Invalid role: " + role));
