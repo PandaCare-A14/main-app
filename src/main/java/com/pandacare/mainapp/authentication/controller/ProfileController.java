@@ -12,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -82,10 +83,10 @@ public class ProfileController {
         pacilian.setId(userId);
         pacilian.setName(getString(data, "name"));
         pacilian.setNik(getString(data, "nik"));
+        pacilian.setEmail(getString(data, "email"));
         pacilian.setPhoneNumber(getString(data, "phone_number"));
         pacilian.setAddress(getString(data, "address"));
         pacilian.setMedicalHistory(getString(data, "medical_history"));
-        pacilian.setRole("pacilian");
 
         Pacilian saved = pacilianRepository.save(pacilian);
 
@@ -104,10 +105,10 @@ public class ProfileController {
         caregiver.setId(userId);
         caregiver.setName(getString(data, "name"));
         caregiver.setNik(getString(data, "nik"));
+        caregiver.setEmail(getString(data, "email"));
         caregiver.setPhoneNumber(getString(data, "phone_number"));
         caregiver.setWorkAddress(getString(data, "work_address"));
         caregiver.setSpeciality(getString(data, "speciality"));
-        caregiver.setRole("caregiver");
 
         Caregiver saved = caregiverRepository.save(caregiver);
 
@@ -122,7 +123,10 @@ public class ProfileController {
     }
 
     private String getRole(Jwt jwt) {
-        return jwt.getClaimAsString("role");
+        String role = jwt.getClaimAsString("role");
+        if (role != null) return role;
+        List<String> roles = jwt.getClaimAsStringList("roles");
+        return (roles != null && !roles.isEmpty()) ? roles.getFirst() : null;
     }
 
     private String getString(Map<String, Object> data, String key) {

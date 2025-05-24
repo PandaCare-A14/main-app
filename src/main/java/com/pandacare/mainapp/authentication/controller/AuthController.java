@@ -12,7 +12,6 @@ import java.util.HashMap;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final RestTemplate restTemplate;
-
     @Value("${rust.auth.base-url}")
     private String rustAuthBaseUrl;
 
