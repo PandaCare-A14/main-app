@@ -48,6 +48,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+	annotationProcessor("org.projectlombok:lombok")
 
 	// Thymeleaf extras
 	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
