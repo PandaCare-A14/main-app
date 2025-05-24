@@ -1,4 +1,4 @@
-package com.pandacare.mainapp.reservasi.model.state;
+package com.pandacare.mainapp.reservasi.model.stateCaregiver;
 
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;

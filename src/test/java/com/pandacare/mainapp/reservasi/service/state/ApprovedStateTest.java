@@ -2,7 +2,7 @@ package com.pandacare.mainapp.reservasi.service.state;
 
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.model.state.ApprovedState;
+import com.pandacare.mainapp.reservasi.model.stateCaregiver.ApprovedState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
