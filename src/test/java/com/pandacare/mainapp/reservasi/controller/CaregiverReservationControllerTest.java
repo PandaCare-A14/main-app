@@ -1,6 +1,7 @@
 package com.pandacare.mainapp.reservasi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pandacare.mainapp.config.TestSecurityConfig;
 import com.pandacare.mainapp.reservasi.dto.UpdateStatusDTO;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
@@ -11,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
 
@@ -21,7 +24,9 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@ActiveProfiles("test")
 @WebMvcTest(CaregiverReservationController.class)
+@Import(TestSecurityConfig.class)
 public class CaregiverReservationControllerTest {
     @Autowired
     private MockMvc mockMvc;
