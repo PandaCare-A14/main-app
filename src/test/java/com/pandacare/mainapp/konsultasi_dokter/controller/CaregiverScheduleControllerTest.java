@@ -1,7 +1,6 @@
 package com.pandacare.mainapp.konsultasi_dokter.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pandacare.mainapp.config.SecurityConfig;
 import com.pandacare.mainapp.konsultasi_dokter.dto.CreateScheduleDTO;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -36,8 +34,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
-@WebMvcTest(CaregiverScheduleController.class)
-@Import(SecurityConfig.class)
+@WebMvcTest(controllers = CaregiverScheduleController.class, 
+           excludeAutoConfiguration = {
+               org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class,
+               org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration.class
+           })
 @AutoConfigureMockMvc(addFilters = false)
 public class CaregiverScheduleControllerTest {
     @MockBean
