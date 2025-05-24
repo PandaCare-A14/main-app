@@ -43,10 +43,8 @@ public class ReservasiKonsultasiController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));
         }
-    }
-
-    @PostMapping("/{id}/edit")
-    public ResponseEntity<?> editReservasi(@PathVariable UUID id, @RequestBody Map<String, String> request) {
+    }    @PostMapping("/{id}/edit")
+    public ResponseEntity<?> editReservasi(@PathVariable("id") UUID id, @RequestBody Map<String, String> request) {
         try {
             UUID newScheduleId = UUID.fromString(request.get("idSchedule"));
             ReservasiKonsultasi updated = reservasiService.editReservasi(id, newScheduleId);
@@ -57,20 +55,16 @@ public class ReservasiKonsultasiController {
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
-    }
-
-    @GetMapping("/{idPasien}")
-    public ResponseEntity<?> getAllReservasiByPasien(@PathVariable UUID idPasien) {
+    }    @GetMapping("/{idPasien}")
+    public ResponseEntity<?> getAllReservasiByPasien(@PathVariable("idPasien") UUID idPasien) {
         try {
             List<?> reservations = reservasiService.findAllByPasien(idPasien).get();
             return ResponseEntity.ok(reservations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-    }
-
-    @PostMapping("/{id}/accept-change")
-    public ResponseEntity<?> acceptChangeReservasi(@PathVariable UUID id) {
+    }    @PostMapping("/{id}/accept-change")
+    public ResponseEntity<?> acceptChangeReservasi(@PathVariable("id") UUID id) {
         try {
             ReservasiKonsultasi updated = reservasiService.acceptChangeReservasi(id);
             Map<String, Object> response = new HashMap<>();
@@ -81,10 +75,8 @@ public class ReservasiKonsultasiController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));
         }
-    }
-
-    @PostMapping("/{id}/reject-change")
-    public ResponseEntity<?> rejectChangeReservasi(@PathVariable UUID id) {
+    }    @PostMapping("/{id}/reject-change")
+    public ResponseEntity<?> rejectChangeReservasi(@PathVariable("id") UUID id) {
         try {
             reservasiService.rejectChangeReservasi(id);
             return ResponseEntity.ok(Map.of(
