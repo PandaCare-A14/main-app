@@ -1,5 +1,6 @@
 package com.pandacare.mainapp.reservasi.repository;
 
+import com.pandacare.mainapp.authentication.model.Caregiver;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
@@ -9,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -27,15 +27,16 @@ class ReservasiKonsultasiRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
     @Autowired
-    private ReservasiKonsultasiRepository repository;
-
-    @Test
+    private ReservasiKonsultasiRepository repository;    @Test
     void testFindAllByIdPasien() {
         UUID pasienId = UUID.randomUUID();
-        UUID caregiverId = UUID.randomUUID();
+        
+        // Create and persist a Caregiver entity first
+        Caregiver caregiver = new Caregiver("Dr. Test", "1234567890", "08123456789", "Test Address", "General Practice");
+        entityManager.persistAndFlush(caregiver);
 
         CaregiverSchedule schedule = new CaregiverSchedule();
-        schedule.setIdCaregiver(caregiverId);
+        schedule.setIdCaregiver(caregiver);
         schedule.setDay(DayOfWeek.MONDAY);
         schedule.setStartTime(LocalTime.of(9, 0));
         schedule.setEndTime(LocalTime.of(10, 0));
@@ -55,14 +56,14 @@ class ReservasiKonsultasiRepositoryTest {
 
         assertEquals(1, found.size());
         assertEquals(pasienId, found.getFirst().getIdPacilian());
-    }
-
-    @Test
+    }    @Test
     void testFindByCaregiverId() {
-        UUID caregiverId = UUID.randomUUID();
+        // Create and persist a Caregiver entity first
+        Caregiver caregiver = new Caregiver("Dr. Test 2", "1234567891", "08123456790", "Test Address 2", "Cardiology");
+        entityManager.persistAndFlush(caregiver);
 
         CaregiverSchedule schedule = new CaregiverSchedule();
-        schedule.setIdCaregiver(caregiverId);
+        schedule.setIdCaregiver(caregiver);
         schedule.setDay(DayOfWeek.TUESDAY);
         schedule.setStartTime(LocalTime.of(14, 0));
         schedule.setEndTime(LocalTime.of(15, 0));
@@ -78,18 +79,18 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        List<ReservasiKonsultasi> found = repository.findByCaregiverId(caregiverId);
+        List<ReservasiKonsultasi> found = repository.findByCaregiverId(caregiver.getId());
 
         assertEquals(1, found.size());
-        assertEquals(caregiverId, found.getFirst().getIdSchedule().getIdCaregiver());
-    }
-
-    @Test
+        assertEquals(caregiver.getId(), found.getFirst().getIdSchedule().getIdCaregiver());
+    }    @Test
     void testFindByCaregiverIdAndStatus() {
-        UUID caregiverId = UUID.randomUUID();
+        // Create and persist a Caregiver entity first
+        Caregiver caregiver = new Caregiver("Dr. Test 3", "1234567892", "08123456791", "Test Address 3", "Neurology");
+        entityManager.persistAndFlush(caregiver);
 
         CaregiverSchedule schedule1 = new CaregiverSchedule();
-        schedule1.setIdCaregiver(caregiverId);
+        schedule1.setIdCaregiver(caregiver);
         schedule1.setDay(DayOfWeek.MONDAY);
         schedule1.setStartTime(LocalTime.of(10, 0));
         schedule1.setEndTime(LocalTime.of(11, 0));
@@ -97,8 +98,7 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.persist(schedule1);
 
         CaregiverSchedule schedule2 = new CaregiverSchedule();
-        schedule2.setIdCaregiver(caregiverId);
-        schedule2.setDay(DayOfWeek.WEDNESDAY);
+        schedule2.setIdCaregiver(caregiver);        schedule2.setDay(DayOfWeek.WEDNESDAY);
         schedule2.setStartTime(LocalTime.of(11, 0));
         schedule2.setEndTime(LocalTime.of(12, 0));
         schedule2.setStatus(ScheduleStatus.AVAILABLE);
@@ -119,23 +119,23 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        List<ReservasiKonsultasi> waitingReservations = repository.findByCaregiverIdAndStatus(caregiverId, StatusReservasiKonsultasi.WAITING);
+        List<ReservasiKonsultasi> waitingReservations = repository.findByCaregiverIdAndStatus(caregiver.getId(), StatusReservasiKonsultasi.WAITING);
 
         assertEquals(1, waitingReservations.size());
         assertEquals(StatusReservasiKonsultasi.WAITING, waitingReservations.getFirst().getStatusReservasi());
 
-        List<ReservasiKonsultasi> approvedReservations = repository.findByCaregiverIdAndStatus(caregiverId, StatusReservasiKonsultasi.APPROVED);
+        List<ReservasiKonsultasi> approvedReservations = repository.findByCaregiverIdAndStatus(caregiver.getId(), StatusReservasiKonsultasi.APPROVED);
 
         assertEquals(1, approvedReservations.size());
         assertEquals(StatusReservasiKonsultasi.APPROVED, approvedReservations.getFirst().getStatusReservasi());
-    }
-
-    @Test
+    }    @Test
     void testFindByCaregiverIdAndDay() {
-        UUID caregiverId = UUID.randomUUID();
+        // Create and persist a Caregiver entity first
+        Caregiver caregiver = new Caregiver("Dr. Test 4", "1234567893", "08123456792", "Test Address 4", "Pediatrics");
+        entityManager.persistAndFlush(caregiver);
 
         CaregiverSchedule mondaySchedule = new CaregiverSchedule();
-        mondaySchedule.setIdCaregiver(caregiverId);
+        mondaySchedule.setIdCaregiver(caregiver);
         mondaySchedule.setDay(DayOfWeek.MONDAY);
         mondaySchedule.setStartTime(LocalTime.of(9, 0));
         mondaySchedule.setEndTime(LocalTime.of(10, 0));
@@ -143,7 +143,7 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.persist(mondaySchedule);
 
         CaregiverSchedule wednesdaySchedule = new CaregiverSchedule();
-        wednesdaySchedule.setIdCaregiver(caregiverId);
+        wednesdaySchedule.setIdCaregiver(caregiver);
         wednesdaySchedule.setDay(DayOfWeek.WEDNESDAY);
         wednesdaySchedule.setStartTime(LocalTime.of(14, 0));
         wednesdaySchedule.setEndTime(LocalTime.of(15, 0));
@@ -165,30 +165,28 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        List<ReservasiKonsultasi> mondayReservations = repository.findByCaregiverIdAndDay(caregiverId, DayOfWeek.MONDAY);
+        List<ReservasiKonsultasi> mondayReservations = repository.findByCaregiverIdAndDay(caregiver.getId(), DayOfWeek.MONDAY);
 
         assertEquals(1, mondayReservations.size());
         assertEquals(DayOfWeek.MONDAY, mondayReservations.getFirst().getIdSchedule().getDay());
 
-        List<ReservasiKonsultasi> wednesdayReservations = repository.findByCaregiverIdAndDay(caregiverId, DayOfWeek.WEDNESDAY);
+        List<ReservasiKonsultasi> wednesdayReservations = repository.findByCaregiverIdAndDay(caregiver.getId(), DayOfWeek.WEDNESDAY);
 
         assertEquals(1, wednesdayReservations.size());
         assertEquals(DayOfWeek.WEDNESDAY, wednesdayReservations.getFirst().getIdSchedule().getDay());
 
-        List<ReservasiKonsultasi> fridayReservations = repository.findByCaregiverIdAndDay(caregiverId, DayOfWeek.FRIDAY);
+        List<ReservasiKonsultasi> fridayReservations = repository.findByCaregiverIdAndDay(caregiver.getId(), DayOfWeek.FRIDAY);
 
         assertTrue(fridayReservations.isEmpty());
-    }
-
-    @Test
+    }    @Test
     void testNoReservationsFound() {
-        UUID caregiverIdInvalid = UUID.randomUUID();
+        UUID nonExistentCaregiverId = UUID.randomUUID();
         UUID nonExistentPasienId = UUID.randomUUID();
 
         List<ReservasiKonsultasi> emptyResult1 = repository.findAllByIdPasien(nonExistentPasienId);
-        List<ReservasiKonsultasi> emptyResult2 = repository.findByCaregiverId(caregiverIdInvalid);
-        List<ReservasiKonsultasi> emptyResult3 = repository.findByCaregiverIdAndStatus(caregiverIdInvalid, StatusReservasiKonsultasi.WAITING);
-        List<ReservasiKonsultasi> emptyResult4 = repository.findByCaregiverIdAndDay(caregiverIdInvalid, DayOfWeek.MONDAY);
+        List<ReservasiKonsultasi> emptyResult2 = repository.findByCaregiverId(nonExistentCaregiverId);
+        List<ReservasiKonsultasi> emptyResult3 = repository.findByCaregiverIdAndStatus(nonExistentCaregiverId, StatusReservasiKonsultasi.WAITING);
+        List<ReservasiKonsultasi> emptyResult4 = repository.findByCaregiverIdAndDay(nonExistentCaregiverId, DayOfWeek.MONDAY);
 
         assertTrue(emptyResult1.isEmpty());
         assertTrue(emptyResult2.isEmpty());
