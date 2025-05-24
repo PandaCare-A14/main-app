@@ -6,6 +6,7 @@ import com.pandacare.mainapp.authentication.repository.CaregiverRepository;
 import com.pandacare.mainapp.authentication.repository.PacillianRepository;
 import com.pandacare.mainapp.authentication.dto.CaregiverProfileDto;
 import com.pandacare.mainapp.authentication.dto.PacillianProfileDto;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,11 +19,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/profile")
-public class ProfileController {
-    private final CaregiverRepository caregiverRepository;
+public class ProfileController {    private final CaregiverRepository caregiverRepository;
     private final PacillianRepository pacillianRepository;
 
-    public ProfileController(CaregiverRepository caregiverRepository, PacillianRepository pacillianRepository) {
+    public ProfileController(@Qualifier("caregiverRepository") CaregiverRepository caregiverRepository, PacillianRepository pacillianRepository) {
         this.caregiverRepository = caregiverRepository;
         this.pacillianRepository = pacillianRepository;
     }
