@@ -1,5 +1,7 @@
 package com.pandacare.mainapp.reservasi.controller;
 
+import com.pandacare.mainapp.authentication.model.Caregiver;
+import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
 import com.pandacare.mainapp.reservasi.dto.UpdateStatusDTO;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
@@ -11,10 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -22,12 +22,42 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/doctors")
 public class CaregiverReservationController {
     private final CaregiverReservationService reservationService;
+    @Autowired
+    private DoctorProfileRepository doctorProfileRepository;
     private static final Set<String> ALLOWED_STATUSES = Arrays.stream(StatusReservasiKonsultasi.values())
             .map(Enum::name).collect(Collectors.toSet());
 
     @Autowired
     public CaregiverReservationController(CaregiverReservationService reservationService) {
         this.reservationService = reservationService;
+    }
+
+    @GetMapping("/{caregiverId}/profile")
+    public ResponseEntity<?> getCaregiverProfile(@PathVariable String caregiverId) {
+        try {
+            UUID caregiverUUID = UUID.fromString(caregiverId);
+
+            Optional<Caregiver> caregiverOpt = doctorProfileRepository.findById(caregiverUUID);
+
+            if (caregiverOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Caregiver caregiver = caregiverOpt.get();
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("caregiverId", caregiverId);
+            response.put("name", caregiver.getName());
+            response.put("email", caregiver.getEmail());
+            response.put("speciality", caregiver.getSpeciality());
+            response.put("phoneNumber", caregiver.getPhoneNumber());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to fetch profile"));
+        }
     }
 
     @GetMapping("/{caregiverId}/reservations")
