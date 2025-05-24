@@ -32,10 +32,9 @@ public class RatingController {
 
     /**
      * POST: Add a new rating for a consultation
-     */
-    @PostMapping("/consultations/{idJadwalKonsultasi}/ratings")
+     */    @PostMapping("/consultations/{idJadwalKonsultasi}/ratings")
     public ResponseEntity<?> addRating(
-            @PathVariable UUID idJadwalKonsultasi,
+            @PathVariable("idJadwalKonsultasi") UUID idJadwalKonsultasi,
             @RequestBody @Valid RatingRequest ratingRequest,
             @RequestHeader("X-User-ID") UUID idPasien) {
 
@@ -71,10 +70,9 @@ public class RatingController {
 
     /**
      * PUT: Update an existing rating for a consultation
-     */
-    @PutMapping("/consultations/{idJadwalKonsultasi}/ratings")
+     */    @PutMapping("/consultations/{idJadwalKonsultasi}/ratings")
     public ResponseEntity<?> updateRating(
-            @PathVariable UUID idJadwalKonsultasi,
+            @PathVariable("idJadwalKonsultasi") UUID idJadwalKonsultasi,
             @RequestBody @Valid RatingRequest ratingRequest,
             @RequestHeader("X-User-ID") UUID idPasien) {
 
@@ -109,10 +107,9 @@ public class RatingController {
 
     /**
      * DELETE: Delete a rating for a consultation
-     */
-    @DeleteMapping("/consultations/{idJadwalKonsultasi}/ratings")
+     */    @DeleteMapping("/consultations/{idJadwalKonsultasi}/ratings")
     public ResponseEntity<?> deleteRating(
-            @PathVariable UUID idJadwalKonsultasi,
+            @PathVariable("idJadwalKonsultasi") UUID idJadwalKonsultasi,
             @RequestHeader("X-User-ID") UUID idPasien) {
 
         try {
@@ -141,9 +138,8 @@ public class RatingController {
 
     /**
      * GET: Get all ratings for a doctor
-     */
-    @GetMapping("/doctors/{idDokter}/ratings")
-    public ResponseEntity<?> getRatingsByDokter(@PathVariable UUID idDokter) {
+     */    @GetMapping("/doctors/{idDokter}/ratings")
+    public ResponseEntity<?> getRatingsByDokter(@PathVariable("idDokter") UUID idDokter) {
         log.info("Fetching ratings for doctor: {}", idDokter);
 
         RatingListResponse response = ratingService.getRatingsByDokter(idDokter);
@@ -156,10 +152,9 @@ public class RatingController {
 
     /**
      * GET: Get all ratings by a patient
-     */
-    @GetMapping("/patients/{idPasien}/ratings")
+     */    @GetMapping("/patients/{idPasien}/ratings")
     public ResponseEntity<?> getRatingsByPasien(
-            @PathVariable UUID idPasien,
+            @PathVariable("idPasien") UUID idPasien,
             @RequestHeader("X-User-ID") UUID requesterId) {
 
         // Security check: Only allow patients to view their own ratings
@@ -181,10 +176,9 @@ public class RatingController {
 
     /**
      * GET: Check if a patient has rated a specific consultation
-     */
-    @GetMapping("/consultations/{idJadwalKonsultasi}/rating/status")
+     */    @GetMapping("/consultations/{idJadwalKonsultasi}/rating/status")
     public ResponseEntity<?> hasRatedKonsultasi(
-            @PathVariable UUID idJadwalKonsultasi,
+            @PathVariable("idJadwalKonsultasi") UUID idJadwalKonsultasi,
             @RequestHeader("X-User-ID") UUID idPasien) {
 
         log.info("Checking rating status for consultation: {} by patient: {}", idJadwalKonsultasi, idPasien);
@@ -199,10 +193,9 @@ public class RatingController {
 
     /**
      * GET: Get rating details for a specific consultation
-     */
-    @GetMapping("/consultations/{idJadwalKonsultasi}/ratings")
+     */    @GetMapping("/consultations/{idJadwalKonsultasi}/ratings")
     public ResponseEntity<?> getRatingByKonsultasi(
-            @PathVariable UUID idJadwalKonsultasi,
+            @PathVariable("idJadwalKonsultasi") UUID idJadwalKonsultasi,
             @RequestHeader("X-User-ID") UUID idPasien) {
 
         try {
