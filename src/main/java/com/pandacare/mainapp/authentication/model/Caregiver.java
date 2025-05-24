@@ -31,15 +31,13 @@ public class Caregiver extends User {
         this.workAddress = workAddress;
         this.speciality = speciality;
         this.workingSchedules = new ArrayList<>();
-    }
-
-    public void addWorkingSchedule(CaregiverSchedule schedule) {
+    }    public void addWorkingSchedule(CaregiverSchedule schedule) {
         workingSchedules.add(schedule);
-        schedule.setIdCaregiver(this.getId());
+        schedule.setIdCaregiver(this);
     }
 
     public void removeWorkingSchedule(CaregiverSchedule schedule) {
         workingSchedules.remove(schedule);
-        schedule.setIdCaregiver(null);
+        schedule.setIdCaregiver((Caregiver) null);
     }
 }
