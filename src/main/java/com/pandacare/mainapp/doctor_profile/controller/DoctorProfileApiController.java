@@ -31,7 +31,7 @@ public class DoctorProfileApiController {
 
 @GetMapping("/{doctorId}/actions")
 public DeferredResult<ResponseEntity<DoctorProfileResponse>> getDoctorWithActions(
-        @PathVariable UUID doctorId,
+        @PathVariable("doctorId") UUID doctorId,
         @RequestParam UUID patientId) {
 
     DeferredResult<ResponseEntity<DoctorProfileResponse>> deferredResult = new DeferredResult<>(ASYNC_TIMEOUT);
@@ -72,10 +72,8 @@ public DeferredResult<ResponseEntity<DoctorProfileResponse>> getDoctorWithAction
                                 .body(new ErrorResponse("Request timeout occurred"))));
 
         return deferredResult;
-    }
-
-    @GetMapping("/{id}")
-    public DeferredResult<ResponseEntity<?>> getDoctorProfile(@PathVariable UUID id) {
+    }    @GetMapping("/{id}")
+    public DeferredResult<ResponseEntity<?>> getDoctorProfile(@PathVariable("id") UUID id) {
         DeferredResult<ResponseEntity<?>> deferredResult = new DeferredResult<>(ASYNC_TIMEOUT);
 
         doctorProfileService.findById(id)

@@ -1,10 +1,10 @@
 package com.pandacare.mainapp.rating.service;
 
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.rating.dto.request.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import com.pandacare.mainapp.rating.model.Rating;
-import com.pandacare.mainapp.rating.observer.RatingSubject;
 import com.pandacare.mainapp.rating.repository.RatingRepository;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
@@ -61,14 +61,16 @@ class RatingServiceImplTest {
         validRatingRequest = new RatingRequest();
         validRatingRequest.setIdJadwalKonsultasi(VALID_CONSULTATION_ID);
         validRatingRequest.setRatingScore(VALID_RATING_SCORE);
-        validRatingRequest.setUlasan(VALID_REVIEW);
-
-        // Setup valid consultation
+        validRatingRequest.setUlasan(VALID_REVIEW);        // Setup valid consultation with proper schedule
         validKonsultasi = new ReservasiKonsultasi();
         validKonsultasi.setId(VALID_CONSULTATION_ID);
-        validKonsultasi.setIdCaregiver(VALID_DOCTOR_ID);
         validKonsultasi.setIdPasien(VALID_PATIENT_ID);
         validKonsultasi.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
+        
+        // Create a proper schedule with caregiver
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setIdCaregiver(VALID_DOCTOR_ID);
+        validKonsultasi.setIdSchedule(schedule);
 
         // Setup valid rating
         validRating = new Rating();
@@ -102,13 +104,10 @@ class RatingServiceImplTest {
         assertEquals(VALID_PATIENT_ID, result.getIdPasien());
         assertEquals(VALID_CONSULTATION_ID, result.getIdJadwalKonsultasi());
         assertEquals(VALID_RATING_SCORE, result.getRatingScore());
-        assertEquals(VALID_REVIEW, result.getUlasan());
-
-        // Verify interactions (excluding observer notifications as they use singleton)
+        assertEquals(VALID_REVIEW, result.getUlasan());        // Verify interactions (excluding observer notifications as they use singleton)
         verify(reservasiKonsultasiRepository).findById(VALID_CONSULTATION_ID);
         verify(ratingRepository).existsByIdPasienAndIdJadwalKonsultasi(VALID_PATIENT_ID, VALID_CONSULTATION_ID);
         verify(ratingRepository).save(any(Rating.class));
-        verify(ratingRepository).flush();
     }
 
     @Test

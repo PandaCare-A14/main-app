@@ -1,22 +1,14 @@
-package com.pandacare.mainapp.reservasi.model.state;
+package com.pandacare.mainapp.reservasi.model.stateCaregiver;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
-import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
 
 import java.util.UUID;
 
-public class RequestedState implements ReservasiState {
-    private final ScheduleService scheduleService;
-
-    public RequestedState(ScheduleService scheduleService) {
-        this.scheduleService = scheduleService;
-    }
-
+public class RescheduleState implements ReservasiState {
     @Override
     public StatusReservasiKonsultasi getStatus() {
-        return StatusReservasiKonsultasi.WAITING;
+        return StatusReservasiKonsultasi.ON_RESCHEDULE;
     }
 
     @Override
@@ -33,9 +25,6 @@ public class RequestedState implements ReservasiState {
 
     @Override
     public void handleChangeSchedule(ReservasiKonsultasi reservasi, UUID newScheduleId) {
-        CaregiverSchedule newSchedule = scheduleService.getById(newScheduleId);
-        reservasi.setIdSchedule(newSchedule);
-        reservasi.setStatusReservasi(StatusReservasiKonsultasi.ON_RESCHEDULE);
-        reservasi.setState(new RescheduleState());
+        throw new IllegalStateException("Operation not allowed. This reservation is on reschedule.");
     }
 }

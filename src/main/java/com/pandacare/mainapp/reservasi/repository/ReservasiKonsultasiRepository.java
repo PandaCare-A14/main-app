@@ -14,14 +14,13 @@ import java.util.UUID;
 @Repository
 public interface ReservasiKonsultasiRepository extends JpaRepository<ReservasiKonsultasi, UUID> {
     @Query("SELECT r FROM ReservasiKonsultasi r WHERE r.idPacilian = :pasienId")
-    List<ReservasiKonsultasi> findAllByIdPasien(@Param("pasienId") UUID pasienId);
-    @Query("SELECT r FROM ReservasiKonsultasi r JOIN r.idSchedule s WHERE s.idCaregiver = :caregiverId")
+    List<ReservasiKonsultasi> findAllByIdPasien(@Param("pasienId") UUID pasienId);    @Query("SELECT r FROM ReservasiKonsultasi r JOIN r.idSchedule s WHERE s.idCaregiver.id = :caregiverId")
     List<ReservasiKonsultasi> findByCaregiverId(@Param("caregiverId") UUID caregiverId);
-    @Query("SELECT r FROM ReservasiKonsultasi r JOIN r.idSchedule s WHERE s.idCaregiver = :caregiverId AND r.statusReservasi = :status")
+    @Query("SELECT r FROM ReservasiKonsultasi r JOIN r.idSchedule s WHERE s.idCaregiver.id = :caregiverId AND r.statusReservasi = :status")
     List<ReservasiKonsultasi> findByCaregiverIdAndStatus(
             @Param("caregiverId") UUID caregiverId,
             @Param("status") StatusReservasiKonsultasi status);
-    @Query("SELECT r FROM ReservasiKonsultasi r JOIN r.idSchedule s WHERE s.idCaregiver = :caregiverId AND s.day = :day")
+    @Query("SELECT r FROM ReservasiKonsultasi r JOIN r.idSchedule s WHERE s.idCaregiver.id = :caregiverId AND s.day = :day")
     List<ReservasiKonsultasi> findByCaregiverIdAndDay(
             @Param("caregiverId") UUID caregiverId,
             @Param("day") DayOfWeek day);

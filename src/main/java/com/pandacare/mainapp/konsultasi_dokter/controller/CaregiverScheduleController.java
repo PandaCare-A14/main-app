@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/doctors")
+@RequestMapping("/api/caregivers")
 @CrossOrigin(origins = "*")
 public class CaregiverScheduleController {
     private final CaregiverScheduleService scheduleService;
@@ -172,27 +172,6 @@ public class CaregiverScheduleController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.badRequest("Invalid day: " + e.getMessage()));
-        }
-    }
-
-    @GetMapping("/{idCaregiver}/schedules/available")
-    public ResponseEntity<ApiResponse<?>> getAvailableSchedules(
-            @PathVariable UUID idCaregiver,
-            @RequestParam(required = false) String date
-    ) {
-        try {
-            List<CaregiverSchedule> schedules = scheduleService.getSchedulesByCaregiver(idCaregiver)
-                    .stream()
-                    .filter(s -> s.getStatus() == ScheduleStatus.AVAILABLE)
-                    .filter(s -> date == null || date.equals(s.getDate().toString()))
-                    .sorted(Comparator.comparing(CaregiverSchedule::getDate)
-                            .thenComparing(CaregiverSchedule::getStartTime))
-                    .toList();
-
-            return ResponseEntity.ok(ApiResponse.success("Available schedules retrieved", schedules));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.internalError("Failed to fetch available schedules"));
         }
     }
 

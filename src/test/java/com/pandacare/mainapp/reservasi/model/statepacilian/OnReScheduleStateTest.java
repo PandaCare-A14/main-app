@@ -12,7 +12,6 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 class OnReScheduleStateTest {
-
     @Test
     void acceptChange_shouldApproveChange() {
         CaregiverSchedule proposedSchedule = new CaregiverSchedule();

@@ -38,9 +38,9 @@ out/
 .vscode/
 
 ### Environment ###
-src/main/resources/.env
 /env/
 env
+.env
 
 .DS_Store
 target

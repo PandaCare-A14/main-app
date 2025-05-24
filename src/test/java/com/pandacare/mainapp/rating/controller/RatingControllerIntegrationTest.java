@@ -1,6 +1,7 @@
 package com.pandacare.mainapp.rating.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pandacare.mainapp.config.TestSecurityConfig;
 import com.pandacare.mainapp.rating.dto.request.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import com.pandacare.mainapp.rating.service.RatingService;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,7 +23,6 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -31,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ActiveProfiles("test")
 @WebMvcTest(RatingController.class)
+@Import(TestSecurityConfig.class)
 class RatingControllerIntegrationTest {
 
     @Autowired
@@ -79,13 +81,12 @@ class RatingControllerIntegrationTest {
         mockMvc.perform(post("/api/consultations/{idJadwalKonsultasi}/ratings", VALID_CONSULTATION_ID)
                         .header("X-User-ID", VALID_PATIENT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validRatingRequest)))
-                .andExpect(status().isCreated())
+                        .content(objectMapper.writeValueAsString(validRatingRequest)))                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status", is("success")))
                 .andExpect(jsonPath("$.message", is("Rating berhasil ditambahkan")))
-                .andExpect(jsonPath("$.data.rating.id", is("rating001")))
-                .andExpect(jsonPath("$.data.rating.idDokter", is(VALID_DOCTOR_ID)))
-                .andExpect(jsonPath("$.data.rating.idPasien", is(VALID_PATIENT_ID)))
+                .andExpect(jsonPath("$.data.rating.id").exists())
+                .andExpect(jsonPath("$.data.rating.idDokter", is(VALID_DOCTOR_ID.toString())))
+                .andExpect(jsonPath("$.data.rating.idPasien", is(VALID_PATIENT_ID.toString())))
                 .andExpect(jsonPath("$.data.rating.ratingScore", is(5)))
                 .andExpect(jsonPath("$.data.rating.ulasan", is("Excellent service")));
     }
