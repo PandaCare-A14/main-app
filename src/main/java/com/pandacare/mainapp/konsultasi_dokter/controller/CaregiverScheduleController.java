@@ -27,11 +27,9 @@ public class CaregiverScheduleController {
 
     public CaregiverScheduleController(CaregiverScheduleService scheduleService) {
         this.scheduleService = scheduleService;
-    }
-
-    @PostMapping("/{idCaregiver}/schedules")
+    }    @PostMapping("/{idCaregiver}/schedules")
     public ResponseEntity<ApiResponse<?>> createSchedule(
-            @PathVariable UUID idCaregiver,
+            @PathVariable("idCaregiver") UUID idCaregiver,
             @Valid @RequestBody CreateScheduleDTO dto
     ) {
         try {
@@ -56,11 +54,9 @@ public class CaregiverScheduleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.internalError("An internal error occurred: " + e.getMessage()));
         }
-    }
-
-    @PostMapping("/{idCaregiver}/schedules/interval")
+    }    @PostMapping("/{idCaregiver}/schedules/interval")
     public ResponseEntity<ApiResponse<?>> createScheduleInterval(
-            @PathVariable UUID idCaregiver,
+            @PathVariable("idCaregiver") UUID idCaregiver,
             @Valid @RequestBody CreateScheduleDTO dto
     ) {
         try {
@@ -86,12 +82,10 @@ public class CaregiverScheduleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.internalError("An internal error occurred: " + e.getMessage()));
         }
-    }
-
-    @DeleteMapping("/{idCaregiver}/schedules/{idSchedule}")
+    }    @DeleteMapping("/{idCaregiver}/schedules/{idSchedule}")
     public ResponseEntity<ApiResponse<CaregiverSchedule>> deleteSchedule(
-            @PathVariable UUID idCaregiver,
-            @PathVariable UUID idSchedule
+            @PathVariable("idCaregiver") UUID idCaregiver,
+            @PathVariable("idSchedule") UUID idSchedule
     ) {
         try {
             scheduleService.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule);
@@ -108,14 +102,12 @@ public class CaregiverScheduleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.internalError("An internal error occurred: " + e.getMessage()));
         }
-    }
-
-    @GetMapping("/{idCaregiver}/schedules")
+    }    @GetMapping("/{idCaregiver}/schedules")
     public ResponseEntity<ApiResponse<?>> getScheduleByCaregiver(
-            @PathVariable UUID idCaregiver,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String day,
-            @RequestParam(required = false) UUID idSchedule
+            @PathVariable("idCaregiver") UUID idCaregiver,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "day", required = false) String day,
+            @RequestParam(value = "idSchedule", required = false) UUID idSchedule
     ) {
         try {
             if (idSchedule != null) {
@@ -173,12 +165,10 @@ public class CaregiverScheduleController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.badRequest("Invalid day: " + e.getMessage()));
         }
-    }
-
-    @GetMapping("/{idCaregiver}/schedules/available")
+    }    @GetMapping("/{idCaregiver}/schedules/available")
     public ResponseEntity<ApiResponse<?>> getAvailableSchedules(
-            @PathVariable UUID idCaregiver,
-            @RequestParam(required = false) String date
+            @PathVariable("idCaregiver") UUID idCaregiver,
+            @RequestParam(value = "date", required = false) String date
     ) {
         try {
             List<CaregiverSchedule> schedules = scheduleService.getSchedulesByCaregiver(idCaregiver)
