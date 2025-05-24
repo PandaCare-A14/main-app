@@ -12,8 +12,8 @@ import java.util.UUID;
 @Setter
 public abstract class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue
+    private UUID id; // Sync with id from auth service
     private String email;
     private String name;
     private String nik;

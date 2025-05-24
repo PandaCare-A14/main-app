@@ -12,7 +12,6 @@ import java.util.HashMap;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final RestTemplate restTemplate;
-
     @Value("${rust.auth.base-url}")
     private String rustAuthBaseUrl;
 
@@ -30,8 +29,7 @@ public class AuthController {
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(request, headers);
 
         try {
-            ResponseEntity<Object> response = restTemplate.postForEntity(url, entity, Object.class);
-            return response;
+            return restTemplate.postForEntity(url, entity, Object.class);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Login failed", "details", e.getMessage()));

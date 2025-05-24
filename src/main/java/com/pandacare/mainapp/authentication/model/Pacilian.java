@@ -11,5 +11,16 @@ import lombok.Setter;
 @Getter
 public class Pacilian extends User {
     private String address;
-    private String medicalHistory; // CHECK
+    private String medicalHistory;
+
+    public Pacilian(String name, String nik, String phoneNumber,
+                    String address, String medicalHistory) {
+        super(name, nik, phoneNumber);
+        this.address = address;
+        this.medicalHistory = medicalHistory;
+    }
+
+    public Pacilian() {
+
+    }
 }
