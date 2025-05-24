@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @ActiveProfiles("test")
 @EntityScan(basePackages = "com.pandacare.mainapp")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 class DoctorProfileRepositoryTest {
 
     @Autowired
@@ -164,9 +164,7 @@ class DoctorProfileRepositoryTest {
     void testFindCaregiverBySpecialityIfNotFound() {
         List<Caregiver> result = doctorProfileRepository.findBySpecialityContainingIgnoreCase("Nonexistent");
         assertTrue(result.isEmpty());
-    }
-
-    @Test
+    }    @Test
     void testFindByWorkScheduleAvailable() {
         entityManager.persist(caregiver1);
         entityManager.persist(caregiver2);

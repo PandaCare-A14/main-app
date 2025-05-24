@@ -1,0 +1,89 @@
+spring:
+  profiles:
+    active: test
+  application:
+    name: mainapp-test
+  
+  # H2 Database configuration for tests
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+    hikari:
+      maximum-pool-size: 2
+    # JPA/Hibernate configuration
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+        physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        globally_quoted_identifiers: true
+        connection:
+          provider_disables_autocommit: false
+        
+  # H2 Console (for debugging if needed)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  # SQL Initialization
+  sql:
+    init:
+      mode: never
+  
+  # Security configuration for tests
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8081/auth/realms/pandacare/protocol/openid-connect/certs
+  
+  # Transaction configuration
+  transaction:
+    default-timeout: 30
+
+# Mock authentication service URL
+rust:
+  auth:
+    base-url: http://localhost:8081
+
+# Logging configuration
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.transaction: DEBUG
+    com.pandacare.mainapp.rating: DEBUG
+    org.springframework.boot.autoconfigure: WARN
+    org.springframework.boot.test.context: WARN
+
+# Actuator endpoints for tests
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      enabled: true
+
+# HTTP Client Configuration for tests
+http:
+  client:
+    timeout:
+      connect: 5000
+      read: 10000
+
+# Server Configuration for tests
+server:
+  port: 0  # Random port for tests

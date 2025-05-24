@@ -29,9 +29,8 @@ public class DoctorStatisticsController {
 
     /**
      * GET: Get statistics for a doctor
-     */
-    @GetMapping("/doctors/{idDokter}/statistics")
-    public ResponseEntity<?> getDoctorStatistics(@PathVariable UUID idDokter) {
+     */    @GetMapping("/doctors/{idDokter}/statistics")
+    public ResponseEntity<?> getDoctorStatistics(@PathVariable("idDokter") UUID idDokter) {
         log.info("Fetching statistics for doctor: {}", idDokter);
 
         Optional<DoctorStatistics> statistics = doctorStatisticsService.getStatisticsByDoctor(idDokter);
@@ -62,9 +61,8 @@ public class DoctorStatisticsController {
 
     /**
      * POST: Refresh statistics for a doctor
-     */
-    @PostMapping("/doctors/{idDokter}/statistics/refresh")
-    public ResponseEntity<?> refreshDoctorStatistics(@PathVariable UUID idDokter) {
+     */    @PostMapping("/doctors/{idDokter}/statistics/refresh")
+    public ResponseEntity<?> refreshDoctorStatistics(@PathVariable("idDokter") UUID idDokter) {
         log.info("Refreshing statistics for doctor: {}", idDokter);
 
         try {

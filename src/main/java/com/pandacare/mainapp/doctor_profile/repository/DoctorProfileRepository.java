@@ -14,16 +14,12 @@ import java.util.List;
 public interface DoctorProfileRepository extends CaregiverRepository {
 
     List<Caregiver> findByNameContainingIgnoreCase(String name);
-    List<Caregiver> findBySpecialityContainingIgnoreCase(String speciality);
-
-    @Query("SELECT DISTINCT c FROM Caregiver c " +
+    List<Caregiver> findBySpecialityContainingIgnoreCase(String speciality);    @Query("SELECT DISTINCT c FROM Caregiver c " +
             "JOIN c.workingSchedules s " +
             "WHERE s.day = :day " +
             "AND s.status = 'AVAILABLE' " +
-            "AND s.startTime <= :searchEnd " +
-            "AND s.endTime >= :searchStart " +
-            "AND FUNCTION('TIMESTAMPDIFF', MINUTE, :searchStart, s.endTime) >= 30 " +
-            "AND FUNCTION('TIMESTAMPDIFF', MINUTE, s.startTime, :searchEnd) >= 30")
+            "AND s.startTime < :searchEnd " +
+            "AND s.endTime > :searchStart")
     List<Caregiver> findByWorkingSchedulesAvailable(
             @Param("day") DayOfWeek day,
             @Param("searchStart") LocalTime searchStart,

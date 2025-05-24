@@ -39,11 +39,13 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
     public CompletableFuture<DoctorProfileListResponse> findAll() {
         List<Caregiver> caregivers = doctorProfileRepository.findAll();
         return CompletableFuture.completedFuture(getDoctorProfileListResponse(caregivers));
-    }
-
-    @Override
+    }    @Override
     @Async
     public CompletableFuture<DoctorProfileResponse> findById(UUID id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Doctor ID cannot be null");
+        }
+        
         try {
             Caregiver caregiver = doctorProfileRepository.findById(id).orElse(null);
             if (caregiver == null) {
@@ -130,18 +132,27 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
             response.setDoctorProfiles(List.of());
             response.setTotalItems(0);
             return response;
-        }
-
-        response.setDoctorProfiles(caregivers.stream()
+        }        response.setDoctorProfiles(caregivers.stream()
                 .map(caregiver -> {
-                    RatingListResponse ratings = ratingService.getRatingsByDokter(caregiver.getId());
-                    return new DoctorProfileListResponse.DoctorProfileSummary(
-                            caregiver.getId(),
-                            caregiver.getName(),
-                            caregiver.getSpeciality(),
-                            ratings != null ? ratings.getAverageRating() : 0.0,
-                            ratings != null ? ratings.getTotalRatings() : 0
-                    );
+                    try {
+                        RatingListResponse ratings = ratingService.getRatingsByDokter(caregiver.getId());
+                        return new DoctorProfileListResponse.DoctorProfileSummary(
+                                caregiver.getId(),
+                                caregiver.getName(),
+                                caregiver.getSpeciality(),
+                                ratings != null ? ratings.getAverageRating() : 0.0,
+                                ratings != null ? ratings.getTotalRatings() : 0
+                        );
+                    } catch (Exception e) {
+                        // Handle rating service exception gracefully
+                        return new DoctorProfileListResponse.DoctorProfileSummary(
+                                caregiver.getId(),
+                                caregiver.getName(),
+                                caregiver.getSpeciality(),
+                                0.0,
+                                0
+                        );
+                    }
                 })
                 .collect(Collectors.toList()));
         response.setTotalItems(caregivers.size());

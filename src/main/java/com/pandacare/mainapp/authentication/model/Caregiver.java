@@ -5,7 +5,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.OneToMany;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +20,6 @@ public class Caregiver extends User {
     private String workAddress;
     private String speciality;
 
-    @JsonIgnore
     @OneToMany(mappedBy = "idCaregiver", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CaregiverSchedule> workingSchedules = new ArrayList<>();
 
@@ -33,15 +31,13 @@ public class Caregiver extends User {
         this.workAddress = workAddress;
         this.speciality = speciality;
         this.workingSchedules = new ArrayList<>();
+    }    public void addWorkingSchedule(CaregiverSchedule schedule) {
+        workingSchedules.add(schedule);
+        schedule.setIdCaregiver(this);
     }
-//
-//    public void addWorkingSchedule(CaregiverSchedule schedule) {
-//        workingSchedules.add(schedule);
-//        schedule.setIdCaregiver(this.getId());
-//    }
-//
-//    public void removeWorkingSchedule(CaregiverSchedule schedule) {
-//        workingSchedules.remove(schedule);
-//        schedule.setIdCaregiver(null);
-//    }
+
+    public void removeWorkingSchedule(CaregiverSchedule schedule) {
+        workingSchedules.remove(schedule);
+        schedule.setIdCaregiver((Caregiver) null);
+    }
 }
