@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/doctors")
+@RequestMapping("/api/caregivers")
 @CrossOrigin(origins = "*")
 public class CaregiverScheduleController {
     private final CaregiverScheduleService scheduleService;
@@ -27,9 +27,11 @@ public class CaregiverScheduleController {
 
     public CaregiverScheduleController(CaregiverScheduleService scheduleService) {
         this.scheduleService = scheduleService;
-    }    @PostMapping("/{idCaregiver}/schedules")
+    }
+
+    @PostMapping("/{idCaregiver}/schedules")
     public ResponseEntity<ApiResponse<?>> createSchedule(
-            @PathVariable("idCaregiver") UUID idCaregiver,
+            @PathVariable UUID idCaregiver,
             @Valid @RequestBody CreateScheduleDTO dto
     ) {
         try {
@@ -54,9 +56,11 @@ public class CaregiverScheduleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.internalError("An internal error occurred: " + e.getMessage()));
         }
-    }    @PostMapping("/{idCaregiver}/schedules/interval")
+    }
+
+    @PostMapping("/{idCaregiver}/schedules/interval")
     public ResponseEntity<ApiResponse<?>> createScheduleInterval(
-            @PathVariable("idCaregiver") UUID idCaregiver,
+            @PathVariable UUID idCaregiver,
             @Valid @RequestBody CreateScheduleDTO dto
     ) {
         try {
@@ -82,10 +86,12 @@ public class CaregiverScheduleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.internalError("An internal error occurred: " + e.getMessage()));
         }
-    }    @DeleteMapping("/{idCaregiver}/schedules/{idSchedule}")
+    }
+
+    @DeleteMapping("/{idCaregiver}/schedules/{idSchedule}")
     public ResponseEntity<ApiResponse<CaregiverSchedule>> deleteSchedule(
-            @PathVariable("idCaregiver") UUID idCaregiver,
-            @PathVariable("idSchedule") UUID idSchedule
+            @PathVariable UUID idCaregiver,
+            @PathVariable UUID idSchedule
     ) {
         try {
             scheduleService.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule);
@@ -102,12 +108,14 @@ public class CaregiverScheduleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.internalError("An internal error occurred: " + e.getMessage()));
         }
-    }    @GetMapping("/{idCaregiver}/schedules")
+    }
+
+    @GetMapping("/{idCaregiver}/schedules")
     public ResponseEntity<ApiResponse<?>> getScheduleByCaregiver(
-            @PathVariable("idCaregiver") UUID idCaregiver,
-            @RequestParam(value = "status", required = false) String status,
-            @RequestParam(value = "day", required = false) String day,
-            @RequestParam(value = "idSchedule", required = false) UUID idSchedule
+            @PathVariable UUID idCaregiver,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String day,
+            @RequestParam(required = false) UUID idSchedule
     ) {
         try {
             if (idSchedule != null) {
@@ -164,25 +172,6 @@ public class CaregiverScheduleController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.badRequest("Invalid day: " + e.getMessage()));
-        }
-    }    @GetMapping("/{idCaregiver}/schedules/available")
-    public ResponseEntity<ApiResponse<?>> getAvailableSchedules(
-            @PathVariable("idCaregiver") UUID idCaregiver,
-            @RequestParam(value = "date", required = false) String date
-    ) {
-        try {
-            List<CaregiverSchedule> schedules = scheduleService.getSchedulesByCaregiver(idCaregiver)
-                    .stream()
-                    .filter(s -> s.getStatus() == ScheduleStatus.AVAILABLE)
-                    .filter(s -> date == null || date.equals(s.getDate().toString()))
-                    .sorted(Comparator.comparing(CaregiverSchedule::getDate)
-                            .thenComparing(CaregiverSchedule::getStartTime))
-                    .toList();
-
-            return ResponseEntity.ok(ApiResponse.success("Available schedules retrieved", schedules));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.internalError("Failed to fetch available schedules"));
         }
     }
 

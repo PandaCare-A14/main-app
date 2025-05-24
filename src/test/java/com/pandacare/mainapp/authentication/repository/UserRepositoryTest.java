@@ -1,7 +1,6 @@
 package com.pandacare.mainapp.authentication.repository;
 
 import com.pandacare.mainapp.authentication.model.Caregiver;
-import com.pandacare.mainapp.authentication.model.Pacillian;
 import com.pandacare.mainapp.authentication.model.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,5 @@
 package com.pandacare.mainapp.authentication.repository;
 
-import com.pandacare.mainapp.authentication.model.Pacillian;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
