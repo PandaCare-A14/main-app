@@ -98,6 +98,11 @@ public class CaregiverScheduleServiceImpl implements CaregiverScheduleService {
         return repository.findByIdCaregiverAndStatus(idCaregiver, status);
     }
 
+    public List<CaregiverSchedule> getSchedulesByCaregiverStatusAndDay(UUID idCaregiver, ScheduleStatus status, DayOfWeek day
+    ) {
+        return repository.findByIdCaregiverAndStatusAndDay(idCaregiver, status, day);
+    }
+
     @Override
     public CaregiverSchedule getSchedulesByCaregiverAndIdSchedule(UUID idCaregiver, UUID idSchedule) {
         return repository.findByIdCaregiverAndIdSchedule(idCaregiver, idSchedule)

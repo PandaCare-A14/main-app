@@ -17,5 +17,6 @@ public interface CaregiverScheduleService {
     List<CaregiverSchedule> getSchedulesByCaregiverAndDay(UUID idCaregiver, DayOfWeek day);
     List<CaregiverSchedule> getSchedulesByCaregiverAndStatus(UUID idCaregiver, ScheduleStatus status);
     CaregiverSchedule getSchedulesByCaregiverAndIdSchedule(UUID idCaregiver, UUID idSchedule);
+    List<CaregiverSchedule> getSchedulesByCaregiverStatusAndDay(UUID idCaregiver, ScheduleStatus status, DayOfWeek day);
     CaregiverSchedule deleteSchedule(UUID idSchedule);
 }
