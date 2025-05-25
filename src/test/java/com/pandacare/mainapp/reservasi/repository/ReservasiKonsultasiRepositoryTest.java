@@ -57,7 +57,7 @@ class ReservasiKonsultasiRepositoryTest {
         List<ReservasiKonsultasi> found = repository.findAllByIdPasien(pasienId);
 
         assertEquals(1, found.size());
-        assertEquals(pasienId, found.getFirst().getIdPacilian());
+        assertEquals(pasienId, found.get(0).getIdPacilian());
     }    @Test
     void testFindByCaregiverId() {
         // Create and persist a Caregiver entity first
@@ -86,7 +86,7 @@ class ReservasiKonsultasiRepositoryTest {
         List<ReservasiKonsultasi> found = repository.findByCaregiverId(caregiver.getId());
 
         assertEquals(1, found.size());
-        assertEquals(caregiver.getId(), found.getFirst().getIdSchedule().getIdCaregiver());
+        assertEquals(caregiver.getId(), found.get(0).getIdSchedule().getIdCaregiver());
     }    @Test
     void testFindByCaregiverIdAndStatus() {
         // Create and persist a Caregiver entity first
@@ -129,12 +129,12 @@ class ReservasiKonsultasiRepositoryTest {
         List<ReservasiKonsultasi> waitingReservations = repository.findByCaregiverIdAndStatus(caregiver.getId(), StatusReservasiKonsultasi.WAITING);
 
         assertEquals(1, waitingReservations.size());
-        assertEquals(StatusReservasiKonsultasi.WAITING, waitingReservations.getFirst().getStatusReservasi());
+        assertEquals(StatusReservasiKonsultasi.WAITING, waitingReservations.get(0).getStatusReservasi());
 
         List<ReservasiKonsultasi> approvedReservations = repository.findByCaregiverIdAndStatus(caregiver.getId(), StatusReservasiKonsultasi.APPROVED);
 
         assertEquals(1, approvedReservations.size());
-        assertEquals(StatusReservasiKonsultasi.APPROVED, approvedReservations.getFirst().getStatusReservasi());
+        assertEquals(StatusReservasiKonsultasi.APPROVED, approvedReservations.get(0).getStatusReservasi());
     }    @Test
     void testFindByCaregiverIdAndDay() {
         // Create and persist a Caregiver entity first
@@ -178,12 +178,12 @@ class ReservasiKonsultasiRepositoryTest {
         List<ReservasiKonsultasi> mondayReservations = repository.findByCaregiverIdAndDay(caregiver.getId(), DayOfWeek.MONDAY);
 
         assertEquals(1, mondayReservations.size());
-        assertEquals(DayOfWeek.MONDAY, mondayReservations.getFirst().getIdSchedule().getDay());
+        assertEquals(DayOfWeek.MONDAY, mondayReservations.get(0).getIdSchedule().getDay());
 
         List<ReservasiKonsultasi> wednesdayReservations = repository.findByCaregiverIdAndDay(caregiver.getId(), DayOfWeek.WEDNESDAY);
 
         assertEquals(1, wednesdayReservations.size());
-        assertEquals(DayOfWeek.WEDNESDAY, wednesdayReservations.getFirst().getIdSchedule().getDay());
+        assertEquals(DayOfWeek.WEDNESDAY, wednesdayReservations.get(0).getIdSchedule().getDay());
 
         List<ReservasiKonsultasi> fridayReservations = repository.findByCaregiverIdAndDay(caregiver.getId(), DayOfWeek.FRIDAY);
 

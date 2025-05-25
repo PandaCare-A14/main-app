@@ -126,7 +126,7 @@ public class ProfileController {    private final CaregiverRepository caregiverR
         String role = jwt.getClaimAsString("role");
         if (role != null) return role;
         List<String> roles = jwt.getClaimAsStringList("roles");
-        return (roles != null && !roles.isEmpty()) ? roles.getFirst() : null;
+        return (roles != null && !roles.isEmpty()) ? roles.get(0) : null;
     }
 
     private String getString(Map<String, Object> data, String key) {
