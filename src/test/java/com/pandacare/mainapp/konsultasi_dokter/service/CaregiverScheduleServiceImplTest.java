@@ -422,4 +422,135 @@ class CaregiverScheduleServiceImplTest {
         verify(slotValidator, atLeastOnce()).isSlotValid(any());
         verify(repository).saveAll(any());
     }
+
+    @Test
+    void testGetSchedulesByCaregiverStatusAndDay() {
+        UUID caregiverId = UUID.randomUUID();
+        ScheduleStatus status = ScheduleStatus.AVAILABLE;
+        DayOfWeek day = DayOfWeek.MONDAY;
+
+        List<CaregiverSchedule> schedules = new ArrayList<>();
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setIdCaregiver(caregiverId);
+        schedule.setStatus(status);
+        schedule.setDay(day);
+        schedules.add(schedule);
+
+        when(repository.findByIdCaregiverAndStatusAndDay(caregiverId, status, day)).thenReturn(schedules);
+
+        List<CaregiverSchedule> result = service.getSchedulesByCaregiverStatusAndDay(caregiverId, status, day);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(status, result.get(0).getStatus());
+        assertEquals(day, result.get(0).getDay());
+        verify(repository).findByIdCaregiverAndStatusAndDay(caregiverId, status, day);
+    }
+
+    @Test
+    void testDeleteScheduleThrowsWhenAlreadyInactive() {
+        UUID scheduleId = UUID.randomUUID();
+
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId(scheduleId);
+        schedule.setStatus(ScheduleStatus.INACTIVE);
+
+        when(repository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+
+        when(repository.save(any(CaregiverSchedule.class))).thenAnswer(invocation -> {
+            CaregiverSchedule savedSchedule = invocation.getArgument(0);
+            return savedSchedule;
+        });
+
+        CaregiverSchedule result = service.deleteSchedule(scheduleId);
+
+        assertEquals(ScheduleStatus.INACTIVE, result.getStatus());
+        verify(repository).findById(scheduleId);
+        verify(repository).save(any(CaregiverSchedule.class));
+    }
+
+    @Test
+    void testCreateScheduleWithInvalidTimeRange() {
+        UUID caregiverId = UUID.randomUUID();
+        DayOfWeek day = DayOfWeek.MONDAY;
+        LocalTime startTime = LocalTime.of(10, 0);
+        LocalTime endTime = LocalTime.of(9, 0);
+
+        when(repository.existsOverlappingSchedule(caregiverId, day, startTime, endTime)).thenReturn(false);
+
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        when(repository.save(any(CaregiverSchedule.class))).thenReturn(schedule);
+
+        assertDoesNotThrow(() -> service.createSchedule(caregiverId, day, startTime, endTime));
+
+        verify(repository).existsOverlappingSchedule(caregiverId, day, startTime, endTime);
+        verify(repository).save(any(CaregiverSchedule.class));
+    }
+
+    @Test
+    void testCreateScheduleWithSameStartEndTime() {
+        UUID caregiverId = UUID.randomUUID();
+        DayOfWeek day = DayOfWeek.MONDAY;
+        LocalTime startTime = LocalTime.of(9, 0);
+        LocalTime endTime = LocalTime.of(9, 0);
+
+        when(repository.existsOverlappingSchedule(caregiverId, day, startTime, endTime)).thenReturn(false);
+
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        when(repository.save(any(CaregiverSchedule.class))).thenReturn(schedule);
+
+        CaregiverSchedule result = service.createSchedule(caregiverId, day, startTime, endTime);
+
+        assertNotNull(result);
+        verify(repository).existsOverlappingSchedule(caregiverId, day, startTime, endTime);
+        verify(repository).save(any(CaregiverSchedule.class));
+    }
+
+    @Test
+    void testSlotValidatorServiceIntegration() {
+        UUID caregiverId = UUID.randomUUID();
+        DayOfWeek day = DayOfWeek.MONDAY;
+        LocalTime startTime = LocalTime.of(9, 0);
+        LocalTime endTime = LocalTime.of(11, 0);
+        int weeks = 2;
+
+        when(slotValidator.isSlotValid(any()))
+                .thenReturn(CompletableFuture.completedFuture(true))
+                .thenReturn(CompletableFuture.completedFuture(false))
+                .thenReturn(CompletableFuture.completedFuture(true))
+                .thenReturn(CompletableFuture.completedFuture(false));
+
+        List<CaregiverSchedule> savedSlots = new ArrayList<>();
+        savedSlots.add(new CaregiverSchedule());
+        savedSlots.add(new CaregiverSchedule());
+
+        when(repository.saveAll(any())).thenReturn(savedSlots);
+
+        List<CaregiverSchedule> result = service.createRepeatedMultipleSchedules(caregiverId, day, startTime, endTime, weeks);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        verify(slotValidator, atLeast(4)).isSlotValid(any());
+        verify(repository).saveAll(any());
+    }
+
+    @Test
+    void testFilterAvailableSlotsWithAllInvalid() {
+        UUID caregiverId = UUID.randomUUID();
+        DayOfWeek day = DayOfWeek.MONDAY;
+        LocalTime startTime = LocalTime.of(9, 0);
+        LocalTime endTime = LocalTime.of(11, 0);
+        int weeks = 1;
+
+        when(slotValidator.isSlotValid(any()))
+                .thenReturn(CompletableFuture.completedFuture(false));
+
+        Exception exception = assertThrows(RuntimeException.class, () ->
+                service.createRepeatedMultipleSchedules(caregiverId, day, startTime, endTime, weeks)
+        );
+
+        assertEquals("All requested slots overlap with existing schedules.", exception.getMessage());
+        verify(slotValidator, atLeastOnce()).isSlotValid(any());
+        verify(repository, never()).saveAll(any());
+    }
 }
