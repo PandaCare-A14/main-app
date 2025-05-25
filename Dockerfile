@@ -23,7 +23,18 @@ COPY --from=builder --chown=${USER_UID}:${USER_GID} /src/tk-adpro/build/libs/*.j
 
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=15s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:8080/actuator/health || exit 1
+HEALTHCHECK --interval=30s --timeout=15s --start-period=120s --retries=5 \
+  CMD curl -f http://localhost:${PORT:-8080}/actuator/health || exit 1
 
-ENTRYPOINT ["sh", "-c", "java -Xmx${MEMORY_LIMIT:-512m} -Xms256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication -Dserver.port=${PORT:-8080} -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java \
+  -Xmx${MEMORY_LIMIT:-1024m} \
+  -Xms512m \
+  -XX:+UseG1GC \
+  -XX:MaxGCPauseMillis=200 \
+  -XX:+UseStringDeduplication \
+  -XX:+OptimizeStringConcat \
+  -XX:+UseCompressedOops \
+  -Djava.security.egd=file:/dev/./urandom \
+  -Dserver.port=${PORT:-8080} \
+  -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-prod} \
+  -jar app.jar"]
