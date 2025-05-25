@@ -1,9 +1,12 @@
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.statepacilian.OnReScheduleState;
 import org.junit.jupiter.api.Test;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -11,18 +14,26 @@ class OnReScheduleStateTest {
 
     @Test
     void acceptChange_shouldApproveChange() {
+        CaregiverSchedule proposedSchedule = new CaregiverSchedule();
+        proposedSchedule.setId(UUID.randomUUID());
+        proposedSchedule.setDay(DayOfWeek.THURSDAY);
+        proposedSchedule.setStartTime(LocalTime.of(14, 0));
+        proposedSchedule.setEndTime(LocalTime.of(15, 0));
+
+        // Set up reservation with the proposed schedule already set
         ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
-        reservasi.setNewDay("THURSDAY");
-        reservasi.setNewStartTime(LocalTime.of(14, 0));
-        reservasi.setNewEndTime(LocalTime.of(15, 0));
+        reservasi.setIdSchedule(proposedSchedule); // Schedule is already updated
+        reservasi.setStatusReservasi(StatusReservasiKonsultasi.ON_RESCHEDULE);
 
         OnReScheduleState state = new OnReScheduleState();
         state.acceptChange(reservasi);
 
-        assertEquals("THURSDAY", reservasi.getDay());
+        // Just check the status is updated to APPROVED
+        // The schedule should already be THURSDAY as set above
+        assertEquals(StatusReservasiKonsultasi.APPROVED, reservasi.getStatusReservasi());
+        assertEquals(DayOfWeek.THURSDAY.toString(), reservasi.getDay());
         assertEquals(LocalTime.of(14, 0), reservasi.getStartTime());
         assertEquals(LocalTime.of(15, 0), reservasi.getEndTime());
-        assertEquals(StatusReservasiKonsultasi.APPROVED, reservasi.getStatusReservasi());
     }
 
     @Test

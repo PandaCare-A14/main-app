@@ -23,38 +23,17 @@ import org.springframework.context.annotation.Lazy;
 public class ReservasiKonsultasi {
     @Id
     @Column(name = "id")
-    private String id;
-    private String idDokter;
-    private String idPasien;
-
-    @Column(name = "appointment_day")
-    private String day;
-    private LocalTime startTime;
-    private LocalTime endTime;
+    private UUID id;
 
     @Enumerated(EnumType.STRING)
     private StatusReservasiKonsultasi statusReservasi;
-
-    private boolean changeReservasi;
-
-    @Column(name = "new_appointment_day")
-    private String newDay;
-    private LocalTime newStartTime;
-    private LocalTime newEndTime;
-
-    @PrePersist
-    protected void onCreate() {
-        if (id == null) {
-            id = UUID.randomUUID().toString();
-        }
-    }
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_schedule")
     private CaregiverSchedule idSchedule;
 
     @Column
-    private String idPacilian;
+    private UUID idPacilian;
 
     @Column
     private String pacilianNote;
@@ -72,8 +51,15 @@ public class ReservasiKonsultasi {
     @JsonIgnore
     private ReservasiStatePacilian statePacilian;
 
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+    }
+
     public ReservasiKonsultasi() {
-        this.id = UUID.randomUUID().toString();
+        this.id = UUID.randomUUID();
         this.statusReservasi = StatusReservasiKonsultasi.WAITING;
     }
 
@@ -172,5 +158,22 @@ public class ReservasiKonsultasi {
             throw new IllegalStateException("State Pacilian belum diset.");
         }
         statePacilian.rejectChange(this);
+    }
+
+    // Access methods for schedule properties
+    public String getDay() {
+        return idSchedule != null ? idSchedule.getDay().toString() : null;
+    }
+
+    public LocalTime getStartTime() {
+        return idSchedule != null ? idSchedule.getStartTime() : null;
+    }
+
+    public LocalTime getEndTime() {
+        return idSchedule != null ? idSchedule.getEndTime() : null;
+    }
+
+    public String getIdCareGiver() {
+        return idSchedule != null ? idSchedule.getIdCaregiver().toString() : null;
     }
 }

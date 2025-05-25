@@ -12,9 +12,6 @@ public class OnReScheduleState implements ReservasiStatePacilian {
 
     @Override
     public void acceptChange(ReservasiKonsultasi r) {
-        r.setDay(r.getNewDay());
-        r.setStartTime(r.getNewStartTime());
-        r.setEndTime(r.getNewEndTime());
         r.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
     }
 

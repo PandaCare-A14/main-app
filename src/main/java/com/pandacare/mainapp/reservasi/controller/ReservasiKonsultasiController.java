@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/reservasi-konsultasi")
@@ -22,14 +23,21 @@ public class ReservasiKonsultasiController {
     @PostMapping("/request")
     public ResponseEntity<?> requestReservasi(@RequestBody Map<String, String> body) {
         try {
-            UUID idSchedule = UUID.fromString(body.get("idSchedule")); // Ambil ID jadwal langsung
-            String idPacilian = body.get("idPacilian"); // Ambil ID pasien
+            UUID idSchedule = UUID.fromString(body.get("idSchedule"));
+            UUID idPacilian = UUID.fromString(body.get("idPacilian")); // Convert to UUID
 
             ReservasiKonsultasi result = reservasiService.requestReservasi(idSchedule, idPacilian);
 
+            Map<String, Object> reservasiMap = new HashMap<>();
+            reservasiMap.put("idReservasi", result.getId());
+            reservasiMap.put("idSchedule", result.getIdSchedule());
+            reservasiMap.put("idPacilian", result.getIdPacilian());
+            reservasiMap.put("statusReservasi", result.getStatusReservasi());
+            reservasiMap.put("pacilianNote", result.getPacilianNote());
+
             return ResponseEntity.ok(Map.of(
                     "message", "Jadwal konsultasi berhasil diajukan",
-                    "reservasi", result
+                    "reservasi", reservasiMap
             ));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -38,14 +46,10 @@ public class ReservasiKonsultasiController {
     }
 
     @PostMapping("/{id}/edit")
-    public ResponseEntity<?> editReservasi(@PathVariable String id, @RequestBody Map<String, String> request) {
+    public ResponseEntity<?> editReservasi(@PathVariable UUID id, @RequestBody Map<String, String> request) {
         try {
-            ReservasiKonsultasi updated = reservasiService.editReservasi(
-                    id,
-                    request.get("day"),
-                    request.get("startTime"),
-                    request.get("endTime")
-            );
+            UUID newScheduleId = UUID.fromString(request.get("idSchedule"));
+            ReservasiKonsultasi updated = reservasiService.editReservasi(id, newScheduleId);
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Reservasi updated successfully");
             response.put("reservasi", updated);
@@ -56,13 +60,17 @@ public class ReservasiKonsultasiController {
     }
 
     @GetMapping("/{idPasien}")
-    public ResponseEntity<?> getAllReservasiByPasien(@PathVariable String idPasien) {
-        List<ReservasiKonsultasi> reservasiList = reservasiService.findAllByPasien(idPasien);
-        return ResponseEntity.ok(reservasiList);
+    public ResponseEntity<?> getAllReservasiByPasien(@PathVariable UUID idPasien) {
+        try {
+            List<?> reservations = reservasiService.findAllByPasien(idPasien).get();
+            return ResponseEntity.ok(reservations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PostMapping("/{id}/accept-change")
-    public ResponseEntity<?> acceptChangeReservasi(@PathVariable String id) {
+    public ResponseEntity<?> acceptChangeReservasi(@PathVariable UUID id) {
         try {
             ReservasiKonsultasi updated = reservasiService.acceptChangeReservasi(id);
             Map<String, Object> response = new HashMap<>();
@@ -76,7 +84,7 @@ public class ReservasiKonsultasiController {
     }
 
     @PostMapping("/{id}/reject-change")
-    public ResponseEntity<?> rejectChangeReservasi(@PathVariable String id) {
+    public ResponseEntity<?> rejectChangeReservasi(@PathVariable UUID id) {
         try {
             reservasiService.rejectChangeReservasi(id);
             return ResponseEntity.ok(Map.of(
