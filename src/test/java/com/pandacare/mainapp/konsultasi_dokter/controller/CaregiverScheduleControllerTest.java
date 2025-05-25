@@ -370,4 +370,273 @@ public class CaregiverScheduleControllerTest {
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Schedule not found"));
     }
+
+    @Test
+    public void testGetScheduleByCaregiverAndStatusAndDay() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        UUID scheduleId = UUID.randomUUID();
+        String statusStr = "AVAILABLE";
+        String day = "MONDAY";
+        ScheduleStatus status = ScheduleStatus.AVAILABLE;
+        DayOfWeek dayOfWeek = DayOfWeek.MONDAY;
+
+        List<CaregiverSchedule> schedules = new ArrayList<>();
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId(scheduleId);
+        schedule.setIdCaregiver(idCaregiver);
+        schedule.setDay(dayOfWeek);
+        schedule.setStatus(status);
+        schedules.add(schedule);
+
+        when(service.getSchedulesByCaregiverStatusAndDay(idCaregiver, status, dayOfWeek))
+                .thenReturn(schedules);
+
+        mockMvc.perform(get("/api/caregivers/{idCaregiver}/schedules", idCaregiver)
+                        .param("status", statusStr)
+                        .param("day", day))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Schedules with status " + statusStr + " for " + day + " retrieved successfully"))
+                .andExpect(jsonPath("$.data[0].id").value(scheduleId.toString()));
+    }
+
+    @Test
+    public void testCreateScheduleWithInvalidDay() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        CreateScheduleDTO dto = new CreateScheduleDTO();
+        dto.setDay("INVALID_DAY");
+        dto.setStartTime("09:00");
+        dto.setEndTime("10:00");
+
+        mockMvc.perform(post("/api/caregivers/{idCaregiver}/schedules", idCaregiver)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Invalid input: No enum constant java.time.DayOfWeek.INVALID_DAY"));
+    }
+
+    @Test
+    public void testCreateScheduleWithInvalidTimeFormat() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        CreateScheduleDTO dto = new CreateScheduleDTO();
+        dto.setDay("MONDAY");
+        dto.setStartTime("25:00");
+        dto.setEndTime("10:00");
+
+        mockMvc.perform(post("/api/caregivers/{idCaregiver}/schedules", idCaregiver)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+    }
+
+    @Test
+    public void testCreateScheduleConflict() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        CreateScheduleDTO dto = new CreateScheduleDTO();
+        dto.setDay("MONDAY");
+        dto.setStartTime("09:00");
+        dto.setEndTime("10:00");
+
+        when(service.createSchedule(any(UUID.class), any(DayOfWeek.class), any(LocalTime.class), any(LocalTime.class)))
+                .thenThrow(new IllegalStateException("Schedule conflicts with existing schedule"));
+
+        mockMvc.perform(post("/api/caregivers/{idCaregiver}/schedules", idCaregiver)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Cannot perform operation: Schedule conflicts with existing schedule"));
+    }
+
+    @Test
+    public void testCreateScheduleInternalError() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        CreateScheduleDTO dto = new CreateScheduleDTO();
+        dto.setDay("MONDAY");
+        dto.setStartTime("09:00");
+        dto.setEndTime("10:00");
+
+        when(service.createSchedule(any(UUID.class), any(DayOfWeek.class), any(LocalTime.class), any(LocalTime.class)))
+                .thenThrow(new RuntimeException("Database connection failed"));
+
+        mockMvc.perform(post("/api/caregivers/{idCaregiver}/schedules", idCaregiver)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andDo(print())
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").value("An internal error occurred"));
+    }
+
+    @Test
+    public void testGetScheduleWithInvalidDay() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        String invalidDay = "INVALID_DAY";
+
+        mockMvc.perform(get("/api/caregivers/{idCaregiver}/schedules", idCaregiver)
+                        .param("day", invalidDay))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+    }
+
+    @Test
+    public void testCreateScheduleIntervalWithInvalidDay() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        CreateScheduleDTO dto = new CreateScheduleDTO();
+        dto.setDay("INVALID_DAY");
+        dto.setStartTime("09:00");
+        dto.setEndTime("10:00");
+
+        mockMvc.perform(post("/api/caregivers/{idCaregiver}/schedules/interval", idCaregiver)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+    }
+
+    @Test
+    public void testCreateScheduleIntervalConflict() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        CreateScheduleDTO dto = new CreateScheduleDTO();
+        dto.setDay("MONDAY");
+        dto.setStartTime("09:00");
+        dto.setEndTime("10:00");
+
+        when(service.createMultipleSchedules(any(UUID.class), any(DayOfWeek.class), any(LocalTime.class), any(LocalTime.class)))
+                .thenThrow(new IllegalStateException("Time slot already booked"));
+
+        mockMvc.perform(post("/api/caregivers/{idCaregiver}/schedules/interval", idCaregiver)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Cannot perform operation: Time slot already booked"));
+    }
+
+    @Test
+    public void testGetScheduleByCaregiverNotFound() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+
+        when(service.getSchedulesByCaregiver(idCaregiver))
+                .thenThrow(new EntityNotFoundException("Caregiver not found"));
+
+        mockMvc.perform(get("/api/caregivers/{idCaregiver}/schedules", idCaregiver))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Schedule not found"));
+    }
+
+    @Test
+    public void testGetScheduleByIdNotFound() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        UUID idSchedule = UUID.randomUUID();
+
+        when(service.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule))
+                .thenThrow(new EntityNotFoundException("Schedule not found"));
+
+        mockMvc.perform(get("/api/caregivers/{idCaregiver}/schedules", idCaregiver)
+                        .param("idSchedule", idSchedule.toString()))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Schedule not found"));
+    }
+
+    @Test
+    public void testDeleteScheduleConflict() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        UUID idSchedule = UUID.randomUUID();
+
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId(idSchedule);
+        schedule.setIdCaregiver(idCaregiver);
+
+        when(service.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule))
+                .thenReturn(schedule);
+        when(service.deleteSchedule(idSchedule))
+                .thenThrow(new IllegalStateException("Cannot delete schedule with active reservations"));
+
+        mockMvc.perform(delete("/api/caregivers/{idCaregiver}/schedules/{idSchedule}", idCaregiver, idSchedule))
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Cannot perform operation: Cannot delete schedule with active reservations"));
+    }
+
+    @Test
+    public void testCreateScheduleWithZeroWeeks() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        UUID idSchedule = UUID.randomUUID();
+        CreateScheduleDTO dto = new CreateScheduleDTO();
+        dto.setDay("MONDAY");
+        dto.setStartTime("09:00");
+        dto.setEndTime("10:00");
+        dto.setWeeks(0);
+
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId(idSchedule);
+        schedule.setIdCaregiver(idCaregiver);
+        schedule.setDay(DayOfWeek.MONDAY);
+        schedule.setStartTime(LocalTime.of(9, 0));
+        schedule.setEndTime(LocalTime.of(10, 0));
+
+        when(service.createSchedule(any(UUID.class), any(DayOfWeek.class), any(LocalTime.class), any(LocalTime.class)))
+                .thenReturn(schedule);
+
+        mockMvc.perform(post("/api/caregivers/{idCaregiver}/schedules", idCaregiver)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value(201))
+                .andExpect(jsonPath("$.message").value("Schedule created successfully"))
+                .andExpect(jsonPath("$.data.id").value(idSchedule.toString()));
+    }
+
+    @Test
+    public void testCreateScheduleIntervalWithZeroWeeks() throws Exception {
+        UUID idCaregiver = UUID.randomUUID();
+        UUID scheduleId1 = UUID.randomUUID();
+        UUID scheduleId2 = UUID.randomUUID();
+        CreateScheduleDTO dto = new CreateScheduleDTO();
+        dto.setDay("MONDAY");
+        dto.setStartTime("09:00");
+        dto.setEndTime("10:00");
+        dto.setWeeks(0);
+
+        List<CaregiverSchedule> schedules = new ArrayList<>();
+        CaregiverSchedule schedule1 = new CaregiverSchedule();
+        schedule1.setId(scheduleId1);
+        schedule1.setIdCaregiver(idCaregiver);
+
+        CaregiverSchedule schedule2 = new CaregiverSchedule();
+        schedule2.setId(scheduleId2);
+        schedule2.setIdCaregiver(idCaregiver);
+
+        schedules.add(schedule1);
+        schedules.add(schedule2);
+
+        when(service.createMultipleSchedules(any(UUID.class), any(DayOfWeek.class), any(LocalTime.class), any(LocalTime.class)))
+                .thenReturn(schedules);
+
+        mockMvc.perform(post("/api/caregivers/{idCaregiver}/schedules/interval", idCaregiver)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value(201))
+                .andExpect(jsonPath("$.message").value("Interval schedules created successfully"))
+                .andExpect(jsonPath("$.data[0].id").value(scheduleId1.toString()))
+                .andExpect(jsonPath("$.data[1].id").value(scheduleId2.toString()));
+    }
 }
