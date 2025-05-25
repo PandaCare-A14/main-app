@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Map;
@@ -79,13 +80,12 @@ class RatingControllerTest {
         pastSchedule = new CaregiverSchedule();
         pastSchedule.setIdCaregiver(ID_DOKTER);
         pastSchedule.setStartTime(LocalTime.of(9, 0)); // 09:00
-        pastSchedule.setEndTime(LocalTime.of(10, 0));  // 10:00 (past time)
-
-        // Initialize CaregiverSchedule for future consultation
+        pastSchedule.setEndTime(LocalTime.of(10, 0));  // 10:00 (past time)        // Initialize CaregiverSchedule for future consultation
         futureSchedule = new CaregiverSchedule();
         futureSchedule.setIdCaregiver(ID_DOKTER);
-        futureSchedule.setStartTime(LocalTime.of(23, 0));  // 23:00
-        futureSchedule.setEndTime(LocalTime.of(23, 59));   // 23:59 (future time)
+        futureSchedule.setDate(LocalDate.now().plusDays(1)); // Tomorrow
+        futureSchedule.setStartTime(LocalTime.of(10, 0));  // 10:00
+        futureSchedule.setEndTime(LocalTime.of(11, 0));   // 11:00
 
         // Initialize reservasi konsultasi yang sudah selesai (past consultation)
         reservasiKonsultasi = new ReservasiKonsultasi();

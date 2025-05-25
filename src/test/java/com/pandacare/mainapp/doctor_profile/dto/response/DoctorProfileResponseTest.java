@@ -26,7 +26,7 @@ public class DoctorProfileResponseTest {
 
     @BeforeEach
     void setUp() {
-        List<CaregiverSchedule> schedules = new ArrayList<>();
+        List<DoctorProfileResponse.CaregiverScheduleDTO> schedules = new ArrayList<>();
         response = new DoctorProfileResponse(
                 ID,
                 NAME,
@@ -73,7 +73,7 @@ public class DoctorProfileResponseTest {
 
     @Test
     void testEqualsAndHashCode() {
-        List<CaregiverSchedule> schedules = new ArrayList<>();
+        List<DoctorProfileResponse.CaregiverScheduleDTO> schedules = new ArrayList<>();
         DoctorProfileResponse sameResponse = new DoctorProfileResponse(
                 ID,
                 NAME,
