@@ -4,6 +4,7 @@ import com.pandacare.mainapp.authentication.model.Caregiver;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileListResponse;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileResponse;
 import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.service.RatingService;
 import jakarta.validation.constraints.NotNull;
@@ -39,34 +40,24 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
     public CompletableFuture<DoctorProfileListResponse> findAll() {
         List<Caregiver> caregivers = doctorProfileRepository.findAll();
         return CompletableFuture.completedFuture(getDoctorProfileListResponse(caregivers));
-    }    @Override
+    }
+
+    @Override
     @Async
     public CompletableFuture<DoctorProfileResponse> findById(UUID id) {
         if (id == null) {
             throw new IllegalArgumentException("Doctor ID cannot be null");
         }
-        
-        try {
+
+        return CompletableFuture.supplyAsync(() -> {
             Caregiver caregiver = doctorProfileRepository.findById(id).orElse(null);
             if (caregiver == null) {
-                return CompletableFuture.completedFuture(null);
+                return null;
             }
 
             RatingListResponse ratingResponse = ratingService.getRatingsByDokter(id);
-            return CompletableFuture.completedFuture(new DoctorProfileResponse(
-                    id,
-                    caregiver.getName(),
-                    caregiver.getEmail(),
-                    caregiver.getPhoneNumber(),
-                    caregiver.getWorkAddress(),
-                    caregiver.getWorkingSchedules(),
-                    caregiver.getSpeciality(),
-                    ratingResponse != null ? ratingResponse.getAverageRating() : 0.0,
-                    ratingResponse != null ? ratingResponse.getTotalRatings() : 0
-            ));
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid doctor ID format");
-        }
+            return mapToDoctorProfileResponse(caregiver, ratingResponse);
+        });
     }
 
     @Override
@@ -125,6 +116,40 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
         }
     }
 
+    // Mapper method for single doctor profile
+    private DoctorProfileResponse mapToDoctorProfileResponse(Caregiver caregiver, RatingListResponse ratingResponse) {
+        DoctorProfileResponse response = new DoctorProfileResponse();
+        response.setCaregiverId(caregiver.getId());
+        response.setName(caregiver.getName());
+        response.setEmail(caregiver.getEmail());
+        response.setPhoneNumber(caregiver.getPhoneNumber());
+        response.setWorkAddress(caregiver.getWorkAddress());
+        response.setWorkSchedule(mapSchedulesToDTOs(caregiver.getWorkingSchedules()));
+        response.setSpeciality(caregiver.getSpeciality());
+        response.setAverageRating(ratingResponse != null ? ratingResponse.getAverageRating() : 0.0);
+        response.setTotalRatings(ratingResponse != null ? ratingResponse.getTotalRatings() : 0);
+        return response;
+    }
+
+    // Mapper method for schedule list
+    private List<DoctorProfileResponse.CaregiverScheduleDTO> mapSchedulesToDTOs(List<CaregiverSchedule> schedules) {
+        return schedules.stream()
+                .map(this::mapScheduleToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Mapper method for single schedule
+    private DoctorProfileResponse.CaregiverScheduleDTO mapScheduleToDTO(CaregiverSchedule schedule) {
+        DoctorProfileResponse.CaregiverScheduleDTO dto = new DoctorProfileResponse.CaregiverScheduleDTO();
+        dto.setId(schedule.getId());
+        dto.setDay(schedule.getDay());
+        dto.setStartTime(schedule.getStartTime());
+        dto.setEndTime(schedule.getEndTime());
+        dto.setStatus(schedule.getStatus());
+        return dto;
+    }
+
+    // Update getDoctorProfileListResponse to use internal mapping
     @NotNull
     public DoctorProfileListResponse getDoctorProfileListResponse(List<Caregiver> caregivers) {
         DoctorProfileListResponse response = new DoctorProfileListResponse();
@@ -132,31 +157,32 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
             response.setDoctorProfiles(List.of());
             response.setTotalItems(0);
             return response;
-        }        response.setDoctorProfiles(caregivers.stream()
+        }
+
+        response.setDoctorProfiles(caregivers.stream()
                 .map(caregiver -> {
                     try {
                         RatingListResponse ratings = ratingService.getRatingsByDokter(caregiver.getId());
-                        return new DoctorProfileListResponse.DoctorProfileSummary(
-                                caregiver.getId(),
-                                caregiver.getName(),
-                                caregiver.getSpeciality(),
-                                ratings != null ? ratings.getAverageRating() : 0.0,
-                                ratings != null ? ratings.getTotalRatings() : 0
-                        );
+                        return mapToDoctorProfileSummary(caregiver, ratings);
                     } catch (Exception e) {
                         // Handle rating service exception gracefully
-                        return new DoctorProfileListResponse.DoctorProfileSummary(
-                                caregiver.getId(),
-                                caregiver.getName(),
-                                caregiver.getSpeciality(),
-                                0.0,
-                                0
-                        );
+                        return mapToDoctorProfileSummary(caregiver, null);
                     }
                 })
                 .collect(Collectors.toList()));
         response.setTotalItems(caregivers.size());
-
         return response;
+    }
+
+    // Mapper method for profile summary
+    private DoctorProfileListResponse.DoctorProfileSummary mapToDoctorProfileSummary(
+            Caregiver caregiver, RatingListResponse ratings) {
+        DoctorProfileListResponse.DoctorProfileSummary summary = new DoctorProfileListResponse.DoctorProfileSummary();
+        summary.setCaregiverId(caregiver.getId());
+        summary.setName(caregiver.getName());
+        summary.setSpeciality(caregiver.getSpeciality());
+        summary.setAverageRating(ratings != null ? ratings.getAverageRating() : 0.0);
+        summary.setTotalRatings(ratings != null ? ratings.getTotalRatings() : 0);
+        return summary;
     }
 }
