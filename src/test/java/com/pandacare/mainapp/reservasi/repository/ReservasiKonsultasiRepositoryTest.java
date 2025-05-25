@@ -33,6 +33,7 @@ class ReservasiKonsultasiRepositoryTest {
         
         // Create and persist a Caregiver entity first
         Caregiver caregiver = new Caregiver("Dr. Test", "1234567890", "08123456789", "Test Address", "General Practice");
+        caregiver.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
         entityManager.persistAndFlush(caregiver);
 
         CaregiverSchedule schedule = new CaregiverSchedule();
@@ -44,6 +45,7 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.persist(schedule);
 
         ReservasiKonsultasi reservation = new ReservasiKonsultasi();
+        reservation.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
         reservation.setIdPacilian(pasienId);
         reservation.setIdSchedule(schedule);
         reservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
@@ -60,6 +62,7 @@ class ReservasiKonsultasiRepositoryTest {
     void testFindByCaregiverId() {
         // Create and persist a Caregiver entity first
         Caregiver caregiver = new Caregiver("Dr. Test 2", "1234567891", "08123456790", "Test Address 2", "Cardiology");
+        caregiver.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
         entityManager.persistAndFlush(caregiver);
 
         CaregiverSchedule schedule = new CaregiverSchedule();
@@ -71,6 +74,7 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.persist(schedule);
 
         ReservasiKonsultasi reservation = new ReservasiKonsultasi();
+        reservation.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
         reservation.setIdPacilian(UUID.randomUUID());
         reservation.setIdSchedule(schedule);
         reservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
@@ -87,6 +91,7 @@ class ReservasiKonsultasiRepositoryTest {
     void testFindByCaregiverIdAndStatus() {
         // Create and persist a Caregiver entity first
         Caregiver caregiver = new Caregiver("Dr. Test 3", "1234567892", "08123456791", "Test Address 3", "Neurology");
+        caregiver.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
         entityManager.persistAndFlush(caregiver);
 
         CaregiverSchedule schedule1 = new CaregiverSchedule();
@@ -105,12 +110,14 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.persist(schedule2);
 
         ReservasiKonsultasi reservation1 = new ReservasiKonsultasi();
+        reservation1.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
         reservation1.setIdPacilian(UUID.randomUUID());
         reservation1.setIdSchedule(schedule1);
         reservation1.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
         entityManager.persist(reservation1);
 
         ReservasiKonsultasi reservation2 = new ReservasiKonsultasi();
+        reservation2.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
         reservation2.setIdPacilian(UUID.randomUUID());
         reservation2.setIdSchedule(schedule2);
         reservation2.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
@@ -132,6 +139,7 @@ class ReservasiKonsultasiRepositoryTest {
     void testFindByCaregiverIdAndDay() {
         // Create and persist a Caregiver entity first
         Caregiver caregiver = new Caregiver("Dr. Test 4", "1234567893", "08123456792", "Test Address 4", "Pediatrics");
+        caregiver.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
         entityManager.persistAndFlush(caregiver);
 
         CaregiverSchedule mondaySchedule = new CaregiverSchedule();
@@ -151,12 +159,14 @@ class ReservasiKonsultasiRepositoryTest {
         entityManager.persist(wednesdaySchedule);
 
         ReservasiKonsultasi mondayReservation = new ReservasiKonsultasi();
+        mondayReservation.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
         mondayReservation.setIdPacilian(UUID.randomUUID());
         mondayReservation.setIdSchedule(mondaySchedule);
         mondayReservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
         entityManager.persist(mondayReservation);
 
         ReservasiKonsultasi wednesdayReservation = new ReservasiKonsultasi();
+        wednesdayReservation.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
         wednesdayReservation.setIdPacilian(UUID.randomUUID());
         wednesdayReservation.setIdSchedule(wednesdaySchedule);
         wednesdayReservation.setStatusReservasi(StatusReservasiKonsultasi.WAITING);

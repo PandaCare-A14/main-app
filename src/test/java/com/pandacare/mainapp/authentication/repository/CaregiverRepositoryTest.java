@@ -17,11 +17,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CaregiverRepositoryTest {
 
     @Autowired
-    private CaregiverRepository caregiverRepository;
-
-    @Test
-    @DisplayName("save a new Caregiver and retrieve it by ID")
-    void saveAndFindById() {
+    private CaregiverRepository caregiverRepository;    @Test
+    @DisplayName("save a new Caregiver and verify all fields")
+    void saveAndVerifyFields() {
         Caregiver cv = new Caregiver(
                 "Alice",
                 "1234567890",
@@ -29,15 +27,16 @@ class CaregiverRepositoryTest {
                 "Jl. Merdeka No.1",
                 "General Practice"
         );
-        // before save, no ID
-        assertThat(cv.getId()).isNull();
+        cv.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
+        cv.setEmail("alice@example.com");
 
         Caregiver saved = caregiverRepository.save(cv);
-        assertThat(saved.getId()).isNotNull();
 
-        UUID id = saved.getId();
-        Optional<Caregiver> found = caregiverRepository.findById(id);
+        assertThat(saved.getId())
+                .isNotNull()
+                .isInstanceOf(UUID.class);
 
+        Optional<Caregiver> found = caregiverRepository.findById(saved.getId());
         assertThat(found)
                 .isPresent()
                 .get()
@@ -47,12 +46,11 @@ class CaregiverRepositoryTest {
                     assertThat(c.getPhoneNumber()).isEqualTo("0812345678");
                     assertThat(c.getWorkAddress()).isEqualTo("Jl. Merdeka No.1");
                     assertThat(c.getSpeciality()).isEqualTo("General Practice");
+                    assertThat(c.getEmail()).isEqualTo("alice@example.com");
                 });
-    }
-
-    @Test
-    @DisplayName("delete a Caregiver and verify it's gone")
-    void deleteById() {
+    }    @Test
+    @DisplayName("update a Caregiver's information")
+    void updateCaregiver() {
         Caregiver cv = new Caregiver(
                 "Bob",
                 "0987654321",
@@ -60,10 +58,27 @@ class CaregiverRepositoryTest {
                 "Jl. Sudirman 22",
                 "Dermatology"
         );
+        cv.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
         Caregiver saved = caregiverRepository.save(cv);
-        UUID id = saved.getId();
 
-        caregiverRepository.deleteById(id);
-        assertThat(caregiverRepository.findById(id)).isEmpty();
+        saved.setSpeciality("Pediatric Dermatology");
+        Caregiver updated = caregiverRepository.save(saved);
+
+        assertThat(updated.getSpeciality()).isEqualTo("Pediatric Dermatology");
+    }    @Test
+    @DisplayName("delete a Caregiver and verify deletion")
+    void deleteCaregiver() {
+        Caregiver cv = new Caregiver(
+                "Charlie",
+                "1122334455",
+                "0811223344",
+                "Jl. Thamrin 10",
+                "Cardiology"
+        );
+        cv.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
+        Caregiver saved = caregiverRepository.save(cv);
+
+        caregiverRepository.deleteById(saved.getId());
+        assertThat(caregiverRepository.findById(saved.getId())).isEmpty();
     }
 }
