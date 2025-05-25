@@ -16,7 +16,7 @@ val junitJupiterVersion = "5.9.1"
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
