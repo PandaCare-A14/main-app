@@ -1,4 +1,4 @@
-package com.pandacare.mainapp.rating.dto;
+package com.pandacare.mainapp.rating.dto.request;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
