@@ -17,7 +17,8 @@ import java.util.UUID;
 
 @Repository
 public interface CaregiverScheduleRepository extends JpaRepository<CaregiverSchedule, UUID> {
-    List<CaregiverSchedule> findByIdCaregiver(UUID idCaregiver);@Query("SELECT s FROM CaregiverSchedule s WHERE s.idCaregiver = :caregiverId AND s.id = :scheduleId")
+    List<CaregiverSchedule> findByIdCaregiver(UUID idCaregiver);
+    @Query("SELECT s FROM CaregiverSchedule s WHERE s.idCaregiver = :caregiverId AND s.id = :scheduleId")
     Optional<CaregiverSchedule> findByIdCaregiverAndIdSchedule(
             @Param("caregiverId") UUID caregiverId,
             @Param("scheduleId") UUID scheduleId);
