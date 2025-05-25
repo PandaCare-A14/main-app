@@ -1,5 +1,7 @@
 package com.pandacare.mainapp.rating.controller;
 
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
+import com.pandacare.mainapp.konsultasi_dokter.repository.CaregiverScheduleRepository;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.dto.request.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
@@ -14,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Map;
 import java.util.UUID;
@@ -28,11 +31,13 @@ public class RatingController {
     private static final Logger log = LoggerFactory.getLogger(RatingController.class);
     private final RatingService ratingService;
     private final ReservasiKonsultasiRepository reservasiKonsultasiRepository;
+    private final CaregiverScheduleRepository caregiverScheduleRepository;
 
     @Autowired
-    public RatingController(RatingService ratingService, ReservasiKonsultasiRepository reservasiKonsultasiRepository) {
+    public RatingController(RatingService ratingService, ReservasiKonsultasiRepository reservasiKonsultasiRepository, CaregiverScheduleRepository caregiverScheduleRepository) {
         this.ratingService = ratingService;
         this.reservasiKonsultasiRepository = reservasiKonsultasiRepository;
+        this.caregiverScheduleRepository = caregiverScheduleRepository;
     }
 
     /**
@@ -51,13 +56,39 @@ public class RatingController {
             ReservasiKonsultasi reservasi = reservasiKonsultasiRepository.findById(idJadwalKonsultasi)
                     .orElseThrow(() -> new IllegalArgumentException("Consultation not found"));
 
-            // Get the consultation time
-            LocalTime consultationDateTime = LocalTime.from(reservasi.getEndTime()); // Assume getConsultationDateTime() returns LocalDateTime
+            // Get the schedule from reservasi
+            CaregiverSchedule schedule = reservasi.getIdSchedule();
+            if (schedule == null) {
+                throw new IllegalArgumentException("Schedule not found for this consultation");
+            }
 
-            // Check if the consultation is in the future
+            // Get the consultation date and time from the schedule
+            LocalDate consultationDate = schedule.getDate();
+            LocalTime consultationEndTime = schedule.getEndTime();
+
+            // Validate consultation timing
+            LocalDate today = LocalDate.now();
             LocalTime now = LocalTime.now();
-            if (consultationDateTime.isAfter(now)) {
-                throw new IllegalArgumentException("Cannot rate future consultation");
+
+            if (consultationDate != null) {
+                // If date is available, use it for validation
+                if (consultationDate.isAfter(today)) {
+                    throw new IllegalArgumentException("Cannot rate future consultation");
+                }
+
+                // If consultation is today, check if the consultation time has ended
+                if (consultationDate.isEqual(today) && consultationEndTime != null) {
+                    if (consultationEndTime.isAfter(now)) {
+                        throw new IllegalArgumentException("Cannot rate consultation that hasn't ended yet");
+                    }
+                }
+            } else {
+                // Fallback: if date is null, only check time (assuming today's consultation)
+                if (consultationEndTime != null && consultationEndTime.isAfter(now)) {
+                    throw new IllegalArgumentException("Tidak dapat menilai konsultasi yang belum berakhir");
+                }
+                // If both date and endTime are null, allow rating (legacy data support)
+                log.warn("Consultation {} has no date/time information, allowing rating", idJadwalKonsultasi);
             }
 
             // Get the patient ID from the reservation
@@ -89,7 +120,6 @@ public class RatingController {
             ));
         }
     }
-
     /**
      * PUT: Update an existing rating for a consultation
      */
