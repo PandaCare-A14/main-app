@@ -1,9 +1,13 @@
+package com.pandacare.mainapp.reservasi.model.statepacilian;
+
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.statepacilian.ApprovedState;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
 class ApprovedStateTest {
 
     @Test

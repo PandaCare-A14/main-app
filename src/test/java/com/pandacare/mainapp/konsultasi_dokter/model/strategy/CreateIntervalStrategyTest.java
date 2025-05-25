@@ -4,6 +4,7 @@ import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
 class CreateIntervalStrategyTest {
     private CreateIntervalStrategy strategy;
     private final UUID DOCTOR_ID = UUID.randomUUID();

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${doctor.name + ' - PandaCare'}">Doctor Profile - PandaCare</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+<div class="container mx-auto px-4 py-8">
+  <!-- Back to Doctors button -->
+  <div class="mb-6">
+    <a href="/doctors" class="inline-flex items-center text-blue-600 hover:text-blue-800 transition duration-200">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+      </svg>
+      Back to Doctors
+    </a>
+  </div>
+
+  <div class="flex flex-col md:flex-row gap-8">
+    <!-- Doctor Profile Card -->
+    <div class="md:w-1/3">
+      <div class="bg-white rounded-lg shadow-md p-6 sticky top-8">
+        <div class="flex flex-col items-center mb-6">
+          <div class="bg-blue-100 text-blue-800 rounded-full w-20 h-20 flex items-center justify-center font-bold text-3xl mb-4">
+            <span th:text="${doctor.name.substring(0,1)}"></span>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800" th:text="${doctor.name}"></h2>
+          <p class="text-blue-600 font-medium" th:text="${doctor.speciality}"></p>
+
+          <div class="flex items-center mt-2">
+            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+            </svg>
+            <span class="ml-1 text-gray-700" th:text="${doctor.rating} + ' / 5.0'"></span>
+          </div>
+        </div>
+
+        <div class="space-y-4 text-sm text-gray-600 mb-6">
+          <div class="flex items-start">
+            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+            <span th:text="${doctor.email}"></span>
+          </div>
+          <div class="flex items-start">
+            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+            </svg>
+            <span th:text="${doctor.phoneNumber}"></span>
+          </div>
+          <div class="flex items-start">
+            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span th:text="${doctor.workAddress}"></span>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <a href="#" class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-md transition duration-200">
+            Chat with Doctor
+          </a>
+          <a href="#" class="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-2 rounded-md transition duration-200">
+            Schedule Consultation
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Doctor Details -->
+    <div class="md:w-2/3">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Work Schedule</h3>
+        <div class="space-y-3" th:if="${not #maps.isEmpty(doctor.workSchedule)}">
+          <div th:each="entry : ${doctor.workSchedule}" class="flex justify-between items-center border-b border-gray-100 pb-2">
+            <span class="font-medium text-gray-700" th:text="${entry.key}"></span>
+            <span class="text-gray-600" th:text="${entry.value}"></span>
+          </div>
+        </div>
+        <div th:if="${#maps.isEmpty(doctor.workSchedule)}" class="text-center py-4 text-gray-500">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <p class="mt-2">This doctor hasn't set any work schedule yet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

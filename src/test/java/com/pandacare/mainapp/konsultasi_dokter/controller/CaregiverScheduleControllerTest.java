@@ -9,12 +9,13 @@ import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -29,19 +30,25 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
+@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
+@WebMvcTest(controllers = CaregiverScheduleController.class, 
+           excludeAutoConfiguration = {
+               org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class,
+               org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration.class
+           })
+@AutoConfigureMockMvc(addFilters = false)
 public class CaregiverScheduleControllerTest {
-    private MockMvc mockMvc;
-    @Mock
+    @MockBean
     private CaregiverScheduleService service;
-    @InjectMocks
-    private CaregiverScheduleController controller;
+    @Autowired
+    private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     public void setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         objectMapper.findAndRegisterModules();
     }
 
@@ -64,7 +71,7 @@ public class CaregiverScheduleControllerTest {
         when(service.createSchedule(any(UUID.class), any(DayOfWeek.class), any(LocalTime.class), any(LocalTime.class)))
                 .thenReturn(schedule);
 
-        mockMvc.perform(post("/api/doctors/{idCaregiver}/schedules", idCaregiver)
+        mockMvc.perform(post("/api/caregivers/{idCaregiver}/schedules", idCaregiver)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andDo(print())
@@ -107,7 +114,7 @@ public class CaregiverScheduleControllerTest {
         when(service.createRepeatedSchedules(any(UUID.class), any(DayOfWeek.class), any(LocalTime.class), any(LocalTime.class), anyInt()))
                 .thenReturn(schedules);
 
-        mockMvc.perform(post("/api/doctors/{idCaregiver}/schedules", idCaregiver)
+        mockMvc.perform(post("/api/caregivers/{idCaregiver}/schedules", idCaregiver)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andDo(print())
@@ -152,7 +159,7 @@ public class CaregiverScheduleControllerTest {
         when(service.createMultipleSchedules(any(UUID.class), any(DayOfWeek.class), any(LocalTime.class), any(LocalTime.class)))
                 .thenReturn(schedules);
 
-        mockMvc.perform(post("/api/doctors/{idCaregiver}/schedules/interval", idCaregiver)
+        mockMvc.perform(post("/api/caregivers/{idCaregiver}/schedules/interval", idCaregiver)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andDo(print())
@@ -184,7 +191,7 @@ public class CaregiverScheduleControllerTest {
 
         List<CaregiverSchedule> schedules = new ArrayList<>();
         CaregiverSchedule schedule1 = new CaregiverSchedule();
-        schedule1.setId(scheduleIds.get(0));
+        schedule1.setId(scheduleIds.getFirst());
         schedule1.setIdCaregiver(idCaregiver);
         schedule1.setDay(DayOfWeek.MONDAY);
         schedule1.setStartTime(LocalTime.of(9, 0));
@@ -219,7 +226,7 @@ public class CaregiverScheduleControllerTest {
         when(service.createRepeatedMultipleSchedules(any(UUID.class), any(DayOfWeek.class), any(LocalTime.class), any(LocalTime.class), anyInt()))
                 .thenReturn(schedules);
 
-        mockMvc.perform(post("/api/doctors/{idCaregiver}/schedules/interval", idCaregiver)
+        mockMvc.perform(post("/api/caregivers/{idCaregiver}/schedules/interval", idCaregiver)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andDo(print())
@@ -250,7 +257,7 @@ public class CaregiverScheduleControllerTest {
 
         when(service.getSchedulesByCaregiver(idCaregiver)).thenReturn(schedules);
 
-        mockMvc.perform(get("/api/doctors/{idCaregiver}/schedules", idCaregiver))
+        mockMvc.perform(get("/api/caregivers/{idCaregiver}/schedules", idCaregiver))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
@@ -274,7 +281,7 @@ public class CaregiverScheduleControllerTest {
 
         when(service.getSchedulesByCaregiverAndStatus(idCaregiver, status)).thenReturn(schedules);
 
-        mockMvc.perform(get("/api/doctors/{idCaregiver}/schedules", idCaregiver)
+        mockMvc.perform(get("/api/caregivers/{idCaregiver}/schedules", idCaregiver)
                         .param("status", statusStr))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -298,7 +305,7 @@ public class CaregiverScheduleControllerTest {
 
         when(service.getSchedulesByCaregiverAndDay(any(UUID.class), any(DayOfWeek.class))).thenReturn(schedules);
 
-        mockMvc.perform(get("/api/doctors/{idCaregiver}/schedules", idCaregiver)
+        mockMvc.perform(get("/api/caregivers/{idCaregiver}/schedules", idCaregiver)
                         .param("day", day))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -319,7 +326,7 @@ public class CaregiverScheduleControllerTest {
 
         when(service.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule)).thenReturn(schedule);
 
-        mockMvc.perform(get("/api/doctors/{idCaregiver}/schedules", idCaregiver)
+        mockMvc.perform(get("/api/caregivers/{idCaregiver}/schedules", idCaregiver)
                         .param("idSchedule", idSchedule.toString()))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -341,7 +348,7 @@ public class CaregiverScheduleControllerTest {
         when(service.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule)).thenReturn(schedule);
         when(service.deleteSchedule(idSchedule)).thenReturn(schedule);
 
-        mockMvc.perform(delete("/api/doctors/{idCaregiver}/schedules/{idSchedule}", idCaregiver, idSchedule))
+        mockMvc.perform(delete("/api/caregivers/{idCaregiver}/schedules/{idSchedule}", idCaregiver, idSchedule))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
@@ -357,7 +364,7 @@ public class CaregiverScheduleControllerTest {
         when(service.getSchedulesByCaregiverAndIdSchedule(idCaregiver, idSchedule))
                 .thenThrow(new EntityNotFoundException("Schedule not found"));
 
-        mockMvc.perform(delete("/api/doctors/{idCaregiver}/schedules/{idSchedule}", idCaregiver, idSchedule))
+        mockMvc.perform(delete("/api/caregivers/{idCaregiver}/schedules/{idSchedule}", idCaregiver, idSchedule))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))

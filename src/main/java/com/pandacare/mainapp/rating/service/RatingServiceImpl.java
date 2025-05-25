@@ -1,6 +1,6 @@
 package com.pandacare.mainapp.rating.service;
 
-import com.pandacare.mainapp.rating.dto.RatingRequest;
+import com.pandacare.mainapp.rating.dto.request.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import com.pandacare.mainapp.rating.model.Rating;
@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -43,13 +44,13 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
-    public RatingResponse addRating(String idPasien, RatingRequest ratingRequest) {
+    public RatingResponse addRating(UUID idPasien, RatingRequest ratingRequest) {
         log.info("Starting addRating for patient: {} and consultation: {}",
                 idPasien, ratingRequest.getIdJadwalKonsultasi());
 
         try {
             // Verify the consultation exists and is completed
-            String idJadwalKonsultasi = ratingRequest.getIdJadwalKonsultasi();
+            UUID idJadwalKonsultasi = ratingRequest.getIdJadwalKonsultasi();
             ReservasiKonsultasi konsultasi = reservasiKonsultasiRepository.findById(idJadwalKonsultasi)
                     .orElseThrow(() -> new IllegalArgumentException("Jadwal konsultasi tidak ditemukan"));
 
@@ -61,7 +62,7 @@ public class RatingServiceImpl implements RatingService {
                 throw new IllegalArgumentException("Jadwal konsultasi ini bukan milik pasien ini");
             }
 
-            String idDokter = konsultasi.getIdDokter();
+            UUID idDokter = konsultasi.getIdCaregiver();
 
             if (konsultasi.getStatusReservasi() != StatusReservasiKonsultasi.APPROVED) {
                 log.warn("Consultation not approved: status={}", konsultasi.getStatusReservasi());
@@ -114,8 +115,8 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
-    public RatingResponse updateRating(String idPasien, RatingRequest ratingRequest) {
-        String idJadwalKonsultasi = ratingRequest.getIdJadwalKonsultasi();
+    public RatingResponse updateRating(UUID idPasien, RatingRequest ratingRequest) {
+        UUID idJadwalKonsultasi = ratingRequest.getIdJadwalKonsultasi();
         log.info("Updating rating for patient: {} and consultation: {}", idPasien, idJadwalKonsultasi);
 
         // Find the existing rating
@@ -152,7 +153,7 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
-    public void deleteRating(String idPasien, String idJadwalKonsultasi) {
+    public void deleteRating(UUID idPasien, UUID idJadwalKonsultasi) {
         log.info("Deleting rating for patient: {} and consultation: {}", idPasien, idJadwalKonsultasi);
 
         // Find the existing rating
@@ -188,7 +189,7 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     @Transactional(readOnly = true)
-    public RatingListResponse getRatingsByDokter(String idDokter) {
+    public RatingListResponse getRatingsByDokter(UUID idDokter) {
         log.info("Fetching ratings for doctor: {}", idDokter);
 
         List<Rating> ratings = ratingRepository.findByIdDokter(idDokter);
@@ -210,7 +211,7 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     @Transactional(readOnly = true)
-    public RatingListResponse getRatingsByPasien(String idPasien) {
+    public RatingListResponse getRatingsByPasien(UUID idPasien) {
         log.info("Fetching ratings by patient: {}", idPasien);
 
         List<Rating> ratings = ratingRepository.findByIdPasien(idPasien);
@@ -228,7 +229,7 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     @Transactional(readOnly = true)
-    public RatingResponse getRatingByKonsultasi(String idPasien, String idJadwalKonsultasi) {
+    public RatingResponse getRatingByKonsultasi(UUID idPasien, UUID idJadwalKonsultasi) {
         log.info("Fetching rating for consultation: {} by patient: {}", idJadwalKonsultasi, idPasien);
 
         Rating rating = ratingRepository.findByIdPasienAndIdJadwalKonsultasi(idPasien, idJadwalKonsultasi)
@@ -240,7 +241,7 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean hasRatedKonsultasi(String idPasien, String idJadwalKonsultasi) {
+    public boolean hasRatedKonsultasi(UUID idPasien, UUID idJadwalKonsultasi) {
         boolean exists = ratingRepository.existsByIdPasienAndIdJadwalKonsultasi(idPasien, idJadwalKonsultasi);
         log.info("Check if patient: {} has rated consultation: {}: {}", idPasien, idJadwalKonsultasi, exists);
         return exists;

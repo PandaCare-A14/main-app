@@ -24,16 +24,16 @@ public class Rating {
 
     @Id
     @Column(name = "id")
-    private String id;
+    private UUID id;
 
     @Column(name = "id_dokter", nullable = false)
-    private String idDokter;
+    private UUID idDokter;
 
     @Column(name = "id_pasien", nullable = false)
-    private String idPasien;
+    private UUID idPasien;
 
     @Column(name = "id_jadwal_konsultasi", nullable = false)
-    private String idJadwalKonsultasi;
+    private UUID idJadwalKonsultasi;
 
     @Column(name = "rating_score", nullable = false)
     private Integer ratingScore;
@@ -50,11 +50,11 @@ public class Rating {
     /**
      * Constructor without id and dates (for creating new rating)
      */
-    public Rating(String idDokter, String idPasien, String idJadwalKonsultasi, Integer ratingScore, String ulasan) {
+    public Rating(UUID idDokter, UUID idPasien, UUID idJadwalKonsultasi, Integer ratingScore, String ulasan) {
         this.idDokter = idDokter;
         this.idPasien = idPasien;
         this.idJadwalKonsultasi = idJadwalKonsultasi;
-        setRatingScore(ratingScore);
+        this.setRatingScore(ratingScore);
         this.ulasan = ulasan;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
@@ -85,7 +85,7 @@ public class Rating {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            id = UUID.randomUUID().toString();
+            id = UUID.randomUUID();
         }
         if (createdAt == null) {
             createdAt = LocalDateTime.now();

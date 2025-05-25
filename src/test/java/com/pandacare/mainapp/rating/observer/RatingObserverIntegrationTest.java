@@ -2,18 +2,17 @@ package com.pandacare.mainapp.rating.observer;
 
 import com.pandacare.mainapp.rating.model.Rating;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-/**
- * Integration tests for Observer pattern in Rating module
- */
+@ActiveProfiles("test")
 class RatingObserverIntegrationTest {
 
     private RatingSubject ratingSubject;
@@ -30,10 +29,10 @@ class RatingObserverIntegrationTest {
 
         // Create test rating
         testRating = new Rating();
-        testRating.setId("test-rating");
-        testRating.setIdDokter("dr001");
-        testRating.setIdPasien("p001");
-        testRating.setIdJadwalKonsultasi("cons001");
+        testRating.setId(UUID.randomUUID());
+        testRating.setIdDokter(UUID.randomUUID());
+        testRating.setIdPasien(UUID.randomUUID());
+        testRating.setIdJadwalKonsultasi(UUID.randomUUID());
         testRating.setRatingScore(5);
         testRating.setUlasan("Test review");
         testRating.setCreatedAt(LocalDateTime.now());

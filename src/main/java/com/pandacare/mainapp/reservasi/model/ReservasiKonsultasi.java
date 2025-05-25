@@ -5,7 +5,7 @@ import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.statepacilian.ReservasiStatePacilian;
 import jakarta.persistence.*;
-import com.pandacare.mainapp.reservasi.model.state.*;
+import com.pandacare.mainapp.reservasi.model.stateCaregiver.*;
 import com.pandacare.mainapp.reservasi.service.caregiver.ScheduleService;
 import jakarta.annotation.PostConstruct;
 
@@ -13,7 +13,7 @@ import lombok.Data;
 
 import java.time.LocalTime;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.context.annotation.Lazy;
 
 
@@ -173,7 +173,21 @@ public class ReservasiKonsultasi {
         return idSchedule != null ? idSchedule.getEndTime() : null;
     }
 
-    public String getIdCareGiver() {
-        return idSchedule != null ? idSchedule.getIdCaregiver().toString() : null;
+    public UUID getIdCaregiver() {
+        return idSchedule != null ? idSchedule.getIdCaregiver() : null;
+    }
+
+    public UUID getIdPasien() {
+        return idPacilian;
+    }
+
+    public void setIdCaregiver(UUID validDoctorId) {
+        if (idSchedule != null) {
+            idSchedule.setIdCaregiver(validDoctorId);
+        }
+    }
+
+    public void setIdPasien(UUID validPatientId) {
+        this.idPacilian = validPatientId;
     }
 }

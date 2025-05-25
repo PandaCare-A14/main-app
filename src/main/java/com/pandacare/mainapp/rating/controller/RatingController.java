@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -46,8 +47,18 @@ public class RatingController {
         try {
             log.info("Adding rating for consultation: {}", idJadwalKonsultasi);
 
+            // Fetch the consultation data
             ReservasiKonsultasi reservasi = reservasiKonsultasiRepository.findById(idJadwalKonsultasi)
                     .orElseThrow(() -> new IllegalArgumentException("Consultation not found"));
+
+            // Get the consultation time
+            LocalTime consultationDateTime = LocalTime.from(reservasi.getEndTime()); // Assume getConsultationDateTime() returns LocalDateTime
+
+            // Check if the consultation is in the future
+            LocalTime now = LocalTime.now();
+            if (consultationDateTime.isAfter(now)) {
+                throw new IllegalArgumentException("Cannot rate future consultation");
+            }
 
             // Get the patient ID from the reservation
             UUID idPacilian = reservasi.getIdPacilian();

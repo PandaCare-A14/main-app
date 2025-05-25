@@ -1,6 +1,6 @@
 package com.pandacare.mainapp.rating.controller;
 
-import com.pandacare.mainapp.rating.dto.RatingRequest;
+import com.pandacare.mainapp.rating.dto.request.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import com.pandacare.mainapp.rating.service.AsyncRatingService;
@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -31,12 +32,12 @@ public class AsyncRatingController {
 
     @PostMapping("/patients/{idPasien}")
     public CompletableFuture<ResponseEntity<RatingResponse>> addRating(
-            @PathVariable String idPasien,
+            @PathVariable UUID idPasien,  // Changed to UUID
             @Valid @RequestBody RatingRequest ratingRequest) {
 
         log.info("Request add rating async for patient: {}", idPasien);
 
-        return asyncRatingService.addRatingAsync(idPasien, ratingRequest)
+        return asyncRatingService.addRatingAsync(idPasien , ratingRequest)
                 .thenApply(response -> {
                     log.info("Rating added successfully async for patient: {}", idPasien);
                     return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -49,7 +50,7 @@ public class AsyncRatingController {
 
     @PutMapping("/patients/{idPasien}")
     public CompletableFuture<ResponseEntity<RatingResponse>> updateRating(
-            @PathVariable String idPasien,
+            @PathVariable UUID idPasien,  // Changed to UUID
             @Valid @RequestBody RatingRequest ratingRequest) {
 
         log.info("Request update rating async for patient: {}", idPasien);
@@ -67,8 +68,8 @@ public class AsyncRatingController {
 
     @DeleteMapping("/patients/{idPasien}/consultations/{idJadwalKonsultasi}")
     public CompletableFuture<ResponseEntity<Void>> deleteRating(
-            @PathVariable String idPasien,
-            @PathVariable String idJadwalKonsultasi) {
+            @PathVariable UUID idPasien,  // Changed to UUID
+            @PathVariable UUID idJadwalKonsultasi) {  // Changed to UUID
 
         log.info("Request delete rating async for patient: {} consultation: {}", idPasien, idJadwalKonsultasi);
 
@@ -84,7 +85,7 @@ public class AsyncRatingController {
     }
 
     @GetMapping("/doctors/{idDokter}")
-    public CompletableFuture<ResponseEntity<RatingListResponse>> getRatingsByDokter(@PathVariable String idDokter) {
+    public CompletableFuture<ResponseEntity<RatingListResponse>> getRatingsByDokter(@PathVariable UUID idDokter) {  // Changed to UUID
         log.info("Request get ratings async for doctor: {}", idDokter);
 
         return asyncRatingService.getRatingsByDokterAsync(idDokter)
@@ -99,7 +100,7 @@ public class AsyncRatingController {
     }
 
     @GetMapping("/patients/{idPasien}")
-    public CompletableFuture<ResponseEntity<RatingListResponse>> getRatingsByPasien(@PathVariable String idPasien) {
+    public CompletableFuture<ResponseEntity<RatingListResponse>> getRatingsByPasien(@PathVariable UUID idPasien) {  // Changed to UUID
         log.info("Request get ratings async for patient: {}", idPasien);
 
         return asyncRatingService.getRatingsByPasienAsync(idPasien)
@@ -115,8 +116,8 @@ public class AsyncRatingController {
 
     @GetMapping("/patients/{idPasien}/consultations/{idJadwalKonsultasi}")
     public CompletableFuture<ResponseEntity<RatingResponse>> getRatingByKonsultasi(
-            @PathVariable String idPasien,
-            @PathVariable String idJadwalKonsultasi) {
+            @PathVariable UUID idPasien,  // Changed to UUID
+            @PathVariable UUID idJadwalKonsultasi) {  // Changed to UUID
 
         log.info("Request get rating async for patient: {} consultation: {}", idPasien, idJadwalKonsultasi);
 
@@ -133,8 +134,8 @@ public class AsyncRatingController {
 
     @GetMapping("/patients/{idPasien}/consultations/{idJadwalKonsultasi}/check")
     public CompletableFuture<ResponseEntity<Boolean>> hasRatedKonsultasi(
-            @PathVariable String idPasien,
-            @PathVariable String idJadwalKonsultasi) {
+            @PathVariable UUID idPasien,  // Changed to UUID
+            @PathVariable UUID idJadwalKonsultasi) {  // Changed to UUID
 
         log.info("Request check rating async for patient: {} consultation: {}", idPasien, idJadwalKonsultasi);
 

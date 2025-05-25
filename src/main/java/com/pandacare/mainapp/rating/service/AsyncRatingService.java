@@ -1,6 +1,6 @@
 package com.pandacare.mainapp.rating.service;
 
-import com.pandacare.mainapp.rating.dto.RatingRequest;
+import com.pandacare.mainapp.rating.dto.request.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import org.slf4j.Logger;
@@ -9,11 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Simple async wrapper for RatingService
- */
 @Service
 public class AsyncRatingService {
 
@@ -26,7 +24,7 @@ public class AsyncRatingService {
     }
 
     @Async("ratingTaskExecutor")
-    public CompletableFuture<RatingResponse> addRatingAsync(String idPasien, RatingRequest ratingRequest) {
+    public CompletableFuture<RatingResponse> addRatingAsync(UUID idPasien, RatingRequest ratingRequest) {
         log.info("Async add rating for patient: {}", idPasien);
         try {
             RatingResponse response = ratingService.addRating(idPasien, ratingRequest);
@@ -41,7 +39,7 @@ public class AsyncRatingService {
     }
 
     @Async("ratingTaskExecutor")
-    public CompletableFuture<RatingResponse> updateRatingAsync(String idPasien, RatingRequest ratingRequest) {
+    public CompletableFuture<RatingResponse> updateRatingAsync(UUID idPasien, RatingRequest ratingRequest) {
         log.info("Async update rating for patient: {}", idPasien);
         try {
             RatingResponse response = ratingService.updateRating(idPasien, ratingRequest);
@@ -56,7 +54,7 @@ public class AsyncRatingService {
     }
 
     @Async("ratingTaskExecutor")
-    public CompletableFuture<Void> deleteRatingAsync(String idPasien, String idJadwalKonsultasi) {
+    public CompletableFuture<Void> deleteRatingAsync(UUID idPasien, UUID idJadwalKonsultasi) {
         log.info("Async delete rating for patient: {} consultation: {}", idPasien, idJadwalKonsultasi);
         try {
             ratingService.deleteRating(idPasien, idJadwalKonsultasi);
@@ -71,7 +69,7 @@ public class AsyncRatingService {
     }
 
     @Async("ratingTaskExecutor")
-    public CompletableFuture<RatingListResponse> getRatingsByDokterAsync(String idDokter) {
+    public CompletableFuture<RatingListResponse> getRatingsByDokterAsync(UUID idDokter) {
         log.info("Async get ratings for doctor: {}", idDokter);
         try {
             RatingListResponse response = ratingService.getRatingsByDokter(idDokter);
@@ -86,7 +84,7 @@ public class AsyncRatingService {
     }
 
     @Async("ratingTaskExecutor")
-    public CompletableFuture<RatingListResponse> getRatingsByPasienAsync(String idPasien) {
+    public CompletableFuture<RatingListResponse> getRatingsByPasienAsync(UUID idPasien) {
         log.info("Async get ratings for patient: {}", idPasien);
         try {
             RatingListResponse response = ratingService.getRatingsByPasien(idPasien);
@@ -101,7 +99,7 @@ public class AsyncRatingService {
     }
 
     @Async("ratingTaskExecutor")
-    public CompletableFuture<RatingResponse> getRatingByKonsultasiAsync(String idPasien, String idJadwalKonsultasi) {
+    public CompletableFuture<RatingResponse> getRatingByKonsultasiAsync(UUID idPasien, UUID idJadwalKonsultasi) {
         log.info("Async get rating for patient: {} consultation: {}", idPasien, idJadwalKonsultasi);
         try {
             RatingResponse response = ratingService.getRatingByKonsultasi(idPasien, idJadwalKonsultasi);
@@ -116,7 +114,7 @@ public class AsyncRatingService {
     }
 
     @Async("ratingTaskExecutor")
-    public CompletableFuture<Boolean> hasRatedKonsultasiAsync(String idPasien, String idJadwalKonsultasi) {
+    public CompletableFuture<Boolean> hasRatedKonsultasiAsync(UUID idPasien, UUID idJadwalKonsultasi) {
         log.info("Async check rating exists for patient: {} consultation: {}", idPasien, idJadwalKonsultasi);
         try {
             Boolean result = ratingService.hasRatedKonsultasi(idPasien, idJadwalKonsultasi);

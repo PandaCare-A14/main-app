@@ -1,12 +1,13 @@
 package com.pandacare.mainapp.rating.model;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Builder class for DoctorStatistics entity
  */
 public class DoctorStatisticsBuilder {
-    private String idDokter;
+    private UUID idDokter;
     private Double averageRating = 0.0;
     private Integer totalRatings = 0;
     private LocalDateTime createdAt;
@@ -18,7 +19,7 @@ public class DoctorStatisticsBuilder {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public DoctorStatisticsBuilder withIdDokter(String idDokter) {
+    public DoctorStatisticsBuilder withIdDokter(UUID idDokter) {
         this.idDokter = idDokter;
         return this;
     }
@@ -45,7 +46,7 @@ public class DoctorStatisticsBuilder {
 
     public DoctorStatistics build() {
         // Validate required fields
-        if (idDokter == null || idDokter.isEmpty()) {
+        if (idDokter == null) {
             throw new IllegalArgumentException("idDokter cannot be null or empty");
         }
 

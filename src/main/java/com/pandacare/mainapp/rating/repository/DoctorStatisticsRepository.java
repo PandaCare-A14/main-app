@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Repository for doctor statistics data
@@ -15,10 +16,10 @@ public interface DoctorStatisticsRepository extends JpaRepository<DoctorStatisti
     /**
      * Find doctor statistics by doctor ID
      */
-    Optional<DoctorStatistics> findByIdDokter(String idDokter);
+    Optional<DoctorStatistics> findByIdDokter(UUID idDokter);
 
     /**
      * Check if statistics exist for a doctor
      */
-    boolean existsByIdDokter(String idDokter);
+    boolean existsByIdDokter(UUID idDokter);
 }

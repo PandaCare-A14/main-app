@@ -7,9 +7,11 @@ import java.util.UUID;
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
 class CaregiverScheduleTest {
     private CaregiverSchedule schedule;
     private UUID caregiverId;

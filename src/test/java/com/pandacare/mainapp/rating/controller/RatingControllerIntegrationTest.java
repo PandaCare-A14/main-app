@@ -1,7 +1,8 @@
 package com.pandacare.mainapp.rating.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pandacare.mainapp.rating.dto.RatingRequest;
+import com.pandacare.mainapp.config.TestSecurityConfig;
+import com.pandacare.mainapp.rating.dto.request.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import com.pandacare.mainapp.rating.service.RatingService;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,23 +11,28 @@ import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Integration tests for RatingController using TDD approach
  */
+
+@ActiveProfiles("test")
 @WebMvcTest(RatingController.class)
+@Import(TestSecurityConfig.class)
 class RatingControllerIntegrationTest {
 
     @Autowired
@@ -41,9 +47,9 @@ class RatingControllerIntegrationTest {
     private RatingRequest validRatingRequest;
     private RatingResponse validRatingResponse;
 
-    private final String VALID_CONSULTATION_ID = "cons001";
-    private final String VALID_PATIENT_ID = "p001";
-    private final String VALID_DOCTOR_ID = "dr001";
+    private final UUID VALID_CONSULTATION_ID = UUID.randomUUID();
+    private final UUID VALID_PATIENT_ID = UUID.randomUUID();
+    private final UUID VALID_DOCTOR_ID = UUID.randomUUID();
 
     @BeforeEach
     void setUp() {
@@ -54,7 +60,7 @@ class RatingControllerIntegrationTest {
 
         // Setup valid rating response
         validRatingResponse = new RatingResponse();
-        validRatingResponse.setId("rating001");
+        validRatingResponse.setId(UUID.randomUUID());
         validRatingResponse.setIdDokter(VALID_DOCTOR_ID);
         validRatingResponse.setIdPasien(VALID_PATIENT_ID);
         validRatingResponse.setIdJadwalKonsultasi(VALID_CONSULTATION_ID);
@@ -75,13 +81,12 @@ class RatingControllerIntegrationTest {
         mockMvc.perform(post("/api/consultations/{idJadwalKonsultasi}/ratings", VALID_CONSULTATION_ID)
                         .header("X-User-ID", VALID_PATIENT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validRatingRequest)))
-                .andExpect(status().isCreated())
+                        .content(objectMapper.writeValueAsString(validRatingRequest)))                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status", is("success")))
                 .andExpect(jsonPath("$.message", is("Rating berhasil ditambahkan")))
-                .andExpect(jsonPath("$.data.rating.id", is("rating001")))
-                .andExpect(jsonPath("$.data.rating.idDokter", is(VALID_DOCTOR_ID)))
-                .andExpect(jsonPath("$.data.rating.idPasien", is(VALID_PATIENT_ID)))
+                .andExpect(jsonPath("$.data.rating.id").exists())
+                .andExpect(jsonPath("$.data.rating.idDokter", is(VALID_DOCTOR_ID.toString())))
+                .andExpect(jsonPath("$.data.rating.idPasien", is(VALID_PATIENT_ID.toString())))
                 .andExpect(jsonPath("$.data.rating.ratingScore", is(5)))
                 .andExpect(jsonPath("$.data.rating.ulasan", is("Excellent service")));
     }
@@ -125,3 +130,4 @@ class RatingControllerIntegrationTest {
     void shouldReturn400_WhenReviewIsEmpty() throws Exception {
         // Arrange
         validRatingRequest.setUlasan("");}}
+
