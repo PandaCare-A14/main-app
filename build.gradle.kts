@@ -47,6 +47,8 @@ dependencies {
 	implementation ("org.postgresql:postgresql:42.7.1")
     implementation ("jakarta.validation:jakarta.validation-api:3.0.2")
 	implementation ("org.hibernate.validator:hibernate-validator:8.0.0.Final")
+	implementation ("javax.validation:validation-api:2.0.1.Final")
+	implementation ("org.hibernate.validator:hibernate-validator:6.2.0.Final")
 	implementation ("io.micrometer:micrometer-registry-prometheus")
 	implementation ("org.springframework.boot:spring-boot-starter-actuator")
 	implementation ("org.springframework.boot:spring-boot-starter-security")
