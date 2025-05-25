@@ -17,36 +17,36 @@ import java.util.UUID;
 
 @Repository
 public interface CaregiverScheduleRepository extends JpaRepository<CaregiverSchedule, UUID> {
-    
     @Query("SELECT s FROM CaregiverSchedule s WHERE s.idCaregiver.id = :caregiverId")
     List<CaregiverSchedule> findByIdCaregiver(@Param("caregiverId") UUID idCaregiver);
-    
     @Query("SELECT s FROM CaregiverSchedule s WHERE s.idCaregiver.id = :caregiverId AND s.id = :scheduleId")
     Optional<CaregiverSchedule> findByIdCaregiverAndIdSchedule(
             @Param("caregiverId") UUID caregiverId,
             @Param("scheduleId") UUID scheduleId);
-    
     @Query("SELECT s FROM CaregiverSchedule s WHERE s.idCaregiver.id = :caregiverId AND s.status = :status")
     List<CaregiverSchedule> findByIdCaregiverAndStatus(
-            @Param("caregiverId") UUID idCaregiver, 
+            @Param("caregiverId") UUID idCaregiver,
             @Param("status") ScheduleStatus status);
-    
     @Query("SELECT s FROM CaregiverSchedule s WHERE s.idCaregiver.id = :caregiverId AND s.day = :day")
     List<CaregiverSchedule> findByIdCaregiverAndDay(
             @Param("caregiverId") UUID idCaregiver,
             @Param("day") DayOfWeek day);
-    
-    @Query("SELECT COUNT(c) > 0 FROM CaregiverSchedule c " + 
+    @Query("SELECT COUNT(c) > 0 FROM CaregiverSchedule c " +
             "WHERE c.idCaregiver.id = :caregiverId " +
-            "AND c.day = :day " + 
-            "AND c.startTime < :endTime " + 
+            "AND c.day = :day " +
+            "AND c.startTime < :endTime " +
             "AND c.endTime > :startTime")
     boolean existsOverlappingSchedule(
             @Param("caregiverId") UUID caregiverId,
             @Param("day") DayOfWeek day,
             @Param("startTime") LocalTime startTime,
             @Param("endTime") LocalTime endTime);
-    
+    @Query("SELECT cs FROM CaregiverSchedule cs WHERE cs.idCaregiver.id = :caregiverId AND cs.status = :status AND cs.day = :day")
+    List<CaregiverSchedule> findByIdCaregiverAndStatusAndDay(
+            @Param("caregiverId") UUID idCaregiver,
+            @Param("status") ScheduleStatus status,
+            @Param("day") DayOfWeek day
+    );
     @Query("SELECT COUNT(s) > 0 FROM CaregiverSchedule s " +
             "WHERE s.idCaregiver.id = :idCaregiver AND s.day = :day AND s.date = :date AND s.status != 'INACTIVE' AND " +
             "((s.startTime <= :endTime AND s.endTime >= :startTime))")
