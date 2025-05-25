@@ -1,5 +1,6 @@
 package com.pandacare.mainapp.reservasi.service;
 
+import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
@@ -35,6 +36,7 @@ public class ReservasiKonsultasiServiceImpl {
         reservasi.setIdPacilian(idPacilian);
         reservasi.setIdSchedule(schedule);
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+        scheduleService.updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
 
         return repository.save(reservasi);
     }

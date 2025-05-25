@@ -19,25 +19,21 @@ public class CaregiverSchedule {
     @Id
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Setter
+    @ManyToOne
     @JoinColumn(name = "caregiver_id")
     private com.pandacare.mainapp.authentication.model.Caregiver idCaregiver;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "day")  // Tambahkan column name mapping
     private DayOfWeek day;
-
-    @Column(name = "date")  // Tambahkan column name mapping
+    @Column
     private LocalDate date;
-
-    @Column(name = "start_time")  // Penting! Map ke snake_case
+    @Column
     private LocalTime startTime;
-
-    @Column(name = "end_time")    // Penting! Map ke snake_case
+    @Column
     private LocalTime endTime;
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", columnDefinition = "schedule_status")  // Ini yang paling penting!
+    @Column(name = "status")
     private ScheduleStatus status;
 
     public CaregiverSchedule() {
@@ -45,18 +41,21 @@ public class CaregiverSchedule {
         this.status = ScheduleStatus.AVAILABLE;
     }
 
+    // Convenience methods for ID-based access
     public UUID getIdCaregiver() {
         return idCaregiver != null ? idCaregiver.getId() : null;
     }
 
     public void setIdCaregiver(UUID caregiverId) {
+        // This method is kept for backward compatibility but should be avoided
+        // The proper way is to set the caregiver entity directly
         if (caregiverId != null) {
-            com.pandacare.mainapp.authentication.model.Caregiver caregiver =
-                    new com.pandacare.mainapp.authentication.model.Caregiver();
+            com.pandacare.mainapp.authentication.model.Caregiver caregiver = new com.pandacare.mainapp.authentication.model.Caregiver();
             caregiver.setId(caregiverId);
             this.idCaregiver = caregiver;
         } else {
             this.idCaregiver = null;
         }
     }
+
 }
