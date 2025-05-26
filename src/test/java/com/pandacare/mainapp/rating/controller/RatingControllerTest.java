@@ -74,14 +74,12 @@ class RatingControllerTest {
         ratingResponse.setUpdatedAt(LocalDateTime.now());
 
         // Initialize list response
-        ratingListResponse = new RatingListResponse();
-
-        // Initialize CaregiverSchedule for past consultation
+        ratingListResponse = new RatingListResponse();        // Initialize CaregiverSchedule for past consultation
         pastSchedule = new CaregiverSchedule();
         pastSchedule.setIdCaregiver(ID_DOKTER);
-        pastSchedule.setDate(LocalDate.now().minusDays(1));
+        pastSchedule.setDate(LocalDate.now().minusDays(1)); // Yesterday
         pastSchedule.setStartTime(LocalTime.of(9, 0)); // 09:00
-        pastSchedule.setEndTime(LocalTime.of(10, 0));  // 10:00 (past time)        // Initialize CaregiverSchedule for future consultation
+        pastSchedule.setEndTime(LocalTime.of(10, 0));  // 10:00 (past time)// Initialize CaregiverSchedule for future consultation
         futureSchedule = new CaregiverSchedule();
         futureSchedule.setIdCaregiver(ID_DOKTER);
         futureSchedule.setDate(LocalDate.now().plusDays(1)); // Tomorrow

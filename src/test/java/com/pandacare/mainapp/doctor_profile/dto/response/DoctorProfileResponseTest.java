@@ -1,6 +1,6 @@
 package com.pandacare.mainapp.doctor_profile.dto.response;
 
-import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
+import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -23,6 +23,7 @@ public class DoctorProfileResponseTest {
     private static final String SPECIALITY = "Neurology";
     private static final Double AVERAGE_RATING = 4.7;
     private static final int TOTAL_RATINGS = 25;
+    private static final List<RatingResponse> RATINGS = List.of();
 
     @BeforeEach
     void setUp() {
@@ -36,6 +37,7 @@ public class DoctorProfileResponseTest {
                 schedules,
                 SPECIALITY,
                 AVERAGE_RATING,
+                RATINGS,
                 TOTAL_RATINGS
         );
     }
@@ -49,6 +51,7 @@ public class DoctorProfileResponseTest {
         assertEquals(SPECIALITY, response.getSpeciality());
         assertEquals(AVERAGE_RATING, response.getAverageRating());
         assertEquals(TOTAL_RATINGS, response.getTotalRatings());
+        assertEquals(RATINGS, response.getRatings());
         assertNotNull(response.getWorkSchedule());
     }
 
@@ -63,12 +66,14 @@ public class DoctorProfileResponseTest {
                 new ArrayList<>(),
                 "Cardiology",
                 4.2,
+                RATINGS,
                 15
         );
 
         assertEquals("Dr. Smith", newResponse.getName());
         assertEquals("Cardiology", newResponse.getSpeciality());
         assertEquals(4.2, newResponse.getAverageRating());
+        assertEquals(RATINGS, newResponse.getRatings());
     }
 
     @Test
@@ -83,6 +88,7 @@ public class DoctorProfileResponseTest {
                 schedules,
                 SPECIALITY,
                 AVERAGE_RATING,
+                RATINGS,
                 TOTAL_RATINGS
         );
 

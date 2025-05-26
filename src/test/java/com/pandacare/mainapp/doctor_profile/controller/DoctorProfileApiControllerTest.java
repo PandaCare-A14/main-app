@@ -206,17 +206,22 @@ class DoctorProfileApiControllerTest {
     }
 
     @Nested
-    class SearchDoctorsByNameTests {
+    class SearchDoctorsTests {
         @Test
         void shouldReturnMatchingDoctors() {
             // Arrange
             String name = "Smith";
-            when(doctorProfileService.findByName(name))
+            String speciality = "Cardio";
+            String day = "Monday";
+            String startTime = "09:00";
+            String endTime = "12:00";
+
+            when(doctorProfileService.searchByCriteria(name, speciality, day, startTime, endTime))
                     .thenReturn(CompletableFuture.completedFuture(doctorList));
 
             // Act
             DeferredResult<ResponseEntity<?>> deferredResult =
-                    doctorProfileApiController.searchDoctorsByName(name);
+                    doctorProfileApiController.searchDoctors(name, speciality, day, startTime, endTime);
 
             ResponseEntity<DoctorProfileListResponse> response =
                     (ResponseEntity<DoctorProfileListResponse>) deferredResult.getResult();
@@ -224,170 +229,41 @@ class DoctorProfileApiControllerTest {
             // Assert
             assertSuccessfulResponse(response, HttpStatus.OK);
             assertEquals(2, response.getBody().getTotalItems());
-            verify(doctorProfileService).findByName(name);
+            verify(doctorProfileService).searchByCriteria(name, speciality, day, startTime, endTime);
         }
 
         @Test
         void shouldReturnNotFoundWhenNoMatchingDoctors() {
             // Arrange
             String name = "NonExistent";
-            when(doctorProfileService.findByName(name))
+            when(doctorProfileService.searchByCriteria(name, null, null, null, null))
                     .thenReturn(CompletableFuture.completedFuture(null));
 
             // Act
             DeferredResult<ResponseEntity<?>> deferredResult =
-                    doctorProfileApiController.searchDoctorsByName(name);
+                    doctorProfileApiController.searchDoctors(name, null, null, null, null);
 
             ResponseEntity<DoctorProfileListResponse> response =
                     (ResponseEntity<DoctorProfileListResponse>) deferredResult.getResult();
 
             // Assert
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-            verify(doctorProfileService).findByName(name);
+            verify(doctorProfileService).searchByCriteria(name, null, null, null, null);
         }
 
         @Test
-        void shouldReturnInternalServerErrorWhenExceptionThrown() {
-            // Arrange
-            String name = "Smith";
-            when(doctorProfileService.findByName(name))
-                    .thenReturn(CompletableFuture.failedFuture(new RuntimeException("Search error")));
-
-            // Act
-            DeferredResult<ResponseEntity<?>> deferredResult =
-                    doctorProfileApiController.searchDoctorsByName(name);
-
-            ResponseEntity<?> response = (ResponseEntity<?>) deferredResult.getResult();
-
-            // Assert
-            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-            verify(doctorProfileService).findByName(name);
-        }
-    }
-
-    @Nested
-    class SearchDoctorsBySpecialityTests {
-        @Test
-        void shouldReturnMatchingDoctors() {
-            // Arrange
-            String speciality = "Cardiology";
-            when(doctorProfileService.findBySpeciality(speciality))
-                    .thenReturn(CompletableFuture.completedFuture(doctorList));
-
-            // Act
-            DeferredResult<ResponseEntity<?>> deferredResult =
-                    doctorProfileApiController.searchDoctorsBySpeciality(speciality);
-
-            ResponseEntity<DoctorProfileListResponse> response =
-                    (ResponseEntity<DoctorProfileListResponse>) deferredResult.getResult();
-
-            // Assert
-            assertSuccessfulResponse(response, HttpStatus.OK);
-            assertEquals(2, response.getBody().getTotalItems());
-            verify(doctorProfileService).findBySpeciality(speciality);
-        }
-
-        @Test
-        void shouldReturnNotFoundWhenNoMatchingDoctors() {
-            // Arrange
-            String speciality = "NonExistent";
-            when(doctorProfileService.findBySpeciality(speciality))
-                    .thenReturn(CompletableFuture.completedFuture(null));
-
-            // Act
-            DeferredResult<ResponseEntity<?>> deferredResult =
-                    doctorProfileApiController.searchDoctorsBySpeciality(speciality);
-
-            ResponseEntity<DoctorProfileListResponse> response =
-                    (ResponseEntity<DoctorProfileListResponse>) deferredResult.getResult();
-
-            // Assert
-            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-            verify(doctorProfileService).findBySpeciality(speciality);
-        }
-
-        @Test
-        void shouldReturnInternalServerErrorWhenExceptionThrown() {
-            // Arrange
-            String speciality = "Cardiology";
-            when(doctorProfileService.findBySpeciality(speciality))
-                    .thenReturn(CompletableFuture.failedFuture(new RuntimeException("Search error")));
-
-            // Act
-            DeferredResult<ResponseEntity<?>> deferredResult =
-                    doctorProfileApiController.searchDoctorsBySpeciality(speciality);
-
-            ResponseEntity<?> response = (ResponseEntity<?>) deferredResult.getResult();
-
-            // Assert
-            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-            verify(doctorProfileService).findBySpeciality(speciality);
-        }
-    }
-
-    @Nested
-    class SearchDoctorsByScheduleTests {
-        @Test
-        void shouldReturnMatchingDoctors() {
+        void shouldReturnBadRequestWhenInvalidParameters() {
             // Arrange
             String day = "Monday";
-            String start = "09:00";
-            String end = "12:00";
-            String schedule = day + " " + start + "-" + end;
+            String startTime = "9:00"; // Invalid format
+            String endTime = "12:00";
 
-            when(doctorProfileService.findByWorkSchedule(schedule))
-                    .thenReturn(CompletableFuture.completedFuture(doctorList));
-
-            // Act
-            DeferredResult<ResponseEntity<?>> deferredResult =
-                    doctorProfileApiController.searchDoctorsBySchedule(day, start, end);
-
-            ResponseEntity<DoctorProfileListResponse> response =
-                    (ResponseEntity<DoctorProfileListResponse>) deferredResult.getResult();
-
-            // Assert
-            assertSuccessfulResponse(response, HttpStatus.OK);
-            assertEquals(2, response.getBody().getTotalItems());
-            verify(doctorProfileService).findByWorkSchedule(schedule);
-        }
-
-        @Test
-        void shouldReturnNotFoundWhenNoMatchingDoctors() {
-            // Arrange
-            String day = "Tuesday";
-            String start = "14:00";
-            String end = "16:00";
-            String schedule = day + " " + start + "-" + end;
-
-            when(doctorProfileService.findByWorkSchedule(schedule))
-                    .thenReturn(CompletableFuture.completedFuture(null));
-
-            // Act
-            DeferredResult<ResponseEntity<?>> deferredResult =
-                    doctorProfileApiController.searchDoctorsBySchedule(day, start, end);
-
-            ResponseEntity<DoctorProfileListResponse> response =
-                    (ResponseEntity<DoctorProfileListResponse>) deferredResult.getResult();
-
-            // Assert
-            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-            verify(doctorProfileService).findByWorkSchedule(schedule);
-        }
-
-        @Test
-        void shouldReturnBadRequestWhenInvalidScheduleFormat() {
-            // Arrange
-            String day = "Monday";
-            String start = "9:00";
-            String end = "12:00";
-            String schedule = day + " " + start + "-" + end;
-
-            when(doctorProfileService.findByWorkSchedule(schedule))
+            when(doctorProfileService.searchByCriteria(null, null, day, startTime, endTime))
                     .thenReturn(CompletableFuture.failedFuture(new IllegalArgumentException("Invalid time format")));
 
             // Act
             DeferredResult<ResponseEntity<?>> deferredResult =
-                    doctorProfileApiController.searchDoctorsBySchedule(day, start, end);
+                    doctorProfileApiController.searchDoctors(null, null, day, startTime, endTime);
 
             ResponseEntity<?> response = (ResponseEntity<?>) deferredResult.getResult();
 
@@ -396,29 +272,26 @@ class DoctorProfileApiControllerTest {
             assertTrue(response.getBody() instanceof ErrorResponse);
             ErrorResponse errorResponse = (ErrorResponse) response.getBody();
             assertTrue(errorResponse.message().contains("Invalid time format"));
-            verify(doctorProfileService).findByWorkSchedule(schedule);
+            verify(doctorProfileService).searchByCriteria(null, null, day, startTime, endTime);
         }
 
         @Test
-        void shouldReturnInternalServerErrorWhenUnexpectedExceptionThrown() {
+        void shouldReturnInternalServerErrorWhenUnexpectedException() {
             // Arrange
-            String day = "Monday";
-            String start = "09:00";
-            String end = "12:00";
-            String schedule = day + " " + start + "-" + end;
-
-            when(doctorProfileService.findByWorkSchedule(schedule))
+            String name = "Smith";
+            when(doctorProfileService.searchByCriteria(name, null, null, null, null))
                     .thenReturn(CompletableFuture.failedFuture(new RuntimeException("Database error")));
 
             // Act
             DeferredResult<ResponseEntity<?>> deferredResult =
-                    doctorProfileApiController.searchDoctorsBySchedule(day, start, end);
+                    doctorProfileApiController.searchDoctors(name, null, null, null, null);
 
             ResponseEntity<?> response = (ResponseEntity<?>) deferredResult.getResult();
 
             // Assert
+            assert response != null;
             assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-            verify(doctorProfileService).findByWorkSchedule(schedule);
+            verify(doctorProfileService).searchByCriteria(name, null, null, null, null);
         }
     }
 

@@ -1,7 +1,7 @@
 package com.pandacare.mainapp.doctor_profile.dto.response;
 
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
-import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
+import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,6 +23,7 @@ public class DoctorProfileResponse {
     private List<CaregiverScheduleDTO> workSchedule;
     private String speciality;
     private Double averageRating;
+    private List<RatingResponse> ratings;
     private int totalRatings;
 
     @Data

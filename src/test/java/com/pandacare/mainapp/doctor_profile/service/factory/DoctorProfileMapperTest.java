@@ -46,6 +46,7 @@ class DoctorProfileMapperTest {
         assertEquals("Cardiology", response.getSpeciality());
         assertEquals(4.5, response.getAverageRating());
         assertEquals(10, response.getTotalRatings());
+        assertNotNull(response.getRatings());
         assertEquals(1, response.getWorkSchedule().size());
     }
 

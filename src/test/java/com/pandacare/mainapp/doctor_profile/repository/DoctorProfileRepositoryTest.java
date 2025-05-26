@@ -31,17 +31,24 @@ class DoctorProfileRepositoryTest {
     private DoctorProfileRepository doctorProfileRepository;
 
     private Caregiver caregiver1;
-    private Caregiver caregiver2;    @BeforeEach
+    private Caregiver caregiver2;
+    private Caregiver caregiver3;
+
+    @BeforeEach
     void setUp() {
         // Create caregivers
         caregiver1 = new Caregiver("Dr. Hafiz", "3704892357482376", "08123456789", "RS Pandacare", "Cardiologist");
-        caregiver1.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
+        caregiver1.setId(UUID.randomUUID());
 
         caregiver2 = new Caregiver("Dr. Jonah", "3704892357482377", "08192836789", "RS Pondok Indah", "Orthopedic");
-        caregiver2.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
+        caregiver2.setId(UUID.randomUUID());
+
+        caregiver3 = new Caregiver("Dr. Hafiz Jonah", "3704892357482378", "08192836780", "RS Siloam", "Cardiologist");
+        caregiver3.setId(UUID.randomUUID());
 
         entityManager.persist(caregiver1);
         entityManager.persist(caregiver2);
+        entityManager.persist(caregiver3);
 
         // Add working schedules
         CaregiverSchedule schedule1 = new CaregiverSchedule();
@@ -124,7 +131,7 @@ class DoctorProfileRepositoryTest {
     @Test
     void testFindAllCaregivers() {
         List<Caregiver> result = doctorProfileRepository.findAll();
-        assertEquals(2, result.size());
+        assertEquals(3, result.size());
     }
 
     @Test
@@ -144,12 +151,10 @@ class DoctorProfileRepositoryTest {
 
     @Test
     void testFindCaregiverByNameIfFound() {
-        entityManager.persist(caregiver1);
-        entityManager.persist(caregiver2);
-
         List<Caregiver> result = doctorProfileRepository.findByNameContainingIgnoreCase("Hafiz");
-        assertEquals(1, result.size());
-        assertCaregiversEqual(caregiver1, result.get(0));
+        assertEquals(2, result.size());
+        assertTrue(result.stream().anyMatch(c -> c.getId().equals(caregiver1.getId())));
+        assertTrue(result.stream().anyMatch(c -> c.getId().equals(caregiver3.getId())));
     }
 
     @Test
@@ -160,12 +165,10 @@ class DoctorProfileRepositoryTest {
 
     @Test
     void testFindCaregiverBySpecialityIfFound() {
-        entityManager.persist(caregiver1);
-        entityManager.persist(caregiver2);
-
         List<Caregiver> result = doctorProfileRepository.findBySpecialityContainingIgnoreCase("Cardio");
-        assertEquals(1, result.size());
-        assertCaregiversEqual(caregiver1, result.get(0));
+        assertEquals(2, result.size());
+        assertTrue(result.stream().anyMatch(c -> c.getId().equals(caregiver1.getId())));
+        assertTrue(result.stream().anyMatch(c -> c.getId().equals(caregiver3.getId())));
     }
 
     @Test
@@ -175,10 +178,37 @@ class DoctorProfileRepositoryTest {
     }
 
     @Test
-    void testFindByWorkScheduleAvailable() {
-        entityManager.persist(caregiver1);
-        entityManager.persist(caregiver2);
+    void testFindByNameAndSpecialityContainingIgnoreCase_BothCriteriaMatch() {
+        List<Caregiver> result = doctorProfileRepository.findByNameContainingIgnoreCaseAndSpecialityContainingIgnoreCase(
+                "Hafiz", "Cardio");
+        assertEquals(2, result.size());
+        assertTrue(result.stream().anyMatch(c -> c.getId().equals(caregiver1.getId())));
+        assertTrue(result.stream().anyMatch(c -> c.getId().equals(caregiver3.getId())));
+    }
 
+    @Test
+    void testFindByNameAndSpecialityContainingIgnoreCase_NameOnlyMatches() {
+        List<Caregiver> result = doctorProfileRepository.findByNameContainingIgnoreCaseAndSpecialityContainingIgnoreCase(
+                "Hafiz", "Ortho");
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testFindByNameAndSpecialityContainingIgnoreCase_SpecialityOnlyMatches() {
+        List<Caregiver> result = doctorProfileRepository.findByNameContainingIgnoreCaseAndSpecialityContainingIgnoreCase(
+                "Nonexistent", "Cardio");
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testFindByNameAndSpecialityContainingIgnoreCase_NoMatches() {
+        List<Caregiver> result = doctorProfileRepository.findByNameContainingIgnoreCaseAndSpecialityContainingIgnoreCase(
+                "Nonexistent", "Nonexistent");
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testFindByWorkScheduleAvailable() {
         // Search for Monday 10:00-11:00 (should match caregiver1's 9:00-12:00 schedule)
         List<Caregiver> result = doctorProfileRepository.findByWorkingSchedulesAvailable(
                 DayOfWeek.MONDAY,
