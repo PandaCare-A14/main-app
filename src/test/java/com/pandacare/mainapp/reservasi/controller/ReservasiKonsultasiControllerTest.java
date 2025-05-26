@@ -74,22 +74,24 @@ class ReservasiKonsultasiControllerTest {
 
     @Test
     void testRequestReservasi_success() throws Exception {
-        when(reservasiService.requestReservasi(any(UUID.class), any(UUID.class))).thenReturn(waitingReservasi);
+        String testNote = "This is a test note";
+        when(reservasiService.requestReservasi(any(UUID.class), any(UUID.class), anyString())).thenReturn(waitingReservasi);
 
         mockMvc.perform(post("/api/reservasi-konsultasi/request")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format("""
-                        {
-                            "idSchedule": "%s",
-                            "idPacilian": "%s"
-                        }
-                    """, scheduleId, pacilianId)))
+                    {
+                        "idSchedule": "%s",
+                        "idPacilian": "%s",
+                        "pacilianNote": "%s"
+                    }
+                """, scheduleId, pacilianId, testNote)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Jadwal konsultasi berhasil diajukan"))
                 .andExpect(jsonPath("$.reservasi.idPacilian").value(pacilianId.toString()))
                 .andExpect(jsonPath("$.reservasi.idReservasi").value(reservationId.toString()));
 
-        verify(reservasiService).requestReservasi(any(UUID.class), eq(pacilianId));
+        verify(reservasiService).requestReservasi(any(UUID.class), eq(pacilianId), eq(testNote));
     }
 
     @Test
@@ -240,17 +242,19 @@ class ReservasiKonsultasiControllerTest {
 
     @Test
     void testRequestReservasi_invalidTime_shouldReturn400() throws Exception {
-        when(reservasiService.requestReservasi(any(UUID.class), any(UUID.class)))
+        // Update mock to include the third parameter (pacilianNote)
+        when(reservasiService.requestReservasi(any(UUID.class), any(UUID.class), anyString()))
                 .thenThrow(new IllegalArgumentException("Selected schedule is not available"));
 
         mockMvc.perform(post("/api/reservasi-konsultasi/request")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format("""
-                        {
-                            "idSchedule": "%s",
-                            "idPacilian": "%s"
-                        }
-                    """, scheduleId, pacilianId)))
+                    {
+                        "idSchedule": "%s",
+                        "idPacilian": "%s",
+                        "pacilianNote": "Test note"
+                    }
+                """, scheduleId, pacilianId)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Selected schedule is not available"));
     }

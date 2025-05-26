@@ -76,6 +76,7 @@ public class ReservasiKonsultasiServiceTest {
         UUID scheduleId = UUID.randomUUID();
         UUID caregiverId = UUID.randomUUID();
         UUID pacilianId = UUID.randomUUID();
+        String pacilianNote = "Test consultation note";
 
         CaregiverSchedule schedule = new CaregiverSchedule();
         schedule.setId(scheduleId);
@@ -91,12 +92,13 @@ public class ReservasiKonsultasiServiceTest {
         when(scheduleService.getById(any(UUID.class))).thenReturn(schedule);
         when(scheduleService.isScheduleAvailable(any(UUID.class))).thenReturn(true);
 
-        ReservasiKonsultasi result = service.requestReservasi(scheduleId, pacilianId);
+        ReservasiKonsultasi result = service.requestReservasi(scheduleId, pacilianId, pacilianNote);
 
         assertNotNull(result);
         assertEquals(pacilianId, result.getIdPacilian());
         assertEquals(scheduleId, result.getIdSchedule().getId());
         assertEquals(StatusReservasiKonsultasi.WAITING, result.getStatusReservasi());
+        assertEquals(pacilianNote, result.getPacilianNote());
 
         verify(repository).save(any(ReservasiKonsultasi.class));
     }
@@ -280,6 +282,7 @@ public class ReservasiKonsultasiServiceTest {
     void requestReservation_shouldChangeScheduleStatus() {
         UUID scheduleId = UUID.randomUUID();
         UUID pacilianId = UUID.randomUUID();
+        String pacilianNote = "Test note for consultation";
         CaregiverSchedule schedule = new CaregiverSchedule();
         schedule.setId(scheduleId);
         schedule.setDay(DayOfWeek.MONDAY);
@@ -290,7 +293,7 @@ public class ReservasiKonsultasiServiceTest {
         when(scheduleService.getById(scheduleId)).thenReturn(schedule);
         when(scheduleService.isScheduleAvailable(scheduleId)).thenReturn(true);
 
-        service.requestReservasi(scheduleId, pacilianId);
+        service.requestReservasi(scheduleId, pacilianId, pacilianNote);
 
         verify(scheduleService).updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
         verify(repository).save(any(ReservasiKonsultasi.class));
