@@ -7,7 +7,6 @@ import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
 import com.pandacare.mainapp.doctor_profile.service.factory.DoctorProfileMapper;
 import com.pandacare.mainapp.doctor_profile.service.strategy.ParsedWorkSchedule;
 import com.pandacare.mainapp.doctor_profile.service.strategy.WorkScheduleParser;
-import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.service.RatingService;
 import jakarta.validation.constraints.NotNull;
@@ -65,32 +64,53 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
 
     @Override
     @Async
-    public CompletableFuture<DoctorProfileListResponse> findByName(String name) {
-        if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Name parameter cannot be empty");
-        }
-        List<Caregiver> caregivers = doctorProfileRepository.findByNameContainingIgnoreCase(name);
-        return CompletableFuture.completedFuture(getDoctorProfileListResponse(caregivers));
-    }
+    public CompletableFuture<DoctorProfileListResponse> searchByCriteria(
+            String name,
+            String speciality,
+            String day,
+            String startTime,
+            String endTime) {
 
-    @Override
-    @Async
-    public CompletableFuture<DoctorProfileListResponse> findBySpeciality(String speciality) {
-        if (speciality == null || speciality.trim().isEmpty()) {
-            throw new IllegalArgumentException("Speciality parameter cannot be empty");
-        }
-        List<Caregiver> caregivers = doctorProfileRepository.findBySpecialityContainingIgnoreCase(speciality);
-        return CompletableFuture.completedFuture(getDoctorProfileListResponse(caregivers));
-    }
+        return CompletableFuture.supplyAsync(() -> {
+            List<Caregiver> caregivers;
 
-    @Override
-    @Async
-    public CompletableFuture<DoctorProfileListResponse> findByWorkSchedule(String workSchedule) {
-        ParsedWorkSchedule parsed = workScheduleParser.parse(workSchedule);
-        List<Caregiver> caregivers = doctorProfileRepository.findByWorkingSchedulesAvailable(
-                parsed.day(), parsed.startTime(), parsed.endTime()
-        );
-        return CompletableFuture.completedFuture(getDoctorProfileListResponse(caregivers));
+            if (day != null && startTime != null && endTime != null) {
+                // Case 1: Search by schedule plus optional name/speciality
+                ParsedWorkSchedule parsed = workScheduleParser.parse(
+                        String.format("%s %s-%s", day, startTime, endTime));
+                caregivers = doctorProfileRepository.findByWorkingSchedulesAvailable(
+                        parsed.day(), parsed.startTime(), parsed.endTime());
+
+                // Apply additional filters if present
+                if (name != null && !name.trim().isEmpty()) {
+                    caregivers = caregivers.stream()
+                            .filter(c -> c.getName().toLowerCase().contains(name.toLowerCase()))
+                            .collect(Collectors.toList());
+                }
+                if (speciality != null && !speciality.trim().isEmpty()) {
+                    caregivers = caregivers.stream()
+                            .filter(c -> c.getSpeciality().toLowerCase().contains(speciality.toLowerCase()))
+                            .collect(Collectors.toList());
+                }
+            } else {
+                // Case 2: Search by name and/or speciality only
+                boolean hasName = name != null && !name.trim().isEmpty();
+                boolean hasSpeciality = speciality != null && !speciality.trim().isEmpty();
+
+                if (hasName && hasSpeciality) {
+                    caregivers = doctorProfileRepository.findByNameContainingIgnoreCaseAndSpecialityContainingIgnoreCase(
+                            name, speciality);
+                } else if (hasName) {
+                    caregivers = doctorProfileRepository.findByNameContainingIgnoreCase(name);
+                } else if (hasSpeciality) {
+                    caregivers = doctorProfileRepository.findBySpecialityContainingIgnoreCase(speciality);
+                } else {
+                    throw new IllegalArgumentException("At least one search parameter must be provided");
+                }
+            }
+
+            return getDoctorProfileListResponse(caregivers);
+        });
     }
 
     // Update getDoctorProfileListResponse to use internal mapping
