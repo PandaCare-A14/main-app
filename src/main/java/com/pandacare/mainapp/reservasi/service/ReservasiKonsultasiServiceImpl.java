@@ -44,7 +44,7 @@ public class ReservasiKonsultasiServiceImpl implements ReservasiKonsultasiServic
     }
 
     @Override
-    public ReservasiKonsultasi editReservasi(UUID id, UUID newScheduleId) {
+    public ReservasiKonsultasi editReservasi(UUID id, UUID newScheduleId, String pacilianNote) {
         ReservasiKonsultasi reservasi = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservasi tidak ditemukan"));
 
@@ -66,8 +66,14 @@ public class ReservasiKonsultasiServiceImpl implements ReservasiKonsultasiServic
         String newStartTime = newSchedule.getStartTime().toString();
         String newEndTime = newSchedule.getEndTime().toString();
 
+        // Set pacilianNote to null for the old schedule
+        reservasi.setPacilianNote(null);
+
         reservasi.editAsPacilian(newDay, newStartTime, newEndTime);
         reservasi.setIdSchedule(newSchedule);
+
+        // Set the new pacilianNote for the new schedule
+        reservasi.setPacilianNote(pacilianNote);
 
         scheduleService.updateScheduleStatus(oldSchedule, ScheduleStatus.AVAILABLE);
         scheduleService.updateScheduleStatus(newSchedule, ScheduleStatus.UNAVAILABLE);
