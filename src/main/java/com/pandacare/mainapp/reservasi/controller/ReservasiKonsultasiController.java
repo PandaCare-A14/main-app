@@ -1,6 +1,7 @@
 package com.pandacare.mainapp.reservasi.controller;
 
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
+import com.pandacare.mainapp.reservasi.service.ReservasiKonsultasiService;
 import com.pandacare.mainapp.reservasi.service.ReservasiKonsultasiServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,7 +18,7 @@ import java.util.UUID;
 public class ReservasiKonsultasiController {
 
     @Autowired
-    private ReservasiKonsultasiServiceImpl reservasiService;
+    private ReservasiKonsultasiService reservasiService;
 
     @PostMapping("/request")
     public ResponseEntity<?> requestReservasi(@RequestBody Map<String, String> body) {
