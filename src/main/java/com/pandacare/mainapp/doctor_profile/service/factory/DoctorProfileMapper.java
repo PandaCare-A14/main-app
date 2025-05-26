@@ -25,6 +25,7 @@ public class DoctorProfileMapper {
         response.setWorkSchedule(mapSchedulesToDTOs(caregiver.getWorkingSchedules()));
         response.setSpeciality(caregiver.getSpeciality());
         response.setAverageRating(ratingResponse != null ? ratingResponse.getAverageRating() : 0.0);
+        response.setRatings(ratingResponse != null ? ratingResponse.getRatings() : null);
         response.setTotalRatings(ratingResponse != null ? ratingResponse.getTotalRatings() : 0);
         return response;
     }
