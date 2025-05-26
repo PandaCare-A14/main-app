@@ -30,15 +30,12 @@ public class ReservasiKonsultasiServiceImpl {
 
         if (!scheduleService.isScheduleAvailable(idSchedule)) {
             throw new IllegalArgumentException("Selected schedule is not available");
-        }
-
+        }        
+        
         ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
         reservasi.setIdPacilian(idPacilian);
         reservasi.setIdSchedule(schedule);
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
-        scheduleService.updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
-
-        // Update schedule status to UNAVAILABLE
         scheduleService.updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
 
         return repository.save(reservasi);
