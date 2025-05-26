@@ -25,7 +25,7 @@ public class ReservasiKonsultasiServiceImpl implements ReservasiKonsultasiServic
     private ScheduleService scheduleService;
 
     @Override
-    public ReservasiKonsultasi requestReservasi(UUID idSchedule, UUID idPacilian) {
+    public ReservasiKonsultasi requestReservasi(UUID idSchedule, UUID idPacilian, String pacilianNote) {
         CaregiverSchedule schedule = scheduleService.getById(idSchedule);
 
         if (!scheduleService.isScheduleAvailable(idSchedule)) {
@@ -36,7 +36,7 @@ public class ReservasiKonsultasiServiceImpl implements ReservasiKonsultasiServic
         reservasi.setIdPacilian(idPacilian);
         reservasi.setIdSchedule(schedule);
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
-        scheduleService.updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
+        reservasi.setPacilianNote(pacilianNote);
 
         scheduleService.updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
 
@@ -44,7 +44,7 @@ public class ReservasiKonsultasiServiceImpl implements ReservasiKonsultasiServic
     }
 
     @Override
-    public ReservasiKonsultasi editReservasi(UUID id, UUID newScheduleId) {
+    public ReservasiKonsultasi editReservasi(UUID id, UUID newScheduleId, String pacilianNote) {
         ReservasiKonsultasi reservasi = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservasi tidak ditemukan"));
 
@@ -66,8 +66,14 @@ public class ReservasiKonsultasiServiceImpl implements ReservasiKonsultasiServic
         String newStartTime = newSchedule.getStartTime().toString();
         String newEndTime = newSchedule.getEndTime().toString();
 
+        // Set pacilianNote to null for the old schedule
+        reservasi.setPacilianNote(null);
+
         reservasi.editAsPacilian(newDay, newStartTime, newEndTime);
         reservasi.setIdSchedule(newSchedule);
+
+        // Set the new pacilianNote for the new schedule
+        reservasi.setPacilianNote(pacilianNote);
 
         scheduleService.updateScheduleStatus(oldSchedule, ScheduleStatus.AVAILABLE);
         scheduleService.updateScheduleStatus(newSchedule, ScheduleStatus.UNAVAILABLE);

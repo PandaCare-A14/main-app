@@ -25,8 +25,9 @@ public class ReservasiKonsultasiController {
         try {
             UUID idSchedule = UUID.fromString(body.get("idSchedule"));
             UUID idPacilian = UUID.fromString(body.get("idPacilian")); // Convert to UUID
+            String pacilianNote = body.get("pacilianNote");
 
-            ReservasiKonsultasi result = reservasiService.requestReservasi(idSchedule, idPacilian);
+            ReservasiKonsultasi result = reservasiService.requestReservasi(idSchedule, idPacilian, pacilianNote);
 
             Map<String, Object> reservasiMap = new HashMap<>();
             reservasiMap.put("idReservasi", result.getId());
@@ -43,11 +44,16 @@ public class ReservasiKonsultasiController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));
         }
-    }    @PostMapping("/{id}/edit")
+    }
+
+    @PostMapping("/{id}/edit")
     public ResponseEntity<?> editReservasi(@PathVariable("id") UUID id, @RequestBody Map<String, String> request) {
         try {
             UUID newScheduleId = UUID.fromString(request.get("idSchedule"));
-            ReservasiKonsultasi updated = reservasiService.editReservasi(id, newScheduleId);
+            String pacilianNote = request.get("pacilianNote");
+
+            ReservasiKonsultasi updated = reservasiService.editReservasi(id, newScheduleId, pacilianNote);
+
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Reservasi updated successfully");
             response.put("reservasi", updated);
@@ -55,7 +61,9 @@ public class ReservasiKonsultasiController {
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
-    }    @GetMapping("/{idPacilian}")
+    }
+
+    @GetMapping("/{idPacilian}")
     public ResponseEntity<?> getAllReservasiByPacilian(@PathVariable("idPacilian") UUID idPacilian) {
         try {
             List<?> reservations = reservasiService.findAllByPacilian(idPacilian).get();
@@ -63,7 +71,9 @@ public class ReservasiKonsultasiController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-    }    @PostMapping("/{id}/accept-change")
+    }
+
+    @PostMapping("/{id}/accept-change")
     public ResponseEntity<?> acceptChangeReservasi(@PathVariable("id") UUID id) {
         try {
             ReservasiKonsultasi updated = reservasiService.acceptChangeReservasi(id);
@@ -75,7 +85,9 @@ public class ReservasiKonsultasiController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));
         }
-    }    @PostMapping("/{id}/reject-change")
+    }
+
+    @PostMapping("/{id}/reject-change")
     public ResponseEntity<?> rejectChangeReservasi(@PathVariable("id") UUID id) {
         try {
             reservasiService.rejectChangeReservasi(id);

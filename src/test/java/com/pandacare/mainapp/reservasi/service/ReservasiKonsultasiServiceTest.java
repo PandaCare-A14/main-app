@@ -76,6 +76,7 @@ public class ReservasiKonsultasiServiceTest {
         UUID scheduleId = UUID.randomUUID();
         UUID caregiverId = UUID.randomUUID();
         UUID pacilianId = UUID.randomUUID();
+        String pacilianNote = "Test consultation note";
 
         CaregiverSchedule schedule = new CaregiverSchedule();
         schedule.setId(scheduleId);
@@ -91,12 +92,13 @@ public class ReservasiKonsultasiServiceTest {
         when(scheduleService.getById(any(UUID.class))).thenReturn(schedule);
         when(scheduleService.isScheduleAvailable(any(UUID.class))).thenReturn(true);
 
-        ReservasiKonsultasi result = service.requestReservasi(scheduleId, pacilianId);
+        ReservasiKonsultasi result = service.requestReservasi(scheduleId, pacilianId, pacilianNote);
 
         assertNotNull(result);
         assertEquals(pacilianId, result.getIdPacilian());
         assertEquals(scheduleId, result.getIdSchedule().getId());
         assertEquals(StatusReservasiKonsultasi.WAITING, result.getStatusReservasi());
+        assertEquals(pacilianNote, result.getPacilianNote());
 
         verify(repository).save(any(ReservasiKonsultasi.class));
     }
@@ -104,6 +106,7 @@ public class ReservasiKonsultasiServiceTest {
     @Test
     void editReservasi_shouldUpdateReservasi_whenStatusIsWaiting() {
         UUID newScheduleId = UUID.randomUUID();
+        String pacilianNote = "Updated consultation request";
         CaregiverSchedule newSchedule = new CaregiverSchedule();
         newSchedule.setId(newScheduleId);
         newSchedule.setDay(DayOfWeek.TUESDAY);
@@ -115,13 +118,14 @@ public class ReservasiKonsultasiServiceTest {
         when(scheduleService.getById(newScheduleId)).thenReturn(newSchedule);
         when(scheduleService.isScheduleAvailable(newScheduleId)).thenReturn(true);
 
-        ReservasiKonsultasi updated = service.editReservasi(reservationId, newScheduleId);
+        ReservasiKonsultasi updated = service.editReservasi(reservationId, newScheduleId, pacilianNote);
 
         assertEquals(StatusReservasiKonsultasi.WAITING, updated.getStatusReservasi());
         assertEquals("TUESDAY", updated.getDay());
         assertEquals(LocalTime.of(10, 0), updated.getStartTime());
         assertEquals(LocalTime.of(11, 0), updated.getEndTime());
         assertEquals(newSchedule, updated.getIdSchedule());
+        assertEquals(pacilianNote, updated.getPacilianNote());
 
         verify(repository).save(any(ReservasiKonsultasi.class));
     }
@@ -129,12 +133,13 @@ public class ReservasiKonsultasiServiceTest {
     @Test
     void editReservasi_shouldThrowException_whenScheduleNotAvailable() {
         UUID newScheduleId = UUID.randomUUID();
+        String pacilianNote = "Test note for unavailable schedule";
         when(repository.findById(reservationId)).thenReturn(Optional.of(waitingReservasi));
         when(scheduleService.getById(newScheduleId)).thenReturn(new CaregiverSchedule());
         when(scheduleService.isScheduleAvailable(newScheduleId)).thenReturn(false);
 
         Exception ex = assertThrows(IllegalArgumentException.class, () ->
-                service.editReservasi(reservationId, newScheduleId)
+                service.editReservasi(reservationId, newScheduleId, pacilianNote)
         );
 
         assertEquals("Jadwal baru tidak tersedia", ex.getMessage());
@@ -144,10 +149,11 @@ public class ReservasiKonsultasiServiceTest {
     void editReservasi_shouldThrowException_whenReservasiNotFound() {
         UUID newScheduleId = UUID.randomUUID();
         UUID nonexistentId = UUID.randomUUID();
+        String pacilianNote = "Note for non-existent reservation";
         when(repository.findById(nonexistentId)).thenReturn(Optional.empty());
 
         Exception ex = assertThrows(IllegalArgumentException.class, () ->
-                service.editReservasi(nonexistentId, newScheduleId)
+                service.editReservasi(nonexistentId, newScheduleId, pacilianNote)
         );
 
         assertEquals("Reservasi tidak ditemukan", ex.getMessage());
@@ -156,10 +162,11 @@ public class ReservasiKonsultasiServiceTest {
     @Test
     void editReservasi_shouldThrowException_whenStatusIsNotWaiting() {
         UUID jadwalId = UUID.randomUUID();
+        String pacilianNote = "Note for approved reservation";
         when(repository.findById(jadwalId)).thenReturn(Optional.of(approvedReservasi));
 
         Exception ex = assertThrows(IllegalStateException.class, () ->
-                service.editReservasi(jadwalId, UUID.randomUUID())
+                service.editReservasi(jadwalId, UUID.randomUUID(), pacilianNote)
         );
 
         assertEquals("Tidak bisa mengedit reservasi yang sudah disetujui.", ex.getMessage());
@@ -280,6 +287,7 @@ public class ReservasiKonsultasiServiceTest {
     void requestReservation_shouldChangeScheduleStatus() {
         UUID scheduleId = UUID.randomUUID();
         UUID pacilianId = UUID.randomUUID();
+        String pacilianNote = "Test note for consultation";
         CaregiverSchedule schedule = new CaregiverSchedule();
         schedule.setId(scheduleId);
         schedule.setDay(DayOfWeek.MONDAY);
@@ -290,9 +298,9 @@ public class ReservasiKonsultasiServiceTest {
         when(scheduleService.getById(scheduleId)).thenReturn(schedule);
         when(scheduleService.isScheduleAvailable(scheduleId)).thenReturn(true);
 
-        service.requestReservasi(scheduleId, pacilianId);
+        service.requestReservasi(scheduleId, pacilianId, pacilianNote);
 
-        verify(scheduleService, times(2)).updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
+        verify(scheduleService).updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
         verify(repository).save(any(ReservasiKonsultasi.class));
     }
 
@@ -301,6 +309,7 @@ public class ReservasiKonsultasiServiceTest {
         UUID oldScheduleId = UUID.randomUUID();
         UUID newScheduleId = UUID.randomUUID();
         UUID reservationId = UUID.randomUUID();
+        String pacilianNote = "Note for updated schedule";
 
         CaregiverSchedule oldSchedule = new CaregiverSchedule();
         oldSchedule.setId(oldScheduleId);
@@ -325,7 +334,7 @@ public class ReservasiKonsultasiServiceTest {
         when(scheduleService.getById(newScheduleId)).thenReturn(newSchedule);
         when(scheduleService.isScheduleAvailable(newScheduleId)).thenReturn(true);
 
-        service.editReservasi(reservationId, newScheduleId);
+        service.editReservasi(reservationId, newScheduleId, pacilianNote);
 
         verify(scheduleService).updateScheduleStatus(oldSchedule, ScheduleStatus.AVAILABLE);
         verify(scheduleService).updateScheduleStatus(newSchedule, ScheduleStatus.UNAVAILABLE);
