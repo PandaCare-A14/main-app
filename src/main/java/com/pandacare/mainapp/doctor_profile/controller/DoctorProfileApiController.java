@@ -3,7 +3,6 @@ package com.pandacare.mainapp.doctor_profile.controller;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileResponse;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileListResponse;
 import com.pandacare.mainapp.doctor_profile.dto.response.ErrorResponse;
-import com.pandacare.mainapp.doctor_profile.facade.DoctorFacade;
 import com.pandacare.mainapp.doctor_profile.service.DoctorProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,37 +20,11 @@ import java.util.concurrent.TimeUnit;
 public class DoctorProfileApiController {
 
     private final DoctorProfileService doctorProfileService;
-    private final DoctorFacade doctorFacade;
     private static final long ASYNC_TIMEOUT = 5000; // 5 seconds timeout
 
-    public DoctorProfileApiController(DoctorProfileService doctorProfileService, DoctorFacade doctorFacade) {
+    public DoctorProfileApiController(DoctorProfileService doctorProfileService) {
         this.doctorProfileService = doctorProfileService;
-        this.doctorFacade = doctorFacade;
     }
-
-@GetMapping("/{doctorId}/actions")
-public DeferredResult<ResponseEntity<DoctorProfileResponse>> getDoctorWithActions(
-        @PathVariable("doctorId") UUID doctorId,
-        @RequestParam UUID patientId) {
-
-    DeferredResult<ResponseEntity<DoctorProfileResponse>> deferredResult = new DeferredResult<>(ASYNC_TIMEOUT);
-
-    doctorFacade.getDoctorProfileWithActions(doctorId, patientId)
-            .<ResponseEntity<DoctorProfileResponse>>thenApply(response ->
-                    response != null ?
-                            ResponseEntity.ok(response) :
-                            ResponseEntity.<DoctorProfileResponse>notFound().build())
-            .exceptionally(ex ->
-                    ResponseEntity.<DoctorProfileResponse>status(HttpStatus.INTERNAL_SERVER_ERROR).build())
-            .thenAccept(deferredResult::setResult);
-
-    deferredResult.onTimeout(() ->
-            deferredResult.setErrorResult(
-                    ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
-                            .body(new ErrorResponse("Request timeout occurred"))));
-
-    return deferredResult;
-}
 
     @GetMapping
     public DeferredResult<ResponseEntity<DoctorProfileListResponse>> getAllDoctorProfiles() {
@@ -72,7 +45,9 @@ public DeferredResult<ResponseEntity<DoctorProfileResponse>> getDoctorWithAction
                                 .body(new ErrorResponse("Request timeout occurred"))));
 
         return deferredResult;
-    }    @GetMapping("/{id}")
+    }
+
+    @GetMapping("/{id}")
     public DeferredResult<ResponseEntity<?>> getDoctorProfile(@PathVariable("id") UUID id) {
         DeferredResult<ResponseEntity<?>> deferredResult = new DeferredResult<>(ASYNC_TIMEOUT);
 
