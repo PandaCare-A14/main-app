@@ -12,7 +12,9 @@ import java.util.List;
 
 @Repository
 public interface DoctorProfileRepository extends CaregiverRepository {
-
+    List<Caregiver> findByNameContainingIgnoreCaseAndSpecialityContainingIgnoreCase(
+            @Param("name") String name,
+            @Param("speciality") String speciality);
     List<Caregiver> findByNameContainingIgnoreCase(String name);
     List<Caregiver> findBySpecialityContainingIgnoreCase(String speciality);    @Query("SELECT DISTINCT c FROM Caregiver c " +
             "JOIN c.workingSchedules s " +
