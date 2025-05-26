@@ -4,6 +4,8 @@ import com.pandacare.mainapp.authentication.model.Caregiver;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileListResponse;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileResponse;
 import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
+import com.pandacare.mainapp.doctor_profile.service.strategy.ParsedWorkSchedule;
+import com.pandacare.mainapp.doctor_profile.service.strategy.WorkScheduleParser;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.service.RatingService;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,13 +33,14 @@ import static org.mockito.Mockito.*;
 class DoctorProfileServiceImplTest {
 
     @InjectMocks
-    private DoctorProfileServiceImpl doctorProfileService;
-
-    @Mock
+    private DoctorProfileServiceImpl doctorProfileService;    @Mock
     private DoctorProfileRepository doctorProfileRepository;
 
     @Mock
     private RatingService ratingService;
+
+    @Mock
+    private WorkScheduleParser workScheduleParser;
 
     private List<Caregiver> caregivers;
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
@@ -238,11 +241,15 @@ class DoctorProfileServiceImplTest {
         assertThrows(IllegalArgumentException.class, () -> {
             doctorProfileService.findBySpeciality(null).join();
         });
-    }
-
-    @Test
+    }    @Test
     void findByWorkSchedule_ShouldReturnAvailableDoctors() throws ExecutionException, InterruptedException {
         String schedule = "MONDAY 10:00-11:00";
+        when(workScheduleParser.parse(schedule))
+                .thenReturn(new ParsedWorkSchedule(
+                        DayOfWeek.MONDAY,
+                        LocalTime.parse("10:00", timeFormatter),
+                        LocalTime.parse("11:00", timeFormatter)
+                ));
         when(doctorProfileRepository.findByWorkingSchedulesAvailable(
                 DayOfWeek.MONDAY,
                 LocalTime.parse("10:00", timeFormatter),
@@ -264,11 +271,15 @@ class DoctorProfileServiceImplTest {
                 LocalTime.parse("10:00", timeFormatter),
                 LocalTime.parse("11:00", timeFormatter));
         verify(ratingService).getRatingsByDokter(any(UUID.class));
-    }
-
-    @Test
+    }    @Test
     void findByWorkSchedule_ShouldReturnEmptyListWhenNoMatches() throws ExecutionException, InterruptedException {
         String schedule = "SUNDAY 10:00-11:00";
+        when(workScheduleParser.parse(schedule))
+                .thenReturn(new ParsedWorkSchedule(
+                        DayOfWeek.SUNDAY,
+                        LocalTime.parse("10:00", timeFormatter),
+                        LocalTime.parse("11:00", timeFormatter)
+                ));
         when(doctorProfileRepository.findByWorkingSchedulesAvailable(
                 DayOfWeek.SUNDAY,
                 LocalTime.parse("10:00", timeFormatter),
@@ -286,10 +297,21 @@ class DoctorProfileServiceImplTest {
                 LocalTime.parse("10:00", timeFormatter),
                 LocalTime.parse("11:00", timeFormatter));
         verify(ratingService, never()).getRatingsByDokter(any(UUID.class));
-    }
-
-    @Test
+    }    @Test
     void findByWorkSchedule_ShouldThrowExceptionForInvalidFormats() {
+        when(workScheduleParser.parse("InvalidFormat"))
+                .thenThrow(new IllegalArgumentException("Invalid format"));
+        when(workScheduleParser.parse("MondayWithoutTime"))
+                .thenThrow(new IllegalArgumentException("Invalid format"));
+        when(workScheduleParser.parse("Monday 10:00-"))
+                .thenThrow(new IllegalArgumentException("Invalid format"));
+        when(workScheduleParser.parse("Monday 25:00-12:00"))
+                .thenThrow(new IllegalArgumentException("Invalid format"));
+        when(workScheduleParser.parse("InvalidDay 10:00-11:00"))
+                .thenThrow(new IllegalArgumentException("Invalid format"));
+        when(workScheduleParser.parse("MONDAY 11:00-10:00"))
+                .thenThrow(new IllegalArgumentException("Invalid format"));
+
         assertThrows(IllegalArgumentException.class, () -> {
             doctorProfileService.findByWorkSchedule("InvalidFormat").join();
         });
@@ -313,10 +335,13 @@ class DoctorProfileServiceImplTest {
         assertThrows(IllegalArgumentException.class, () -> {
             doctorProfileService.findByWorkSchedule("MONDAY 11:00-10:00").join();
         });
-    }
-
-    @Test
+    }    @Test
     void findByWorkSchedule_ShouldThrowExceptionWhenScheduleIsEmptyOrNull() {
+        when(workScheduleParser.parse(""))
+                .thenThrow(new IllegalArgumentException("Empty schedule"));
+        when(workScheduleParser.parse(null))
+                .thenThrow(new IllegalArgumentException("Null schedule"));
+
         assertThrows(IllegalArgumentException.class, () -> {
             doctorProfileService.findByWorkSchedule("").join();
         });

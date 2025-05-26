@@ -3,7 +3,6 @@ package com.pandacare.mainapp.doctor_profile.controller;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileListResponse;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileResponse;
 import com.pandacare.mainapp.doctor_profile.dto.response.ErrorResponse;
-import com.pandacare.mainapp.doctor_profile.facade.DoctorFacade;
 import com.pandacare.mainapp.doctor_profile.service.DoctorProfileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -18,14 +17,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
@@ -34,9 +30,6 @@ class DoctorProfileApiControllerTest {
 
     @Mock
     private DoctorProfileService doctorProfileService;
-
-    @Mock
-    private DoctorFacade doctorFacade;
 
     @InjectMocks
     private DoctorProfileApiController doctorProfileApiController;
@@ -69,96 +62,6 @@ class DoctorProfileApiControllerTest {
         doctorList = new DoctorProfileListResponse();
         doctorList.setDoctorProfiles(doctorProfileSummaries);
         doctorList.setTotalItems(doctorProfileSummaries.size());
-    }
-
-    @Nested
-    class GetDoctorWithActionsTests {
-        @Test
-        void shouldReturnDoctorWithActionsWhenDoctorExists() {
-            // Arrange
-            UUID caregiverId = UUID.randomUUID();
-            UUID patientId = UUID.randomUUID();
-            when(doctorFacade.getDoctorProfileWithActions(eq(caregiverId), eq(patientId)))
-                    .thenReturn(CompletableFuture.completedFuture(doctorProfile1));
-
-            // Act
-            DeferredResult<ResponseEntity<DoctorProfileResponse>> deferredResult =
-                    doctorProfileApiController.getDoctorWithActions(caregiverId, patientId);
-
-            // Wait for async completion
-            ResponseEntity<DoctorProfileResponse> response = (ResponseEntity<DoctorProfileResponse>) deferredResult.getResult();
-
-            // Assert
-            assertSuccessfulResponse(response, HttpStatus.OK);
-            assertEquals(testUuid1, response.getBody().getCaregiverId());
-            assertEquals("Dr. Smith", response.getBody().getName());
-            verify(doctorFacade).getDoctorProfileWithActions(caregiverId, patientId);
-        }
-
-        @Test
-        void shouldReturnNotFoundWhenDoctorDoesNotExist() {
-            // Arrange
-            UUID caregiverId = UUID.randomUUID();
-            UUID patientId = UUID.randomUUID();
-            when(doctorFacade.getDoctorProfileWithActions(eq(caregiverId), eq(patientId)))
-                    .thenReturn(CompletableFuture.completedFuture(null));
-
-            // Act
-            DeferredResult<ResponseEntity<DoctorProfileResponse>> deferredResult =
-                    doctorProfileApiController.getDoctorWithActions(caregiverId, patientId);
-
-            // Wait for async completion
-            ResponseEntity<DoctorProfileResponse> response = (ResponseEntity<DoctorProfileResponse>) deferredResult.getResult();
-
-            // Assert
-            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-            verify(doctorFacade).getDoctorProfileWithActions(caregiverId, patientId);
-        }
-
-        @Test
-        void shouldReturnInternalServerErrorWhenExceptionThrown() {
-            // Arrange
-            UUID caregiverId = UUID.randomUUID();
-            UUID patientId = UUID.randomUUID();
-            when(doctorFacade.getDoctorProfileWithActions(eq(caregiverId), eq(patientId)))
-                    .thenReturn(CompletableFuture.failedFuture(new RuntimeException("Something went wrong")));
-
-            // Act
-            DeferredResult<ResponseEntity<DoctorProfileResponse>> deferredResult =
-                    doctorProfileApiController.getDoctorWithActions(caregiverId, patientId);
-
-            // Wait for async completion
-            ResponseEntity<DoctorProfileResponse> response = (ResponseEntity<DoctorProfileResponse>) deferredResult.getResult();
-
-            // Assert
-            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-            verify(doctorFacade).getDoctorProfileWithActions(caregiverId, patientId);
-        }
-
-        @Test
-        void shouldReturnTimeoutWhenOperationTakesTooLong() {
-            // Arrange
-            UUID caregiverId = UUID.randomUUID();
-            UUID patientId = UUID.randomUUID();
-            when(doctorFacade.getDoctorProfileWithActions(eq(caregiverId), eq(patientId)))
-                    .thenReturn(new CompletableFuture<>()); // Never completes
-
-            // Act
-            DeferredResult<ResponseEntity<DoctorProfileResponse>> deferredResult =
-                    doctorProfileApiController.getDoctorWithActions(caregiverId, patientId);
-
-            // Simulate timeout
-            deferredResult.setErrorResult(
-                    ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
-                            .body(new ErrorResponse("Request timeout occurred")));
-
-            // Assert
-            ResponseEntity<?> response = (ResponseEntity<?>) deferredResult.getResult();
-            assertEquals(HttpStatus.REQUEST_TIMEOUT, response.getStatusCode());
-            assertTrue(response.getBody() instanceof ErrorResponse);
-            ErrorResponse errorResponse = (ErrorResponse) response.getBody();
-            assertEquals("Request timeout occurred", errorResponse.message());
-        }
     }
 
     @Nested
