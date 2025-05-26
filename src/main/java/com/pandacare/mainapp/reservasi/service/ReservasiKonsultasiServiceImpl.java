@@ -1,5 +1,6 @@
 package com.pandacare.mainapp.reservasi.service;
 
+import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.reservasi.enums.StatusReservasiKonsultasi;
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
@@ -36,6 +37,9 @@ public class ReservasiKonsultasiServiceImpl {
         reservasi.setIdSchedule(schedule);
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
 
+        // Update schedule status to UNAVAILABLE
+        scheduleService.updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
+
         return repository.save(reservasi);
     }
 
@@ -47,6 +51,8 @@ public class ReservasiKonsultasiServiceImpl {
             throw new IllegalStateException("Tidak bisa mengedit reservasi yang sudah disetujui.");
         }
 
+        // Get the old schedule reference before updating
+        CaregiverSchedule oldSchedule = reservasi.getIdSchedule();
         CaregiverSchedule newSchedule = scheduleService.getById(newScheduleId);
 
         if (!scheduleService.isScheduleAvailable(newScheduleId)) {
@@ -61,6 +67,12 @@ public class ReservasiKonsultasiServiceImpl {
 
         reservasi.editAsPacilian(newDay, newStartTime, newEndTime);
         reservasi.setIdSchedule(newSchedule);
+
+        // Free up the old schedule
+        scheduleService.updateScheduleStatus(oldSchedule, ScheduleStatus.AVAILABLE);
+
+        // Mark the new schedule as unavailable
+        scheduleService.updateScheduleStatus(newSchedule, ScheduleStatus.UNAVAILABLE);
 
         return repository.save(reservasi);
     }
