@@ -108,8 +108,8 @@ public class ReservasiKonsultasiServiceImpl {
     }
 
     @Async
-    public CompletableFuture<List<ReservasiKonsultasi>> findAllByPasien(UUID idPasien) {
-        List<ReservasiKonsultasi> list = repository.findAllByIdPasien(idPasien);
+    public CompletableFuture<List<ReservasiKonsultasi>> findAllByPacilian(UUID idPacilian) {
+        List<ReservasiKonsultasi> list = repository.findAllByIdPacilian(idPacilian);
         return CompletableFuture.completedFuture(list);
     }
 }

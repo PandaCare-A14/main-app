@@ -54,10 +54,10 @@ public class ReservasiKonsultasiController {
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
-    }    @GetMapping("/{idPasien}")
-    public ResponseEntity<?> getAllReservasiByPasien(@PathVariable("idPasien") UUID idPasien) {
+    }    @GetMapping("/{idPacilian}")
+    public ResponseEntity<?> getAllReservasiByPacilian(@PathVariable("idPacilian") UUID idPacilian) {
         try {
-            List<?> reservations = reservasiService.findAllByPasien(idPasien).get();
+            List<?> reservations = reservasiService.findAllByPacilian(idPacilian).get();
             return ResponseEntity.ok(reservations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

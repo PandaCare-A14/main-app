@@ -171,7 +171,7 @@ class ReservasiKonsultasiControllerTest {
         reservasi2.setIdSchedule(schedule2);
 
         // Return a CompletableFuture instead of a List
-        when(reservasiService.findAllByPasien(pacilianId))
+        when(reservasiService.findAllByPacilian(pacilianId))
                 .thenReturn(CompletableFuture.completedFuture(List.of(waitingReservasi, reservasi2)));
 
         mockMvc.perform(get("/api/reservasi-konsultasi/{patientId}", pacilianId))
@@ -182,7 +182,7 @@ class ReservasiKonsultasiControllerTest {
                 .andExpect(jsonPath("$[0].idPacilian").value(pacilianId.toString()))
                 .andExpect(jsonPath("$.length()").value(2));
 
-        verify(reservasiService).findAllByPasien(pacilianId);
+        verify(reservasiService).findAllByPacilian(pacilianId);
     }
 
     @Test
