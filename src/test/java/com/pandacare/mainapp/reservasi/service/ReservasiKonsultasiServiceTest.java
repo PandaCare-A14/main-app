@@ -292,7 +292,7 @@ public class ReservasiKonsultasiServiceTest {
 
         service.requestReservasi(scheduleId, pacilianId);
 
-        verify(scheduleService, times(2)).updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
+        verify(scheduleService).updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
         verify(repository).save(any(ReservasiKonsultasi.class));
     }
 
