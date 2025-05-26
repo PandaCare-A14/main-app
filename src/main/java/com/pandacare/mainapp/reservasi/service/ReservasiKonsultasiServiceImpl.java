@@ -25,7 +25,7 @@ public class ReservasiKonsultasiServiceImpl implements ReservasiKonsultasiServic
     private ScheduleService scheduleService;
 
     @Override
-    public ReservasiKonsultasi requestReservasi(UUID idSchedule, UUID idPacilian) {
+    public ReservasiKonsultasi requestReservasi(UUID idSchedule, UUID idPacilian, String pacilianNote) {
         CaregiverSchedule schedule = scheduleService.getById(idSchedule);
 
         if (!scheduleService.isScheduleAvailable(idSchedule)) {
@@ -36,6 +36,7 @@ public class ReservasiKonsultasiServiceImpl implements ReservasiKonsultasiServic
         reservasi.setIdPacilian(idPacilian);
         reservasi.setIdSchedule(schedule);
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+        reservasi.setPacilianNote(pacilianNote);
 
         scheduleService.updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
 

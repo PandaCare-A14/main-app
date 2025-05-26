@@ -25,8 +25,9 @@ public class ReservasiKonsultasiController {
         try {
             UUID idSchedule = UUID.fromString(body.get("idSchedule"));
             UUID idPacilian = UUID.fromString(body.get("idPacilian")); // Convert to UUID
+            String pacilianNote = body.get("pacilianNote");
 
-            ReservasiKonsultasi result = reservasiService.requestReservasi(idSchedule, idPacilian);
+            ReservasiKonsultasi result = reservasiService.requestReservasi(idSchedule, idPacilian, pacilianNote);
 
             Map<String, Object> reservasiMap = new HashMap<>();
             reservasiMap.put("idReservasi", result.getId());

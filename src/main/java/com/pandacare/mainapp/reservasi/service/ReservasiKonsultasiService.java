@@ -7,7 +7,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public interface ReservasiKonsultasiService {
-    ReservasiKonsultasi requestReservasi(UUID idSchedule, UUID idPacilian);
+    ReservasiKonsultasi requestReservasi(UUID idSchedule, UUID idPacilian, String pacilianNote);
     ReservasiKonsultasi editReservasi(UUID id, UUID newScheduleId);
     ReservasiKonsultasi acceptChangeReservasi(UUID id);
     void rejectChangeReservasi(UUID id);
