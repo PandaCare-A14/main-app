@@ -275,4 +275,60 @@ public class ReservasiKonsultasiServiceTest {
         service.deleteById(reservationId);
         verify(repository).deleteById(reservationId);
     }
+
+    @Test
+    void requestReservation_shouldChangeScheduleStatus() {
+        UUID scheduleId = UUID.randomUUID();
+        UUID pacilianId = UUID.randomUUID();
+        CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId(scheduleId);
+        schedule.setDay(DayOfWeek.MONDAY);
+        schedule.setStartTime(LocalTime.of(9, 0));
+        schedule.setEndTime(LocalTime.of(10, 0));
+        schedule.setStatus(ScheduleStatus.AVAILABLE);
+
+        when(scheduleService.getById(scheduleId)).thenReturn(schedule);
+        when(scheduleService.isScheduleAvailable(scheduleId)).thenReturn(true);
+
+        service.requestReservasi(scheduleId, pacilianId);
+
+        verify(scheduleService).updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
+        verify(repository).save(any(ReservasiKonsultasi.class));
+    }
+
+    @Test
+    void editReservasi_shouldUpdateBothScheduleStatuses() {
+        UUID oldScheduleId = UUID.randomUUID();
+        UUID newScheduleId = UUID.randomUUID();
+        UUID reservationId = UUID.randomUUID();
+
+        CaregiverSchedule oldSchedule = new CaregiverSchedule();
+        oldSchedule.setId(oldScheduleId);
+        oldSchedule.setDay(DayOfWeek.MONDAY);
+        oldSchedule.setStartTime(LocalTime.of(9, 0));
+        oldSchedule.setEndTime(LocalTime.of(10, 0));
+        oldSchedule.setStatus(ScheduleStatus.UNAVAILABLE);
+
+        CaregiverSchedule newSchedule = new CaregiverSchedule();
+        newSchedule.setId(newScheduleId);
+        newSchedule.setDay(DayOfWeek.TUESDAY);
+        newSchedule.setStartTime(LocalTime.of(10, 0));
+        newSchedule.setEndTime(LocalTime.of(11, 0));
+        newSchedule.setStatus(ScheduleStatus.AVAILABLE);
+
+        ReservasiKonsultasi existingReservasi = new ReservasiKonsultasi();
+        existingReservasi.setId(reservationId);
+        existingReservasi.setIdSchedule(oldSchedule);
+        existingReservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
+
+        when(repository.findById(reservationId)).thenReturn(Optional.of(existingReservasi));
+        when(scheduleService.getById(newScheduleId)).thenReturn(newSchedule);
+        when(scheduleService.isScheduleAvailable(newScheduleId)).thenReturn(true);
+
+        service.editReservasi(reservationId, newScheduleId);
+
+        verify(scheduleService).updateScheduleStatus(oldSchedule, ScheduleStatus.AVAILABLE);
+        verify(scheduleService).updateScheduleStatus(newSchedule, ScheduleStatus.UNAVAILABLE);
+        verify(repository).save(any(ReservasiKonsultasi.class));
+    }
 }
