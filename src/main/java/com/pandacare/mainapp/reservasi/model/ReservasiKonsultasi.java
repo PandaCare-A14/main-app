@@ -177,17 +177,9 @@ public class ReservasiKonsultasi {
         return idSchedule != null ? idSchedule.getIdCaregiver() : null;
     }
 
-    public UUID getIdPasien() {
-        return idPacilian;
-    }
-
     public void setIdCaregiver(UUID validDoctorId) {
         if (idSchedule != null) {
             idSchedule.setIdCaregiver(validDoctorId);
         }
-    }
-
-    public void setIdPasien(UUID validPatientId) {
-        this.idPacilian = validPatientId;
     }
 }

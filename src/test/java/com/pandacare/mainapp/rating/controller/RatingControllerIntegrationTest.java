@@ -88,6 +88,7 @@ class RatingControllerIntegrationTest {
 
         // Setup mock schedule with past end time
         mockSchedule = new CaregiverSchedule();
+        mockSchedule.setDate(LocalDate.now().minusDays(1));
         mockSchedule.setEndTime(LocalTime.now().minusHours(1)); // Past time
         mockSchedule.setIdCaregiver(VALID_DOCTOR_ID);
 

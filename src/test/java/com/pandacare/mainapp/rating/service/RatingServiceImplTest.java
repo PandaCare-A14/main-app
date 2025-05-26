@@ -64,7 +64,7 @@ class RatingServiceImplTest {
         validRatingRequest.setUlasan(VALID_REVIEW);        // Setup valid consultation with proper schedule
         validKonsultasi = new ReservasiKonsultasi();
         validKonsultasi.setId(VALID_CONSULTATION_ID);
-        validKonsultasi.setIdPasien(VALID_PATIENT_ID);
+        validKonsultasi.setIdPacilian(VALID_PATIENT_ID);
         validKonsultasi.setStatusReservasi(StatusReservasiKonsultasi.APPROVED);
         
         // Create a proper schedule with caregiver

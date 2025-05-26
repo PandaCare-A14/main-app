@@ -79,6 +79,7 @@ class RatingControllerTest {
         // Initialize CaregiverSchedule for past consultation
         pastSchedule = new CaregiverSchedule();
         pastSchedule.setIdCaregiver(ID_DOKTER);
+        pastSchedule.setDate(LocalDate.now().minusDays(1));
         pastSchedule.setStartTime(LocalTime.of(9, 0)); // 09:00
         pastSchedule.setEndTime(LocalTime.of(10, 0));  // 10:00 (past time)        // Initialize CaregiverSchedule for future consultation
         futureSchedule = new CaregiverSchedule();

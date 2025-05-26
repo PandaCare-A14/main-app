@@ -13,8 +13,8 @@ import java.util.UUID;
 
 @Repository
 public interface ReservasiKonsultasiRepository extends JpaRepository<ReservasiKonsultasi, UUID> {
-    @Query("SELECT r FROM ReservasiKonsultasi r WHERE r.idPacilian = :pasienId")
-    List<ReservasiKonsultasi> findAllByIdPasien(@Param("pasienId") UUID pasienId);    @Query("SELECT r FROM ReservasiKonsultasi r JOIN r.idSchedule s WHERE s.idCaregiver.id = :caregiverId")
+    @Query("SELECT r FROM ReservasiKonsultasi r WHERE r.idPacilian = :pacilianId")
+    List<ReservasiKonsultasi> findAllByIdPacilian(@Param("pacilianId") UUID pacilianId);    @Query("SELECT r FROM ReservasiKonsultasi r JOIN r.idSchedule s WHERE s.idCaregiver.id = :caregiverId")
     List<ReservasiKonsultasi> findByCaregiverId(@Param("caregiverId") UUID caregiverId);
     @Query("SELECT r FROM ReservasiKonsultasi r JOIN r.idSchedule s WHERE s.idCaregiver.id = :caregiverId AND r.statusReservasi = :status")
     List<ReservasiKonsultasi> findByCaregiverIdAndStatus(

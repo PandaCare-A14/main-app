@@ -17,30 +17,33 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Service
-public class ReservasiKonsultasiServiceImpl {
+public class ReservasiKonsultasiServiceImpl implements ReservasiKonsultasiService {
     @Autowired
     private ReservasiKonsultasiRepository repository;
 
     @Autowired
     private ScheduleService scheduleService;
 
+    @Override
     public ReservasiKonsultasi requestReservasi(UUID idSchedule, UUID idPacilian) {
-        // Validasi apakah jadwal tersedia
         CaregiverSchedule schedule = scheduleService.getById(idSchedule);
 
         if (!scheduleService.isScheduleAvailable(idSchedule)) {
             throw new IllegalArgumentException("Selected schedule is not available");
-        }        
-        
+        }
+
         ReservasiKonsultasi reservasi = new ReservasiKonsultasi();
         reservasi.setIdPacilian(idPacilian);
         reservasi.setIdSchedule(schedule);
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
         scheduleService.updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
 
+        scheduleService.updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
+
         return repository.save(reservasi);
     }
 
+    @Override
     public ReservasiKonsultasi editReservasi(UUID id, UUID newScheduleId) {
         ReservasiKonsultasi reservasi = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservasi tidak ditemukan"));
@@ -66,15 +69,13 @@ public class ReservasiKonsultasiServiceImpl {
         reservasi.editAsPacilian(newDay, newStartTime, newEndTime);
         reservasi.setIdSchedule(newSchedule);
 
-        // Free up the old schedule
         scheduleService.updateScheduleStatus(oldSchedule, ScheduleStatus.AVAILABLE);
-
-        // Mark the new schedule as unavailable
         scheduleService.updateScheduleStatus(newSchedule, ScheduleStatus.UNAVAILABLE);
 
         return repository.save(reservasi);
     }
 
+    @Override
     public ReservasiKonsultasi acceptChangeReservasi(UUID id) {
         ReservasiKonsultasi reservasi = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservasi tidak ditemukan"));
@@ -85,6 +86,7 @@ public class ReservasiKonsultasiServiceImpl {
         return repository.save(reservasi);
     }
 
+    @Override
     public void rejectChangeReservasi(UUID id) {
         ReservasiKonsultasi reservasi = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservasi tidak ditemukan"));
@@ -95,18 +97,21 @@ public class ReservasiKonsultasiServiceImpl {
         repository.save(reservasi);
     }
 
+    @Override
     public ReservasiKonsultasi findById(UUID id) {
         return repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
     }
 
+    @Override
     public void deleteById(UUID id) {
         repository.deleteById(id);
     }
 
+    @Override
     @Async
-    public CompletableFuture<List<ReservasiKonsultasi>> findAllByPasien(UUID idPasien) {
-        List<ReservasiKonsultasi> list = repository.findAllByIdPasien(idPasien);
+    public CompletableFuture<List<ReservasiKonsultasi>> findAllByPacilian(UUID idPacilian) {
+        List<ReservasiKonsultasi> list = repository.findAllByIdPacilian(idPacilian);
         return CompletableFuture.completedFuture(list);
     }
 }

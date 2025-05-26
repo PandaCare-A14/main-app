@@ -229,9 +229,9 @@ public class ReservasiKonsultasiServiceTest {
         waitingReservasi.setIdPacilian(pacilianId);
         approvedReservasi.setIdPacilian(pacilianId);
 
-        when(repository.findAllByIdPasien(pacilianId)).thenReturn(reservasiList);
+        when(repository.findAllByIdPacilian(pacilianId)).thenReturn(reservasiList);
 
-        CompletableFuture<List<ReservasiKonsultasi>> futureResult = service.findAllByPasien(pacilianId);
+        CompletableFuture<List<ReservasiKonsultasi>> futureResult = service.findAllByPacilian(pacilianId);
 
         // Wait for and get the result
         List<ReservasiKonsultasi> result;
@@ -244,7 +244,7 @@ public class ReservasiKonsultasiServiceTest {
 
         assertEquals(2, result.size());
         assertEquals(pacilianId, result.get(0).getIdPacilian());
-        verify(repository).findAllByIdPasien(pacilianId);
+        verify(repository).findAllByIdPacilian(pacilianId);
     }
 
     @Test
@@ -292,7 +292,7 @@ public class ReservasiKonsultasiServiceTest {
 
         service.requestReservasi(scheduleId, pacilianId);
 
-        verify(scheduleService).updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
+        verify(scheduleService, times(2)).updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
         verify(repository).save(any(ReservasiKonsultasi.class));
     }
 

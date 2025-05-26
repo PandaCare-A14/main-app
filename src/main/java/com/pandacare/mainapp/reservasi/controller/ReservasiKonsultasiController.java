@@ -1,6 +1,7 @@
 package com.pandacare.mainapp.reservasi.controller;
 
 import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
+import com.pandacare.mainapp.reservasi.service.ReservasiKonsultasiService;
 import com.pandacare.mainapp.reservasi.service.ReservasiKonsultasiServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,14 +12,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/reservasi-konsultasi")
 public class ReservasiKonsultasiController {
 
     @Autowired
-    private ReservasiKonsultasiServiceImpl reservasiService;
+    private ReservasiKonsultasiService reservasiService;
 
     @PostMapping("/request")
     public ResponseEntity<?> requestReservasi(@RequestBody Map<String, String> body) {
@@ -55,10 +55,10 @@ public class ReservasiKonsultasiController {
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
-    }    @GetMapping("/{idPasien}")
-    public ResponseEntity<?> getAllReservasiByPasien(@PathVariable("idPasien") UUID idPasien) {
+    }    @GetMapping("/{idPacilian}")
+    public ResponseEntity<?> getAllReservasiByPacilian(@PathVariable("idPacilian") UUID idPacilian) {
         try {
-            List<?> reservations = reservasiService.findAllByPasien(idPasien).get();
+            List<?> reservations = reservasiService.findAllByPacilian(idPacilian).get();
             return ResponseEntity.ok(reservations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
