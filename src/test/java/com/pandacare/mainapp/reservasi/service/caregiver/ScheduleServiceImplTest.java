@@ -2,7 +2,7 @@ package com.pandacare.mainapp.reservasi.service.caregiver;
 
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
-import com.pandacare.mainapp.konsultasi_dokter.repository.CaregiverScheduleRepository;
+import com.pandacare.mainapp.konsultasi_dokter.service.CaregiverScheduleFacade;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,8 +19,9 @@ import static org.mockito.Mockito.*;
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class ScheduleServiceImplTest {
+
     @Mock
-    private CaregiverScheduleRepository repository;
+    private CaregiverScheduleFacade caregiverFacade;
 
     @InjectMocks
     private ScheduleServiceImpl scheduleService;
@@ -31,86 +31,77 @@ class ScheduleServiceImplTest {
         UUID id = UUID.randomUUID();
         CaregiverSchedule schedule = new CaregiverSchedule();
         schedule.setId(id);
-        when(repository.findById(id)).thenReturn(Optional.of(schedule));
+        when(caregiverFacade.findById(id)).thenReturn(schedule);
 
         CaregiverSchedule result = scheduleService.getById(id);
 
         assertNotNull(result);
         assertEquals(id, result.getId());
-        verify(repository).findById(id);
+        verify(caregiverFacade).findById(id);
     }
 
     @Test
     void testGetByIdNotFound() {
         UUID nonExistentId = UUID.randomUUID();
-        when(repository.findById(nonExistentId)).thenReturn(Optional.empty());
+        when(caregiverFacade.findById(nonExistentId))
+                .thenThrow(new EntityNotFoundException("Schedule not found"));
 
         assertThrows(EntityNotFoundException.class, () -> {
             scheduleService.getById(nonExistentId);
         });
+
+        verify(caregiverFacade).findById(nonExistentId);
     }
 
     @Test
     void testIsScheduleAvailableTrue() {
         UUID id = UUID.randomUUID();
-        CaregiverSchedule schedule = new CaregiverSchedule();
-        schedule.setId(id);
-        schedule.setStatus(ScheduleStatus.AVAILABLE);
-        when(repository.findById(id)).thenReturn(Optional.of(schedule));
+        when(caregiverFacade.isAvailable(id)).thenReturn(true);
 
         boolean result = scheduleService.isScheduleAvailable(id);
 
         assertTrue(result);
-        verify(repository).findById(id);
+        verify(caregiverFacade).isAvailable(id);
     }
 
     @Test
     void testIsScheduleAvailableFalse() {
         UUID id = UUID.randomUUID();
-        CaregiverSchedule schedule = new CaregiverSchedule();
-        schedule.setId(id);
-        schedule.setStatus(ScheduleStatus.UNAVAILABLE);
-        when(repository.findById(id)).thenReturn(Optional.of(schedule));
+        when(caregiverFacade.isAvailable(id)).thenReturn(false);
 
         boolean result = scheduleService.isScheduleAvailable(id);
 
         assertFalse(result);
-        verify(repository).findById(id);
+        verify(caregiverFacade).isAvailable(id);
     }
 
     @Test
     void testUpdateScheduleStatusWithObject() {
+        UUID scheduleId = UUID.randomUUID();
         CaregiverSchedule schedule = new CaregiverSchedule();
+        schedule.setId(scheduleId);
         schedule.setStatus(ScheduleStatus.AVAILABLE);
 
         scheduleService.updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
 
-        assertEquals(ScheduleStatus.UNAVAILABLE, schedule.getStatus());
-        verify(repository).save(schedule);
+        verify(caregiverFacade).updateStatus(scheduleId, ScheduleStatus.UNAVAILABLE);
     }
 
     @Test
     void testUpdateScheduleStatusWithNullObject() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+        Exception exception = assertThrows(NullPointerException.class, () -> {
             scheduleService.updateScheduleStatus((CaregiverSchedule) null, ScheduleStatus.AVAILABLE);
         });
 
-        assertEquals("Schedule cannot be null", exception.getMessage());
-        verify(repository, never()).save(any());
+        verify(caregiverFacade, never()).updateStatus(any(UUID.class), any(ScheduleStatus.class));
     }
 
     @Test
     void testUpdateScheduleStatusWithId() {
         UUID id = UUID.randomUUID();
-        CaregiverSchedule schedule = new CaregiverSchedule();
-        schedule.setId(id);
-        schedule.setStatus(ScheduleStatus.AVAILABLE);
-        when(repository.findById(id)).thenReturn(Optional.of(schedule));
 
         scheduleService.updateScheduleStatus(id, ScheduleStatus.UNAVAILABLE);
 
-        assertEquals(ScheduleStatus.UNAVAILABLE, schedule.getStatus());
-        verify(repository).findById(id);
-        verify(repository).save(schedule);
+        verify(caregiverFacade).updateStatus(id, ScheduleStatus.UNAVAILABLE);
     }
 }

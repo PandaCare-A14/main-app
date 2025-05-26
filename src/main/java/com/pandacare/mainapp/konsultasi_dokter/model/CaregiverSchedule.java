@@ -4,7 +4,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
-
+import com.pandacare.mainapp.authentication.model.Caregiver;
 import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import jakarta.persistence.*;
 
@@ -18,11 +18,12 @@ import lombok.Setter;
 public class CaregiverSchedule {
     @Id
     private UUID id;
-    
+
+    @Setter
     @ManyToOne
     @JoinColumn(name = "caregiver_id")
-    private com.pandacare.mainapp.authentication.model.Caregiver idCaregiver;
-    
+    private Caregiver idCaregiver;
+
     @Enumerated(EnumType.STRING)
     private DayOfWeek day;
     @Column
@@ -32,22 +33,19 @@ public class CaregiverSchedule {
     @Column
     private LocalTime endTime;
     @Enumerated(EnumType.STRING)
-    @Column
+    @Column(name = "status")
     private ScheduleStatus status;
 
     public CaregiverSchedule() {
         this.id = java.util.UUID.randomUUID();
         this.status = ScheduleStatus.AVAILABLE;
     }
-    
-    // Convenience methods for ID-based access
+
     public UUID getIdCaregiver() {
         return idCaregiver != null ? idCaregiver.getId() : null;
     }
-    
+
     public void setIdCaregiver(UUID caregiverId) {
-        // This method is kept for backward compatibility but should be avoided
-        // The proper way is to set the caregiver entity directly
         if (caregiverId != null) {
             com.pandacare.mainapp.authentication.model.Caregiver caregiver = new com.pandacare.mainapp.authentication.model.Caregiver();
             caregiver.setId(caregiverId);
@@ -56,7 +54,7 @@ public class CaregiverSchedule {
             this.idCaregiver = null;
         }
     }
-    
+
     public void setIdCaregiver(com.pandacare.mainapp.authentication.model.Caregiver caregiver) {
         this.idCaregiver = caregiver;
     }

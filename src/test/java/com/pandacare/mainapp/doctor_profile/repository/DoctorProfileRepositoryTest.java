@@ -40,27 +40,38 @@ class DoctorProfileRepositoryTest {
         caregiver2 = new Caregiver("Dr. Jonah", "3704892357482377", "08192836789", "RS Pondok Indah", "Orthopedic");
         caregiver2.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
 
+        entityManager.persist(caregiver1);
+        entityManager.persist(caregiver2);
+
         // Add working schedules
         CaregiverSchedule schedule1 = new CaregiverSchedule();
         schedule1.setDay(DayOfWeek.MONDAY);
         schedule1.setStartTime(LocalTime.of(9, 0));
         schedule1.setEndTime(LocalTime.of(12, 0));
         schedule1.setStatus(ScheduleStatus.AVAILABLE);
+        schedule1.setIdCaregiver(caregiver1.getId());
         caregiver1.addWorkingSchedule(schedule1);
+        entityManager.persist(schedule1);
 
         CaregiverSchedule schedule2 = new CaregiverSchedule();
         schedule2.setDay(DayOfWeek.WEDNESDAY);
         schedule2.setStartTime(LocalTime.of(10, 0));
         schedule2.setEndTime(LocalTime.of(13, 0));
         schedule2.setStatus(ScheduleStatus.AVAILABLE);
+        schedule2.setIdCaregiver(caregiver1.getId());
         caregiver1.addWorkingSchedule(schedule2);
+        entityManager.persist(schedule2);
 
         CaregiverSchedule schedule3 = new CaregiverSchedule();
         schedule3.setDay(DayOfWeek.MONDAY);
         schedule3.setStartTime(LocalTime.of(14, 0));
         schedule3.setEndTime(LocalTime.of(17, 0));
         schedule3.setStatus(ScheduleStatus.AVAILABLE);
+        schedule3.setIdCaregiver(caregiver2.getId());
         caregiver2.addWorkingSchedule(schedule3);
+        entityManager.persist(schedule3);
+
+        entityManager.flush();
     }
 
     // Utility method
@@ -112,9 +123,6 @@ class DoctorProfileRepositoryTest {
 
     @Test
     void testFindAllCaregivers() {
-        entityManager.persist(caregiver1);
-        entityManager.persist(caregiver2);
-
         List<Caregiver> result = doctorProfileRepository.findAll();
         assertEquals(2, result.size());
     }
@@ -164,7 +172,9 @@ class DoctorProfileRepositoryTest {
     void testFindCaregiverBySpecialityIfNotFound() {
         List<Caregiver> result = doctorProfileRepository.findBySpecialityContainingIgnoreCase("Nonexistent");
         assertTrue(result.isEmpty());
-    }    @Test
+    }
+
+    @Test
     void testFindByWorkScheduleAvailable() {
         entityManager.persist(caregiver1);
         entityManager.persist(caregiver2);
