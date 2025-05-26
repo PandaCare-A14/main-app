@@ -1,10 +1,7 @@
 package com.pandacare.mainapp.authentication.model;
 
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +17,7 @@ public class Caregiver extends User {
     private String workAddress;
     private String speciality;
 
-    @OneToMany(mappedBy = "idCaregiver", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "idCaregiver", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<CaregiverSchedule> workingSchedules = new ArrayList<>();
 
     public Caregiver() {}

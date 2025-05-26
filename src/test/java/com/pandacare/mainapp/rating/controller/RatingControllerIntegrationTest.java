@@ -15,12 +15,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,20 +39,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 
 @ActiveProfiles("test")
-@WebMvcTest(RatingController.class)
+@WebMvcTest(controllers = RatingController.class, 
+    excludeAutoConfiguration = {
+        org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class,
+        org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration.class
+    })
 class RatingControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
+    private ObjectMapper objectMapper;    @MockBean
     private RatingService ratingService;
 
     @MockBean
     private ReservasiKonsultasiRepository reservasiKonsultasiRepository;
+
+    @MockBean
+    private com.pandacare.mainapp.konsultasi_dokter.repository.CaregiverScheduleRepository caregiverScheduleRepository;
 
     private RatingRequest validRatingRequest;
     private RatingResponse validRatingResponse;
@@ -128,12 +136,11 @@ class RatingControllerIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status", is("error")))
                 .andExpect(jsonPath("$.message", is("Consultation not found")));
-    }
-
-    @Test
+    }    @Test
     @DisplayName("Should return 400 when trying to rate future consultation")
     void shouldReturn400_WhenRatingFutureConsultation() throws Exception {
         // Arrange - Setup future consultation
+        mockSchedule.setDate(LocalDate.now().plusDays(1)); // Future date
         mockSchedule.setEndTime(LocalTime.now().plusHours(1)); // Future time
         when(reservasiKonsultasiRepository.findById(VALID_CONSULTATION_ID))
                 .thenReturn(Optional.of(mockReservasi));

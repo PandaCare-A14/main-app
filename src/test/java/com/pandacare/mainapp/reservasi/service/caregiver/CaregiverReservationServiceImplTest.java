@@ -66,7 +66,7 @@ class CaregiverReservationServiceImplTest {
         List<ReservasiKonsultasi> result = service.getReservationsForCaregiver(caregiverId);
 
         assertEquals(1, result.size());
-        assertEquals(reservationId, result.getFirst().getId());
+        assertEquals(reservationId, result.get(0).getId());
         verify(reservasiRepository).findByCaregiverId(caregiverId);
     }
 
@@ -79,8 +79,8 @@ class CaregiverReservationServiceImplTest {
                 caregiverId, StatusReservasiKonsultasi.WAITING);
 
         assertEquals(1, result.size());
-        assertEquals(reservationId, result.getFirst().getId());
-        assertEquals(StatusReservasiKonsultasi.WAITING, result.getFirst().getStatusReservasi());
+        assertEquals(reservationId, result.get(0).getId());
+        assertEquals(StatusReservasiKonsultasi.WAITING, result.get(0).getStatusReservasi());
         verify(reservasiRepository).findByCaregiverIdAndStatus(caregiverId, StatusReservasiKonsultasi.WAITING);
     }
 
@@ -93,8 +93,8 @@ class CaregiverReservationServiceImplTest {
                 caregiverId, DayOfWeek.MONDAY);
 
         assertEquals(1, result.size());
-        assertEquals(reservationId, result.getFirst().getId());
-        assertEquals(DayOfWeek.MONDAY, result.getFirst().getIdSchedule().getDay());
+        assertEquals(reservationId, result.get(0).getId());
+        assertEquals(DayOfWeek.MONDAY, result.get(0).getIdSchedule().getDay());
         verify(reservasiRepository).findByCaregiverIdAndDay(caregiverId, DayOfWeek.MONDAY);
     }
 
@@ -106,7 +106,7 @@ class CaregiverReservationServiceImplTest {
         List<ReservasiKonsultasi> result = service.getWaitingReservations(caregiverId);
 
         assertEquals(1, result.size());
-        assertEquals(reservationId, result.getFirst().getId());
+        assertEquals(reservationId, result.get(0).getId());
         verify(reservasiRepository).findByCaregiverIdAndStatus(caregiverId, StatusReservasiKonsultasi.WAITING);
     }
 

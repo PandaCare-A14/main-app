@@ -31,14 +31,14 @@ class DoctorProfileRepositoryTest {
     private DoctorProfileRepository doctorProfileRepository;
 
     private Caregiver caregiver1;
-    private Caregiver caregiver2;
-
-    @BeforeEach
+    private Caregiver caregiver2;    @BeforeEach
     void setUp() {
         // Create caregivers
         caregiver1 = new Caregiver("Dr. Hafiz", "3704892357482376", "08123456789", "RS Pandacare", "Cardiologist");
+        caregiver1.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
 
         caregiver2 = new Caregiver("Dr. Jonah", "3704892357482377", "08192836789", "RS Pondok Indah", "Orthopedic");
+        caregiver2.setId(UUID.randomUUID()); // Set ID manually since no auto-generation
 
         // Add working schedules
         CaregiverSchedule schedule1 = new CaregiverSchedule();

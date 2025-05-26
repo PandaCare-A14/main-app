@@ -1,10 +1,13 @@
 package com.pandacare.mainapp.doctor_profile.dto.response;
 
+import com.pandacare.mainapp.konsultasi_dokter.enums.ScheduleStatus;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,8 +20,19 @@ public class DoctorProfileResponse {
     private String email;
     private String phoneNumber;
     private String workAddress;
-    private List<CaregiverSchedule> workSchedule;
+    private List<CaregiverScheduleDTO> workSchedule;
     private String speciality;
     private Double averageRating;
     private int totalRatings;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CaregiverScheduleDTO {
+        private UUID id;
+        private DayOfWeek day;
+        private LocalTime startTime;
+        private LocalTime endTime;
+        private ScheduleStatus status;
+    }
 }

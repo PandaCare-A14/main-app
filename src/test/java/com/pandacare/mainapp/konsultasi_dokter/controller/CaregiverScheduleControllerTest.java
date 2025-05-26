@@ -191,7 +191,7 @@ public class CaregiverScheduleControllerTest {
 
         List<CaregiverSchedule> schedules = new ArrayList<>();
         CaregiverSchedule schedule1 = new CaregiverSchedule();
-        schedule1.setId(scheduleIds.getFirst());
+        schedule1.setId(scheduleIds.get(0));
         schedule1.setIdCaregiver(idCaregiver);
         schedule1.setDay(DayOfWeek.MONDAY);
         schedule1.setStartTime(LocalTime.of(9, 0));

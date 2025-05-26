@@ -178,7 +178,7 @@ class CreateIntervalStrategyTest {
 
         assertEquals(12, schedules.size());
 
-        CaregiverSchedule firstSlot = schedules.getFirst();
+        CaregiverSchedule firstSlot = schedules.get(0);
         assertEquals(DOCTOR_ID, firstSlot.getIdCaregiver());
         assertEquals(TEST_DAY, firstSlot.getDay());
         assertEquals(nextMonday, firstSlot.getDate());
