@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -56,9 +55,9 @@ public class RatingServiceImpl implements RatingService {
 
             log.debug("Found consultation with status: {}", konsultasi.getStatusReservasi());
 
-            if (!konsultasi.getIdPasien().equals(idPasien)) {
+            if (!konsultasi.getIdPacilian().equals(idPasien)) {
                 log.warn("Patient mismatch: expected={}, actual={}",
-                        konsultasi.getIdPasien(), idPasien);
+                        konsultasi.getIdPacilian(), idPasien);
                 throw new IllegalArgumentException("Jadwal konsultasi ini bukan milik pasien ini");
             }
 
