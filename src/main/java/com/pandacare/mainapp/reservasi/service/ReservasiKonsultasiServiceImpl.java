@@ -36,7 +36,6 @@ public class ReservasiKonsultasiServiceImpl implements ReservasiKonsultasiServic
         reservasi.setIdPacilian(idPacilian);
         reservasi.setIdSchedule(schedule);
         reservasi.setStatusReservasi(StatusReservasiKonsultasi.WAITING);
-        scheduleService.updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
 
         scheduleService.updateScheduleStatus(schedule, ScheduleStatus.UNAVAILABLE);
 
