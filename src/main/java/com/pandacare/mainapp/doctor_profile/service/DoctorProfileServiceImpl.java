@@ -4,6 +4,9 @@ import com.pandacare.mainapp.authentication.model.Caregiver;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileListResponse;
 import com.pandacare.mainapp.doctor_profile.dto.response.DoctorProfileResponse;
 import com.pandacare.mainapp.doctor_profile.repository.DoctorProfileRepository;
+import com.pandacare.mainapp.doctor_profile.service.factory.DoctorProfileMapper;
+import com.pandacare.mainapp.doctor_profile.service.strategy.ParsedWorkSchedule;
+import com.pandacare.mainapp.doctor_profile.service.strategy.WorkScheduleParser;
 import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.service.RatingService;
@@ -13,10 +16,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.DayOfWeek;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -27,12 +26,16 @@ import java.util.stream.Collectors;
 public class DoctorProfileServiceImpl implements DoctorProfileService {
     private final DoctorProfileRepository doctorProfileRepository;
     private final RatingService ratingService;
-    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+    private final WorkScheduleParser workScheduleParser;
 
     @Autowired
-    public DoctorProfileServiceImpl(DoctorProfileRepository doctorProfileRepository, RatingService ratingService) {
+    public DoctorProfileServiceImpl(
+            DoctorProfileRepository doctorProfileRepository,
+            RatingService ratingService,
+            WorkScheduleParser workScheduleParser) {
         this.doctorProfileRepository = doctorProfileRepository;
         this.ratingService = ratingService;
+        this.workScheduleParser = workScheduleParser;
     }
 
     @Override
@@ -56,7 +59,7 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
             }
 
             RatingListResponse ratingResponse = ratingService.getRatingsByDokter(id);
-            return mapToDoctorProfileResponse(caregiver, ratingResponse);
+            return DoctorProfileMapper.mapToDoctorProfileResponse(caregiver, ratingResponse);
         });
     }
 
@@ -83,70 +86,11 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
     @Override
     @Async
     public CompletableFuture<DoctorProfileListResponse> findByWorkSchedule(String workSchedule) {
-        if (workSchedule == null || workSchedule.trim().isEmpty()) {
-            throw new IllegalArgumentException("Work schedule parameter cannot be empty");
-        }
-
-        try {
-            String[] parts = workSchedule.split(" ");
-            if (parts.length != 2) {
-                throw new IllegalArgumentException("Invalid work schedule format. Expected format: 'Day HH:mm-HH:mm'");
-            }
-
-            DayOfWeek day = DayOfWeek.valueOf(parts[0].toUpperCase());
-            String[] timeRange = parts[1].split("-");
-            if (timeRange.length != 2) {
-                throw new IllegalArgumentException("Invalid time range format. Expected format: 'HH:mm-HH:mm'");
-            }
-
-            LocalTime searchStart = LocalTime.parse(timeRange[0], timeFormatter);
-            LocalTime searchEnd = LocalTime.parse(timeRange[1], timeFormatter);
-
-            if (searchStart.isAfter(searchEnd)) {
-                throw new IllegalArgumentException("Start time cannot be after end time");
-            }
-
-            List<Caregiver> caregivers = doctorProfileRepository.findByWorkingSchedulesAvailable(day, searchStart, searchEnd);
-            return CompletableFuture.completedFuture(getDoctorProfileListResponse(caregivers));
-
-        } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Invalid time format. Use HH:mm format for times");
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid day of week. Use full day names (e.g., Monday)");
-        }
-    }
-
-    // Mapper method for single doctor profile
-    private DoctorProfileResponse mapToDoctorProfileResponse(Caregiver caregiver, RatingListResponse ratingResponse) {
-        DoctorProfileResponse response = new DoctorProfileResponse();
-        response.setCaregiverId(caregiver.getId());
-        response.setName(caregiver.getName());
-        response.setEmail(caregiver.getEmail());
-        response.setPhoneNumber(caregiver.getPhoneNumber());
-        response.setWorkAddress(caregiver.getWorkAddress());
-        response.setWorkSchedule(mapSchedulesToDTOs(caregiver.getWorkingSchedules()));
-        response.setSpeciality(caregiver.getSpeciality());
-        response.setAverageRating(ratingResponse != null ? ratingResponse.getAverageRating() : 0.0);
-        response.setTotalRatings(ratingResponse != null ? ratingResponse.getTotalRatings() : 0);
-        return response;
-    }
-
-    // Mapper method for schedule list
-    private List<DoctorProfileResponse.CaregiverScheduleDTO> mapSchedulesToDTOs(List<CaregiverSchedule> schedules) {
-        return schedules.stream()
-                .map(this::mapScheduleToDTO)
-                .collect(Collectors.toList());
-    }
-
-    // Mapper method for single schedule
-    private DoctorProfileResponse.CaregiverScheduleDTO mapScheduleToDTO(CaregiverSchedule schedule) {
-        DoctorProfileResponse.CaregiverScheduleDTO dto = new DoctorProfileResponse.CaregiverScheduleDTO();
-        dto.setId(schedule.getId());
-        dto.setDay(schedule.getDay());
-        dto.setStartTime(schedule.getStartTime());
-        dto.setEndTime(schedule.getEndTime());
-        dto.setStatus(schedule.getStatus());
-        return dto;
+        ParsedWorkSchedule parsed = workScheduleParser.parse(workSchedule);
+        List<Caregiver> caregivers = doctorProfileRepository.findByWorkingSchedulesAvailable(
+                parsed.day(), parsed.startTime(), parsed.endTime()
+        );
+        return CompletableFuture.completedFuture(getDoctorProfileListResponse(caregivers));
     }
 
     // Update getDoctorProfileListResponse to use internal mapping
@@ -163,26 +107,14 @@ public class DoctorProfileServiceImpl implements DoctorProfileService {
                 .map(caregiver -> {
                     try {
                         RatingListResponse ratings = ratingService.getRatingsByDokter(caregiver.getId());
-                        return mapToDoctorProfileSummary(caregiver, ratings);
+                        return DoctorProfileMapper.mapToDoctorProfileSummary(caregiver, ratings);
                     } catch (Exception e) {
                         // Handle rating service exception gracefully
-                        return mapToDoctorProfileSummary(caregiver, null);
+                        return DoctorProfileMapper.mapToDoctorProfileSummary(caregiver, null);
                     }
                 })
                 .collect(Collectors.toList()));
         response.setTotalItems(caregivers.size());
         return response;
-    }
-
-    // Mapper method for profile summary
-    private DoctorProfileListResponse.DoctorProfileSummary mapToDoctorProfileSummary(
-            Caregiver caregiver, RatingListResponse ratings) {
-        DoctorProfileListResponse.DoctorProfileSummary summary = new DoctorProfileListResponse.DoctorProfileSummary();
-        summary.setCaregiverId(caregiver.getId());
-        summary.setName(caregiver.getName());
-        summary.setSpeciality(caregiver.getSpeciality());
-        summary.setAverageRating(ratings != null ? ratings.getAverageRating() : 0.0);
-        summary.setTotalRatings(ratings != null ? ratings.getTotalRatings() : 0);
-        return summary;
     }
 }
