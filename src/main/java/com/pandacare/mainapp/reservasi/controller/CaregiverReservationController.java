@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
+import java.time.DayOfWeek;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,22 +33,37 @@ public class CaregiverReservationController {
     @GetMapping("/{caregiverId}/reservations")
     public ResponseEntity<List<ReservasiKonsultasi>> getReservationsByCaregiver(
             @PathVariable UUID caregiverId,
-            @RequestParam(required = false) String status) {
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String day) {
         try {
             List<ReservasiKonsultasi> reservations;
-            if (status != null && ALLOWED_STATUSES.contains(status.toUpperCase())) {
+
+            if (status != null && day != null &&
+                    ALLOWED_STATUSES.contains(status.toUpperCase())) {
+
+                StatusReservasiKonsultasi statusEnum = StatusReservasiKonsultasi.valueOf(status.toUpperCase());
+                DayOfWeek dayOfWeek = DayOfWeek.valueOf(day.toUpperCase());
+                reservations = reservationService.getReservationsByCaregiverStatusAndDay(caregiverId, statusEnum, dayOfWeek);
+
+            } else if (status != null && ALLOWED_STATUSES.contains(status.toUpperCase())) {
                 StatusReservasiKonsultasi statusEnum = StatusReservasiKonsultasi.valueOf(status.toUpperCase());
                 if (statusEnum == StatusReservasiKonsultasi.WAITING) {
                     reservations = reservationService.getWaitingReservations(caregiverId);
                 } else {
-                    reservations = reservationService.getReservationsForCaregiver(caregiverId).stream()
-                            .filter(r -> r.getStatusReservasi() == statusEnum)
-                            .collect(Collectors.toList());
+                    reservations = reservationService.getReservationsByCaregiverAndStatus(caregiverId, statusEnum);
                 }
+
+            } else if (day != null) {
+                DayOfWeek dayOfWeek = DayOfWeek.valueOf(day.toUpperCase());
+                reservations = reservationService.getReservationsByCaregiverAndDay(caregiverId, dayOfWeek);
+
             } else {
                 reservations = reservationService.getReservationsForCaregiver(caregiverId);
             }
+
             return ResponseEntity.ok(reservations);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

@@ -24,4 +24,9 @@ public interface ReservasiKonsultasiRepository extends JpaRepository<ReservasiKo
     List<ReservasiKonsultasi> findByCaregiverIdAndDay(
             @Param("caregiverId") UUID caregiverId,
             @Param("day") DayOfWeek day);
+    @Query("SELECT r FROM ReservasiKonsultasi r JOIN r.idSchedule s WHERE s.idCaregiver.id = :caregiverId AND r.statusReservasi = :status AND s.day = :day")
+    List<ReservasiKonsultasi> findByCaregiverIdStatusAndDay(
+            @Param("caregiverId") UUID caregiverId,
+            @Param("status") StatusReservasiKonsultasi status,
+            @Param("day") DayOfWeek day);
 }

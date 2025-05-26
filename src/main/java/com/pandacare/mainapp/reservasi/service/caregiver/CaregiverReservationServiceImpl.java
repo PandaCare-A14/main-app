@@ -42,6 +42,12 @@ public class CaregiverReservationServiceImpl implements CaregiverReservationServ
     }
 
     @Override
+    public List<ReservasiKonsultasi> getReservationsByCaregiverStatusAndDay(
+            UUID caregiverId, StatusReservasiKonsultasi status, DayOfWeek day) {
+        return reservasiRepository.findByCaregiverIdStatusAndDay(caregiverId, status, day);
+    }
+
+    @Override
     @Transactional
     public ReservasiKonsultasi approveReservation(UUID reservationId) {
         ReservasiKonsultasi reservation = getReservationOrThrow(reservationId);

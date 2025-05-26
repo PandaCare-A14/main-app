@@ -14,6 +14,7 @@ public interface CaregiverReservationService {
     default List<ReservasiKonsultasi> getWaitingReservations(UUID caregiverId) {
         return getReservationsByCaregiverAndStatus(caregiverId, StatusReservasiKonsultasi.WAITING);
     }
+    List<ReservasiKonsultasi> getReservationsByCaregiverStatusAndDay(UUID caregiverId, StatusReservasiKonsultasi status, DayOfWeek day);
     ReservasiKonsultasi approveReservation(UUID reservationId);
     ReservasiKonsultasi rejectReservation(UUID reservationId);
     ReservasiKonsultasi changeSchedule(UUID reservationId, UUID newScheduleId);

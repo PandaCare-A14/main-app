@@ -1,9 +1,8 @@
 package com.pandacare.mainapp.rating.controller;
 
 import com.pandacare.mainapp.rating.dto.request.RatingRequest;
-import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
-import com.pandacare.mainapp.rating.dto.response.RatingResponse;
 import com.pandacare.mainapp.rating.service.AsyncRatingService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,15 +10,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Simple async REST Controller for ratings
+ * Async REST Controller for ratings with consistent routing
  */
 @RestController
-@RequestMapping("/api/ratings/async")
+@RequestMapping("/api/async")
 public class AsyncRatingController {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncRatingController.class);
@@ -30,123 +29,212 @@ public class AsyncRatingController {
         this.asyncRatingService = asyncRatingService;
     }
 
-    @PostMapping("/patients/{idPasien}")
-    public CompletableFuture<ResponseEntity<RatingResponse>> addRating(
-            @PathVariable UUID idPasien,  // Changed to UUID
-            @Valid @RequestBody RatingRequest ratingRequest) {
+    /**
+     * POST: Add a new rating for a consultation (async)
+     */
+    @PostMapping("/consultations/{idJadwalKonsultasi}/ratings")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> addRating(
+            @PathVariable UUID idJadwalKonsultasi,
+            @RequestBody @Valid RatingRequest ratingRequest) {
 
-        log.info("Request add rating async for patient: {}", idPasien);
+        log.info("Async request add rating for consultation: {}", idJadwalKonsultasi);
 
-        return asyncRatingService.addRatingAsync(idPasien , ratingRequest)
+        return asyncRatingService.addRatingAsync(idJadwalKonsultasi, ratingRequest)
                 .thenApply(response -> {
-                    log.info("Rating added successfully async for patient: {}", idPasien);
-                    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+                    log.info("Rating added successfully async for consultation: {}", idJadwalKonsultasi);
+                    return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                            "status", "success",
+                            "data", Map.of("rating", response),
+                            "message", "Rating berhasil ditambahkan"
+                    ));
                 })
                 .exceptionally(throwable -> {
-                    log.error("Failed to add rating async for patient {}: {}", idPasien, throwable.getMessage());
-                    return ResponseEntity.badRequest().build();
+                    log.error("Failed to add rating async for consultation {}: {}", idJadwalKonsultasi, throwable.getMessage());
+                    if (throwable.getCause() instanceof IllegalArgumentException) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                                "status", "error",
+                                "message", throwable.getCause().getMessage()
+                        ));
+                    }
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                            "status", "error",
+                            "message", "Terjadi kesalahan sistem: " + throwable.getMessage()
+                    ));
                 });
     }
 
-    @PutMapping("/patients/{idPasien}")
-    public CompletableFuture<ResponseEntity<RatingResponse>> updateRating(
-            @PathVariable UUID idPasien,  // Changed to UUID
-            @Valid @RequestBody RatingRequest ratingRequest) {
+    /**
+     * PUT: Update an existing rating for a consultation (async)
+     */
+    @PutMapping("/consultations/{idJadwalKonsultasi}/ratings")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> updateRating(
+            @PathVariable UUID idJadwalKonsultasi,
+            @RequestBody @Valid RatingRequest ratingRequest) {
 
-        log.info("Request update rating async for patient: {}", idPasien);
+        log.info("Async request update rating for consultation: {}", idJadwalKonsultasi);
 
-        return asyncRatingService.updateRatingAsync(idPasien, ratingRequest)
+        return asyncRatingService.updateRatingAsync(idJadwalKonsultasi, ratingRequest)
                 .thenApply(response -> {
-                    log.info("Rating updated successfully async for patient: {}", idPasien);
-                    return ResponseEntity.ok(response);
+                    log.info("Rating updated successfully async for consultation: {}", idJadwalKonsultasi);
+                    return ResponseEntity.ok(Map.of(
+                            "status", "success",
+                            "data", Map.of("rating", response),
+                            "message", "Rating berhasil diperbarui"
+                    ));
                 })
                 .exceptionally(throwable -> {
-                    log.error("Failed to update rating async for patient {}: {}", idPasien, throwable.getMessage());
-                    return ResponseEntity.badRequest().build();
+                    log.error("Failed to update rating async for consultation {}: {}", idJadwalKonsultasi, throwable.getMessage());
+                    if (throwable.getCause() instanceof IllegalArgumentException) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                                "status", "error",
+                                "message", throwable.getCause().getMessage()
+                        ));
+                    }
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                            "status", "error",
+                            "message", "Terjadi kesalahan sistem: " + throwable.getMessage()
+                    ));
                 });
     }
 
-    @DeleteMapping("/patients/{idPasien}/consultations/{idJadwalKonsultasi}")
-    public CompletableFuture<ResponseEntity<Void>> deleteRating(
-            @PathVariable UUID idPasien,  // Changed to UUID
-            @PathVariable UUID idJadwalKonsultasi) {  // Changed to UUID
+    /**
+     * DELETE: Delete a rating for a consultation (async)
+     */
+    @DeleteMapping("/consultations/{idJadwalKonsultasi}/ratings")
+    public CompletableFuture<ResponseEntity<Map<String, String>>> deleteRating(@PathVariable UUID idJadwalKonsultasi) {
 
-        log.info("Request delete rating async for patient: {} consultation: {}", idPasien, idJadwalKonsultasi);
+        log.info("Async request delete rating for consultation: {}", idJadwalKonsultasi);
 
-        return asyncRatingService.deleteRatingAsync(idPasien, idJadwalKonsultasi)
+        return asyncRatingService.deleteRatingAsync(idJadwalKonsultasi)
                 .thenApply(result -> {
-                    log.info("Rating deleted successfully async for patient: {}", idPasien);
-                    return ResponseEntity.noContent().<Void>build();
+                    log.info("Rating deleted successfully async for consultation: {}", idJadwalKonsultasi);
+                    return ResponseEntity.ok(Map.of(
+                            "status", "success",
+                            "message", "Rating berhasil dihapus"
+                    ));
                 })
                 .exceptionally(throwable -> {
-                    log.error("Failed to delete rating async for patient {}: {}", idPasien, throwable.getMessage());
-                    return ResponseEntity.badRequest().build();
+                    log.error("Failed to delete rating async for consultation {}: {}", idJadwalKonsultasi, throwable.getMessage());
+                    if (throwable.getCause() instanceof IllegalArgumentException) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                                "status", "error",
+                                "message", throwable.getCause().getMessage()
+                        ));
+                    }
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                            "status", "error",
+                            "message", "Terjadi kesalahan sistem: " + throwable.getMessage()
+                    ));
                 });
     }
 
-    @GetMapping("/doctors/{idDokter}")
-    public CompletableFuture<ResponseEntity<RatingListResponse>> getRatingsByDokter(@PathVariable UUID idDokter) {  // Changed to UUID
-        log.info("Request get ratings async for doctor: {}", idDokter);
+    /**
+     * GET: Get rating details for a specific consultation (async)
+     */
+    @GetMapping("/consultations/{idJadwalKonsultasi}/ratings")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> getRatingByKonsultasi(@PathVariable UUID idJadwalKonsultasi) {
 
-        return asyncRatingService.getRatingsByDokterAsync(idDokter)
-                .thenApply(response -> {
-                    log.info("Ratings fetched successfully async for doctor: {}", idDokter);
-                    return ResponseEntity.ok(response);
-                })
-                .exceptionally(throwable -> {
-                    log.error("Failed to fetch ratings async for doctor {}: {}", idDokter, throwable.getMessage());
-                    return ResponseEntity.internalServerError().build();
-                });
-    }
+        log.info("Async request get rating for consultation: {}", idJadwalKonsultasi);
 
-    @GetMapping("/patients/{idPasien}")
-    public CompletableFuture<ResponseEntity<RatingListResponse>> getRatingsByPasien(@PathVariable UUID idPasien) {  // Changed to UUID
-        log.info("Request get ratings async for patient: {}", idPasien);
-
-        return asyncRatingService.getRatingsByPasienAsync(idPasien)
-                .thenApply(response -> {
-                    log.info("Ratings fetched successfully async for patient: {}", idPasien);
-                    return ResponseEntity.ok(response);
-                })
-                .exceptionally(throwable -> {
-                    log.error("Failed to fetch ratings async for patient {}: {}", idPasien, throwable.getMessage());
-                    return ResponseEntity.internalServerError().build();
-                });
-    }
-
-    @GetMapping("/patients/{idPasien}/consultations/{idJadwalKonsultasi}")
-    public CompletableFuture<ResponseEntity<RatingResponse>> getRatingByKonsultasi(
-            @PathVariable UUID idPasien,  // Changed to UUID
-            @PathVariable UUID idJadwalKonsultasi) {  // Changed to UUID
-
-        log.info("Request get rating async for patient: {} consultation: {}", idPasien, idJadwalKonsultasi);
-
-        return asyncRatingService.getRatingByKonsultasiAsync(idPasien, idJadwalKonsultasi)
+        return asyncRatingService.getRatingByKonsultasiAsync(idJadwalKonsultasi)
                 .thenApply(response -> {
                     log.info("Rating fetched successfully async for consultation: {}", idJadwalKonsultasi);
-                    return ResponseEntity.ok(response);
+                    return ResponseEntity.ok(Map.of(
+                            "status", "success",
+                            "data", Map.of("rating", response)
+                    ));
                 })
                 .exceptionally(throwable -> {
                     log.error("Failed to fetch rating async for consultation {}: {}", idJadwalKonsultasi, throwable.getMessage());
-                    return ResponseEntity.notFound().build();
+                    if (throwable.getCause() instanceof IllegalArgumentException) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                                "status", "error",
+                                "message", throwable.getCause().getMessage()
+                        ));
+                    }
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                            "status", "error",
+                            "message", "Terjadi kesalahan sistem: " + throwable.getMessage()
+                    ));
                 });
     }
 
-    @GetMapping("/patients/{idPasien}/consultations/{idJadwalKonsultasi}/check")
-    public CompletableFuture<ResponseEntity<Boolean>> hasRatedKonsultasi(
-            @PathVariable UUID idPasien,  // Changed to UUID
-            @PathVariable UUID idJadwalKonsultasi) {  // Changed to UUID
+    /**
+     * GET: Check if a consultation has been rated (async)
+     */
+    @GetMapping("/consultations/{idJadwalKonsultasi}/rating/status")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> hasRatedKonsultasi(@PathVariable UUID idJadwalKonsultasi) {
 
-        log.info("Request check rating async for patient: {} consultation: {}", idPasien, idJadwalKonsultasi);
+        log.info("Async request check rating status for consultation: {}", idJadwalKonsultasi);
 
-        return asyncRatingService.hasRatedKonsultasiAsync(idPasien, idJadwalKonsultasi)
+        return asyncRatingService.hasRatedKonsultasiAsync(idJadwalKonsultasi)
                 .thenApply(hasRated -> {
-                    log.info("Rating check completed async for consultation: {}", idJadwalKonsultasi);
-                    return ResponseEntity.ok(hasRated);
+                    log.info("Rating status checked successfully async for consultation: {}", idJadwalKonsultasi);
+                    return ResponseEntity.ok(Map.of(
+                            "status", "success",
+                            "data", Map.of("hasRated", hasRated)
+                    ));
                 })
                 .exceptionally(throwable -> {
-                    log.error("Failed to check rating async for consultation {}: {}", idJadwalKonsultasi, throwable.getMessage());
-                    return ResponseEntity.internalServerError().build();
+                    log.error("Failed to check rating status async for consultation {}: {}", idJadwalKonsultasi, throwable.getMessage());
+                    if (throwable.getCause() instanceof IllegalArgumentException) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                                "status", "error",
+                                "message", throwable.getCause().getMessage()
+                        ));
+                    }
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                            "status", "error",
+                            "message", "Terjadi kesalahan sistem: " + throwable.getMessage()
+                    ));
+                });
+    }
+
+    /**
+     * GET: Get all ratings for a caregiver (async) - kept from original
+     */
+    @GetMapping("/caregivers/{idCaregiver}/ratings")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> getRatingsByDokter(@PathVariable UUID idCaregiver) {
+        log.info("Async request get ratings for caregiver: {}", idCaregiver);
+
+        return asyncRatingService.getRatingsByDokterAsync(idCaregiver)
+                .thenApply(response -> {
+                    log.info("Ratings fetched successfully async for caregiver: {}", idCaregiver);
+                    return ResponseEntity.ok(Map.of(
+                            "status", "success",
+                            "data", response
+                    ));
+                })
+                .exceptionally(throwable -> {
+                    log.error("Failed to fetch ratings async for caregiver {}: {}", idCaregiver, throwable.getMessage());
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                            "status", "error",
+                            "message", "Terjadi kesalahan sistem: " + throwable.getMessage()
+                    ));
+                });
+    }
+
+    /**
+     * GET: Get all ratings by a patient (async) - kept from original
+     */
+    @GetMapping("/pacillians/{idPacilian}/ratings")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> getRatingsByPatient(@PathVariable UUID idPacilian) {
+        log.info("Async request get ratings for pacilian: {}", idPacilian);
+
+        return asyncRatingService.getRatingsByPasienAsync(idPacilian)
+                .thenApply(response -> {
+                    log.info("Ratings fetched successfully async for pacilian: {}", idPacilian);
+                    return ResponseEntity.ok(Map.of(
+                            "status", "success",
+                            "data", response
+                    ));
+                })
+                .exceptionally(throwable -> {
+                    log.error("Failed to fetch ratings async for pacilian {}: {}", idPacilian, throwable.getMessage());
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                            "status", "error",
+                            "message", "Terjadi kesalahan sistem: " + throwable.getMessage()
+                    ));
                 });
     }
 }

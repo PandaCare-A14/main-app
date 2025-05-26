@@ -1,14 +1,20 @@
 package com.pandacare.mainapp.rating.service;
 
+import com.pandacare.mainapp.konsultasi_dokter.model.CaregiverSchedule;
+import com.pandacare.mainapp.konsultasi_dokter.repository.CaregiverScheduleRepository;
 import com.pandacare.mainapp.rating.dto.request.RatingRequest;
 import com.pandacare.mainapp.rating.dto.response.RatingListResponse;
 import com.pandacare.mainapp.rating.dto.response.RatingResponse;
+import com.pandacare.mainapp.reservasi.model.ReservasiKonsultasi;
+import com.pandacare.mainapp.reservasi.repository.ReservasiKonsultasiRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -17,21 +23,73 @@ public class AsyncRatingService {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncRatingService.class);
     private final RatingService ratingService;
+    private final ReservasiKonsultasiRepository reservasiKonsultasiRepository;
+    private final CaregiverScheduleRepository caregiverScheduleRepository;
 
     @Autowired
-    public AsyncRatingService(RatingService ratingService) {
+    public AsyncRatingService(RatingService ratingService,
+                              ReservasiKonsultasiRepository reservasiKonsultasiRepository,
+                              CaregiverScheduleRepository caregiverScheduleRepository) {
         this.ratingService = ratingService;
+        this.reservasiKonsultasiRepository = reservasiKonsultasiRepository;
+        this.caregiverScheduleRepository = caregiverScheduleRepository;
     }
 
     @Async("ratingTaskExecutor")
-    public CompletableFuture<RatingResponse> addRatingAsync(UUID idPasien, RatingRequest ratingRequest) {
-        log.info("Async add rating for patient: {}", idPasien);
+    public CompletableFuture<RatingResponse> addRatingAsync(UUID idJadwalKonsultasi, RatingRequest ratingRequest) {
+        log.info("Async add rating for consultation: {}", idJadwalKonsultasi);
         try {
-            RatingResponse response = ratingService.addRating(idPasien, ratingRequest);
-            log.info("Async add rating completed for patient: {}", idPasien);
+            // Fetch the consultation data
+            ReservasiKonsultasi reservasi = reservasiKonsultasiRepository.findById(idJadwalKonsultasi)
+                    .orElseThrow(() -> new IllegalArgumentException("Consultation not found"));
+
+            // Get the schedule from reservasi
+            CaregiverSchedule schedule = reservasi.getIdSchedule();
+            if (schedule == null) {
+                throw new IllegalArgumentException("Schedule not found for this consultation");
+            }
+
+            // Get the consultation date and time from the schedule
+            LocalDate consultationDate = schedule.getDate();
+            LocalTime consultationEndTime = schedule.getEndTime();
+
+            // Validate consultation timing
+            LocalDate today = LocalDate.now();
+            LocalTime now = LocalTime.now();
+
+            if (consultationDate != null) {
+                // If date is available, use it for validation
+                if (consultationDate.isAfter(today)) {
+                    throw new IllegalArgumentException("Cannot rate future consultation");
+                }
+
+                // If consultation is today, check if the consultation time has ended
+                if (consultationDate.isEqual(today) && consultationEndTime != null) {
+                    if (consultationEndTime.isAfter(now)) {
+                        throw new IllegalArgumentException("Cannot rate consultation that hasn't ended yet");
+                    }
+                }
+            } else {
+                // Fallback: if date is null, only check time (assuming today's consultation)
+                if (consultationEndTime != null && consultationEndTime.isAfter(now)) {
+                    throw new IllegalArgumentException("Tidak dapat menilai konsultasi yang belum berakhir");
+                }
+                // If both date and endTime are null, allow rating (legacy data support)
+                log.warn("Consultation {} has no date/time information, allowing rating", idJadwalKonsultasi);
+            }
+
+            // Get the patient ID from the reservation (using correct field name)
+            UUID idPacilian = reservasi.getIdPacilian();
+
+            // Set the consultation ID in the request
+            ratingRequest.setIdJadwalKonsultasi(idJadwalKonsultasi);
+
+            // Add rating using service (with Builder pattern internally)
+            RatingResponse response = ratingService.addRating(idPacilian, ratingRequest);
+            log.info("Async add rating completed for consultation: {}", idJadwalKonsultasi);
             return CompletableFuture.completedFuture(response);
         } catch (Exception e) {
-            log.error("Async add rating failed for patient {}: {}", idPasien, e.getMessage());
+            log.error("Async add rating failed for consultation {}: {}", idJadwalKonsultasi, e.getMessage());
             CompletableFuture<RatingResponse> future = new CompletableFuture<>();
             future.completeExceptionally(e);
             return future;
@@ -39,14 +97,23 @@ public class AsyncRatingService {
     }
 
     @Async("ratingTaskExecutor")
-    public CompletableFuture<RatingResponse> updateRatingAsync(UUID idPasien, RatingRequest ratingRequest) {
-        log.info("Async update rating for patient: {}", idPasien);
+    public CompletableFuture<RatingResponse> updateRatingAsync(UUID idJadwalKonsultasi, RatingRequest ratingRequest) {
+        log.info("Async update rating for consultation: {}", idJadwalKonsultasi);
         try {
-            RatingResponse response = ratingService.updateRating(idPasien, ratingRequest);
-            log.info("Async update rating completed for patient: {}", idPasien);
+            // Get patient ID from consultation
+            ReservasiKonsultasi reservasi = reservasiKonsultasiRepository.findById(idJadwalKonsultasi)
+                    .orElseThrow(() -> new IllegalArgumentException("Consultation not found"));
+
+            UUID idPacilian = reservasi.getIdPacilian();
+
+            // Set the consultation ID in the request
+            ratingRequest.setIdJadwalKonsultasi(idJadwalKonsultasi);
+
+            RatingResponse response = ratingService.updateRating(idPacilian, ratingRequest);
+            log.info("Async update rating completed for consultation: {}", idJadwalKonsultasi);
             return CompletableFuture.completedFuture(response);
         } catch (Exception e) {
-            log.error("Async update rating failed for patient {}: {}", idPasien, e.getMessage());
+            log.error("Async update rating failed for consultation {}: {}", idJadwalKonsultasi, e.getMessage());
             CompletableFuture<RatingResponse> future = new CompletableFuture<>();
             future.completeExceptionally(e);
             return future;
@@ -54,14 +121,20 @@ public class AsyncRatingService {
     }
 
     @Async("ratingTaskExecutor")
-    public CompletableFuture<Void> deleteRatingAsync(UUID idPasien, UUID idJadwalKonsultasi) {
-        log.info("Async delete rating for patient: {} consultation: {}", idPasien, idJadwalKonsultasi);
+    public CompletableFuture<Void> deleteRatingAsync(UUID idJadwalKonsultasi) {
+        log.info("Async delete rating for consultation: {}", idJadwalKonsultasi);
         try {
-            ratingService.deleteRating(idPasien, idJadwalKonsultasi);
-            log.info("Async delete rating completed for patient: {}", idPasien);
+            // Get patient ID from consultation
+            ReservasiKonsultasi reservasi = reservasiKonsultasiRepository.findById(idJadwalKonsultasi)
+                    .orElseThrow(() -> new IllegalArgumentException("Consultation not found"));
+
+            UUID idPacilian = reservasi.getIdPacilian();
+
+            ratingService.deleteRating(idPacilian, idJadwalKonsultasi);
+            log.info("Async delete rating completed for consultation: {}", idJadwalKonsultasi);
             return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
-            log.error("Async delete rating failed for patient {}: {}", idPasien, e.getMessage());
+            log.error("Async delete rating failed for consultation {}: {}", idJadwalKonsultasi, e.getMessage());
             CompletableFuture<Void> future = new CompletableFuture<>();
             future.completeExceptionally(e);
             return future;
@@ -69,40 +142,16 @@ public class AsyncRatingService {
     }
 
     @Async("ratingTaskExecutor")
-    public CompletableFuture<RatingListResponse> getRatingsByDokterAsync(UUID idDokter) {
-        log.info("Async get ratings for doctor: {}", idDokter);
+    public CompletableFuture<RatingResponse> getRatingByKonsultasiAsync(UUID idJadwalKonsultasi) {
+        log.info("Async get rating for consultation: {}", idJadwalKonsultasi);
         try {
-            RatingListResponse response = ratingService.getRatingsByDokter(idDokter);
-            log.info("Async get ratings completed for doctor: {}", idDokter);
-            return CompletableFuture.completedFuture(response);
-        } catch (Exception e) {
-            log.error("Async get ratings failed for doctor {}: {}", idDokter, e.getMessage());
-            CompletableFuture<RatingListResponse> future = new CompletableFuture<>();
-            future.completeExceptionally(e);
-            return future;
-        }
-    }
+            // Get patient ID from consultation
+            ReservasiKonsultasi reservasi = reservasiKonsultasiRepository.findById(idJadwalKonsultasi)
+                    .orElseThrow(() -> new IllegalArgumentException("Consultation not found"));
 
-    @Async("ratingTaskExecutor")
-    public CompletableFuture<RatingListResponse> getRatingsByPasienAsync(UUID idPasien) {
-        log.info("Async get ratings for patient: {}", idPasien);
-        try {
-            RatingListResponse response = ratingService.getRatingsByPasien(idPasien);
-            log.info("Async get ratings completed for patient: {}", idPasien);
-            return CompletableFuture.completedFuture(response);
-        } catch (Exception e) {
-            log.error("Async get ratings failed for patient {}: {}", idPasien, e.getMessage());
-            CompletableFuture<RatingListResponse> future = new CompletableFuture<>();
-            future.completeExceptionally(e);
-            return future;
-        }
-    }
+            UUID idPacilian = reservasi.getIdPacilian();
 
-    @Async("ratingTaskExecutor")
-    public CompletableFuture<RatingResponse> getRatingByKonsultasiAsync(UUID idPasien, UUID idJadwalKonsultasi) {
-        log.info("Async get rating for patient: {} consultation: {}", idPasien, idJadwalKonsultasi);
-        try {
-            RatingResponse response = ratingService.getRatingByKonsultasi(idPasien, idJadwalKonsultasi);
+            RatingResponse response = ratingService.getRatingByKonsultasi(idPacilian, idJadwalKonsultasi);
             log.info("Async get rating completed for consultation: {}", idJadwalKonsultasi);
             return CompletableFuture.completedFuture(response);
         } catch (Exception e) {
@@ -114,15 +163,52 @@ public class AsyncRatingService {
     }
 
     @Async("ratingTaskExecutor")
-    public CompletableFuture<Boolean> hasRatedKonsultasiAsync(UUID idPasien, UUID idJadwalKonsultasi) {
-        log.info("Async check rating exists for patient: {} consultation: {}", idPasien, idJadwalKonsultasi);
+    public CompletableFuture<Boolean> hasRatedKonsultasiAsync(UUID idJadwalKonsultasi) {
+        log.info("Async check rating exists for consultation: {}", idJadwalKonsultasi);
         try {
-            Boolean result = ratingService.hasRatedKonsultasi(idPasien, idJadwalKonsultasi);
+            // Get patient ID from consultation
+            ReservasiKonsultasi reservasi = reservasiKonsultasiRepository.findById(idJadwalKonsultasi)
+                    .orElseThrow(() -> new IllegalArgumentException("Consultation not found"));
+
+            UUID idPacilian = reservasi.getIdPacilian();
+
+            Boolean result = ratingService.hasRatedKonsultasi(idPacilian, idJadwalKonsultasi);
             log.info("Async check rating completed for consultation: {}", idJadwalKonsultasi);
             return CompletableFuture.completedFuture(result);
         } catch (Exception e) {
             log.error("Async check rating failed for consultation {}: {}", idJadwalKonsultasi, e.getMessage());
             CompletableFuture<Boolean> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+    // Keep the existing methods for doctor and patient queries as they're still useful
+    @Async("ratingTaskExecutor")
+    public CompletableFuture<RatingListResponse> getRatingsByDokterAsync(UUID idCaregiver) {
+        log.info("Async get ratings for caregiver: {}", idCaregiver);
+        try {
+            RatingListResponse response = ratingService.getRatingsByDokter(idCaregiver);
+            log.info("Async get ratings completed for caregiver: {}", idCaregiver);
+            return CompletableFuture.completedFuture(response);
+        } catch (Exception e) {
+            log.error("Async get ratings failed for caregiver {}: {}", idCaregiver, e.getMessage());
+            CompletableFuture<RatingListResponse> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+    @Async("ratingTaskExecutor")
+    public CompletableFuture<RatingListResponse> getRatingsByPasienAsync(UUID idPacilian) {
+        log.info("Async get ratings for pacilian: {}", idPacilian);
+        try {
+            RatingListResponse response = ratingService.getRatingsByPasien(idPacilian);
+            log.info("Async get ratings completed for pacilian: {}", idPacilian);
+            return CompletableFuture.completedFuture(response);
+        } catch (Exception e) {
+            log.error("Async get ratings failed for pacilian {}: {}", idPacilian, e.getMessage());
+            CompletableFuture<RatingListResponse> future = new CompletableFuture<>();
             future.completeExceptionally(e);
             return future;
         }
