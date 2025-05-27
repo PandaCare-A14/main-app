@@ -49,35 +49,6 @@ public class AsyncRatingService {
                 throw new IllegalArgumentException("Schedule not found for this consultation");
             }
 
-            // Get the consultation date and time from the schedule
-            LocalDate consultationDate = schedule.getDate();
-            LocalTime consultationEndTime = schedule.getEndTime();
-
-            // Validate consultation timing
-            LocalDate today = LocalDate.now();
-            LocalTime now = LocalTime.now();
-
-            if (consultationDate != null) {
-                // If date is available, use it for validation
-                if (consultationDate.isAfter(today)) {
-                    throw new IllegalArgumentException("Cannot rate future consultation");
-                }
-
-                // If consultation is today, check if the consultation time has ended
-                if (consultationDate.isEqual(today) && consultationEndTime != null) {
-                    if (consultationEndTime.isAfter(now)) {
-                        throw new IllegalArgumentException("Cannot rate consultation that hasn't ended yet");
-                    }
-                }
-            } else {
-                // Fallback: if date is null, only check time (assuming today's consultation)
-                if (consultationEndTime != null && consultationEndTime.isAfter(now)) {
-                    throw new IllegalArgumentException("Tidak dapat menilai konsultasi yang belum berakhir");
-                }
-                // If both date and endTime are null, allow rating (legacy data support)
-                log.warn("Consultation {} has no date/time information, allowing rating", idJadwalKonsultasi);
-            }
-
             // Get the patient ID from the reservation (using correct field name)
             UUID idPacilian = reservasi.getIdPacilian();
 
