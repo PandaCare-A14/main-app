@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
 
+import java.time.DayOfWeek;
 import java.util.List;
 import java.util.UUID;
 
@@ -152,5 +153,116 @@ public class CaregiverReservationControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testGetReservationsByCaregiver_WithStatusAndDay() throws Exception {
+        UUID caregiverId = UUID.randomUUID();
+        String status = "APPROVED";
+        String day = "MONDAY";
+
+        when(reservationService.getReservationsByCaregiverStatusAndDay(
+                eq(caregiverId),
+                eq(StatusReservasiKonsultasi.APPROVED),
+                eq(DayOfWeek.MONDAY)))
+                .thenReturn(List.of(mockReservation));
+
+        mockMvc.perform(get("/api/caregivers/{caregiverId}/reservations", caregiverId)
+                        .param("status", status)
+                        .param("day", day))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(mockReservation.getId().toString()));
+    }
+
+    @Test
+    void testGetReservationsByCaregiver_WithDayOnly() throws Exception {
+        UUID caregiverId = UUID.randomUUID();
+        String day = "TUESDAY";
+
+        when(reservationService.getReservationsByCaregiverAndDay(
+                eq(caregiverId), eq(DayOfWeek.TUESDAY)))
+                .thenReturn(List.of(mockReservation));
+
+        mockMvc.perform(get("/api/caregivers/{caregiverId}/reservations", caregiverId)
+                        .param("day", day))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(mockReservation.getId().toString()));
+    }
+
+    @Test
+    void testGetReservationsByCaregiver_WithStatusOtherThanWaiting() throws Exception {
+        UUID caregiverId = UUID.randomUUID();
+        String status = "APPROVED";
+
+        when(reservationService.getReservationsByCaregiverAndStatus(
+                eq(caregiverId), eq(StatusReservasiKonsultasi.APPROVED)))
+                .thenReturn(List.of(mockReservation));
+
+        mockMvc.perform(get("/api/caregivers/{caregiverId}/reservations", caregiverId)
+                        .param("status", status))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(mockReservation.getId().toString()));
+    }
+
+    @Test
+    void testGetReservationsByCaregiver_WithInvalidDay() throws Exception {
+        UUID caregiverId = UUID.randomUUID();
+
+        mockMvc.perform(get("/api/caregivers/{caregiverId}/reservations", caregiverId)
+                        .param("day", "INVALID_DAY"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testGetReservationsByCaregiver_InternalServerError() throws Exception {
+        UUID caregiverId = UUID.randomUUID();
+
+        when(reservationService.getReservationsForCaregiver(caregiverId))
+                .thenThrow(new RuntimeException("Unexpected error"));
+
+        mockMvc.perform(get("/api/caregivers/{caregiverId}/reservations", caregiverId))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testUpdateStatus_IllegalArgument() throws Exception {
+        UUID reservationId = UUID.randomUUID();
+        UpdateStatusDTO dto = new UpdateStatusDTO();
+        dto.setStatus(StatusReservasiKonsultasi.APPROVED);
+
+        when(reservationService.approveReservation(reservationId))
+                .thenThrow(new IllegalArgumentException("Invalid argument"));
+
+        mockMvc.perform(patch("/api/caregivers/reservations/{reservationId}/status", reservationId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testUpdateStatus_InternalServerError() throws Exception {
+        UUID reservationId = UUID.randomUUID();
+        UpdateStatusDTO dto = new UpdateStatusDTO();
+        dto.setStatus(StatusReservasiKonsultasi.APPROVED);
+
+        when(reservationService.approveReservation(reservationId))
+                .thenThrow(new RuntimeException("Unexpected server error"));
+
+        mockMvc.perform(patch("/api/caregivers/reservations/{reservationId}/status", reservationId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testUpdateStatus_UnsupportedStatus() throws Exception {
+        UUID reservationId = UUID.randomUUID();
+        UpdateStatusDTO dto = new UpdateStatusDTO();
+        dto.setStatus(StatusReservasiKonsultasi.WAITING); // This status isn't handled in the switch
+
+        mockMvc.perform(patch("/api/caregivers/reservations/{reservationId}/status", reservationId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
     }
 }
