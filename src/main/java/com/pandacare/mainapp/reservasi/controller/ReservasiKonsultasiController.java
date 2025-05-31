@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/api/reservasi-konsultasi")
@@ -68,10 +69,14 @@ public class ReservasiKonsultasiController {
         try {
             List<?> reservations = reservasiService.findAllByPacilian(idPacilian).get();
             return ResponseEntity.ok(reservations);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Thread interrupted");
+        } catch (ExecutionException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Execution failed");
         }
     }
+
 
     @PostMapping("/{id}/accept-change")
     public ResponseEntity<?> acceptChangeReservasi(@PathVariable("id") UUID id) {
