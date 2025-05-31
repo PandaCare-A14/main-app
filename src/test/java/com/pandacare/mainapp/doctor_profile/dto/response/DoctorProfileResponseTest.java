@@ -49,6 +49,7 @@ public class DoctorProfileResponseTest {
 
     @Test
     void testFieldValues() {
+        assertEquals(ID, response.getCaregiverId());
         assertEquals(NAME, response.getName());
         assertEquals(EMAIL, response.getEmail());
         assertEquals(PHONE, response.getPhoneNumber());
@@ -62,8 +63,10 @@ public class DoctorProfileResponseTest {
 
     @Test
     void testAllArgsConstructor() {
+        UUID newId = UUID.randomUUID();
+        List<RatingResponse> newRatings = Arrays.asList(new RatingResponse());
         DoctorProfileResponse newResponse = new DoctorProfileResponse(
-                UUID.randomUUID(),
+                newId,
                 "Dr. Smith",
                 "smith@pandacare.com",
                 "081133344455",
@@ -71,14 +74,20 @@ public class DoctorProfileResponseTest {
                 new ArrayList<>(),
                 "Cardiology",
                 4.2,
-                RATINGS,
+                newRatings,
                 15
         );
 
+        assertEquals(newId, newResponse.getCaregiverId());
         assertEquals("Dr. Smith", newResponse.getName());
+        assertEquals("smith@pandacare.com", newResponse.getEmail());
+        assertEquals("081133344455", newResponse.getPhoneNumber());
+        assertEquals("RS Medika", newResponse.getWorkAddress());
         assertEquals("Cardiology", newResponse.getSpeciality());
         assertEquals(4.2, newResponse.getAverageRating());
-        assertEquals(RATINGS, newResponse.getRatings());
+        assertEquals(newRatings, newResponse.getRatings());
+        assertEquals(15, newResponse.getTotalRatings());
+        assertNotNull(newResponse.getWorkSchedule());
     }
 
     @Test
@@ -99,6 +108,22 @@ public class DoctorProfileResponseTest {
 
         assertEquals(response, sameResponse);
         assertEquals(response.hashCode(), sameResponse.hashCode());
+
+        DoctorProfileResponse differentResponse = new DoctorProfileResponse(
+                UUID.randomUUID(),
+                "Dr. Different",
+                "different@pandacare.com",
+                "081199887766",
+                "Different Hospital",
+                schedules,
+                "Cardiology",
+                3.5,
+                RATINGS,
+                10
+        );
+
+        assertNotEquals(response, differentResponse);
+        assertNotEquals(response.hashCode(), differentResponse.hashCode());
     }
 
     @Test
@@ -122,13 +147,14 @@ public class DoctorProfileResponseTest {
         DoctorProfileResponse testResponse = new DoctorProfileResponse();
         UUID newId = UUID.randomUUID();
         List<RatingResponse> newRatings = Arrays.asList(new RatingResponse());
+        List<DoctorProfileResponse.CaregiverScheduleDTO> newSchedule = new ArrayList<>();
 
         testResponse.setCaregiverId(newId);
         testResponse.setName("Dr. Test");
         testResponse.setEmail("test@example.com");
         testResponse.setPhoneNumber("+9876543210");
         testResponse.setWorkAddress("Test Hospital");
-        testResponse.setWorkSchedule(new ArrayList<>());
+        testResponse.setWorkSchedule(newSchedule);
         testResponse.setSpeciality("Surgery");
         testResponse.setAverageRating(4.8);
         testResponse.setRatings(newRatings);
@@ -139,7 +165,7 @@ public class DoctorProfileResponseTest {
         assertEquals("test@example.com", testResponse.getEmail());
         assertEquals("+9876543210", testResponse.getPhoneNumber());
         assertEquals("Test Hospital", testResponse.getWorkAddress());
-        assertNotNull(testResponse.getWorkSchedule());
+        assertEquals(newSchedule, testResponse.getWorkSchedule());
         assertEquals("Surgery", testResponse.getSpeciality());
         assertEquals(4.8, testResponse.getAverageRating());
         assertEquals(newRatings, testResponse.getRatings());
@@ -153,6 +179,7 @@ public class DoctorProfileResponseTest {
         assertTrue(result.contains("Dr. Clara"));
         assertTrue(result.contains("Neurology"));
         assertTrue(result.contains("clara@pandacare.com"));
+        assertTrue(result.contains("DoctorProfileResponse"));
     }
 
     @Test
@@ -160,6 +187,7 @@ public class DoctorProfileResponseTest {
         DoctorProfileResponse other = new DoctorProfileResponse();
         assertTrue(response.canEqual(other));
         assertFalse(response.canEqual(new Object()));
+        assertFalse(response.canEqual(null));
     }
 
     @Test
@@ -228,8 +256,18 @@ public class DoctorProfileResponseTest {
                 ScheduleStatus.AVAILABLE
         );
 
+        DoctorProfileResponse.CaregiverScheduleDTO schedule3 = new DoctorProfileResponse.CaregiverScheduleDTO(
+                UUID.randomUUID(),
+                DayOfWeek.THURSDAY,
+                LocalTime.of(11, 0),
+                LocalTime.of(17, 0),
+                ScheduleStatus.UNAVAILABLE
+        );
+
         assertEquals(schedule1, schedule2);
         assertEquals(schedule1.hashCode(), schedule2.hashCode());
+        assertNotEquals(schedule1, schedule3);
+        assertNotEquals(schedule1.hashCode(), schedule3.hashCode());
     }
 
     @Test
@@ -246,6 +284,7 @@ public class DoctorProfileResponseTest {
         assertNotNull(result);
         assertTrue(result.contains("SATURDAY"));
         assertTrue(result.contains("AVAILABLE"));
+        assertTrue(result.contains("CaregiverScheduleDTO"));
     }
 
     @Test
@@ -255,6 +294,7 @@ public class DoctorProfileResponseTest {
 
         assertTrue(schedule.canEqual(other));
         assertFalse(schedule.canEqual(new Object()));
+        assertFalse(schedule.canEqual(null));
     }
 
     @Test
@@ -313,8 +353,33 @@ public class DoctorProfileResponseTest {
                 Integer.MAX_VALUE
         );
 
+        assertEquals("Dr. Maximum", maxResponse.getName());
         assertEquals(5.0, maxResponse.getAverageRating());
         assertEquals(Integer.MAX_VALUE, maxResponse.getTotalRatings());
+        assertEquals(1, maxResponse.getWorkSchedule().size());
+        assertEquals(1, maxResponse.getRatings().size());
+    }
+
+    @Test
+    void testMinValues() {
+        DoctorProfileResponse minResponse = new DoctorProfileResponse(
+                UUID.randomUUID(),
+                "Dr. Minimum",
+                "min@test.com",
+                "000000000",
+                "Min Hospital",
+                Collections.emptyList(),
+                "General",
+                0.0,
+                Collections.emptyList(),
+                0
+        );
+
+        assertEquals("Dr. Minimum", minResponse.getName());
+        assertEquals(0.0, minResponse.getAverageRating());
+        assertEquals(0, minResponse.getTotalRatings());
+        assertTrue(minResponse.getWorkSchedule().isEmpty());
+        assertTrue(minResponse.getRatings().isEmpty());
     }
 
     @Test
@@ -333,6 +398,122 @@ public class DoctorProfileResponseTest {
         assertEquals(DayOfWeek.MONDAY, response.getWorkSchedule().get(0).getDay());
         assertEquals(DayOfWeek.TUESDAY, response.getWorkSchedule().get(1).getDay());
         assertEquals(DayOfWeek.WEDNESDAY, response.getWorkSchedule().get(2).getDay());
+        assertEquals(ScheduleStatus.AVAILABLE, response.getWorkSchedule().get(0).getStatus());
+        assertEquals(ScheduleStatus.AVAILABLE, response.getWorkSchedule().get(1).getStatus());
         assertEquals(ScheduleStatus.UNAVAILABLE, response.getWorkSchedule().get(2).getStatus());
+    }
+
+    @Test
+    void testWorkScheduleWithDifferentTimes() {
+        List<DoctorProfileResponse.CaregiverScheduleDTO> schedules = Arrays.asList(
+                new DoctorProfileResponse.CaregiverScheduleDTO(UUID.randomUUID(), DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 0), ScheduleStatus.AVAILABLE),
+                new DoctorProfileResponse.CaregiverScheduleDTO(UUID.randomUUID(), DayOfWeek.MONDAY, LocalTime.of(13, 0), LocalTime.of(17, 0), ScheduleStatus.AVAILABLE),
+                new DoctorProfileResponse.CaregiverScheduleDTO(UUID.randomUUID(), DayOfWeek.TUESDAY, LocalTime.of(10, 30), LocalTime.of(15, 30), ScheduleStatus.AVAILABLE)
+        );
+
+        DoctorProfileResponse response = new DoctorProfileResponse(
+                UUID.randomUUID(), "Dr. Flexible", "flexible@test.com", "123", "Hospital", schedules, "Flexible", 4.5, Collections.emptyList(), 20
+        );
+
+        assertEquals(3, response.getWorkSchedule().size());
+        assertEquals(LocalTime.of(8, 0), response.getWorkSchedule().get(0).getStartTime());
+        assertEquals(LocalTime.of(12, 0), response.getWorkSchedule().get(0).getEndTime());
+        assertEquals(LocalTime.of(13, 0), response.getWorkSchedule().get(1).getStartTime());
+        assertEquals(LocalTime.of(17, 0), response.getWorkSchedule().get(1).getEndTime());
+        assertEquals(LocalTime.of(10, 30), response.getWorkSchedule().get(2).getStartTime());
+        assertEquals(LocalTime.of(15, 30), response.getWorkSchedule().get(2).getEndTime());
+    }
+
+    @Test
+    void testCaregiverScheduleDTOWithNullValues() {
+        DoctorProfileResponse.CaregiverScheduleDTO schedule = new DoctorProfileResponse.CaregiverScheduleDTO(
+                null, null, null, null, null
+        );
+
+        assertNull(schedule.getId());
+        assertNull(schedule.getDay());
+        assertNull(schedule.getStartTime());
+        assertNull(schedule.getEndTime());
+        assertNull(schedule.getStatus());
+    }
+
+    @Test
+    void testCaregiverScheduleDTOAllDaysOfWeek() {
+        for (DayOfWeek day : DayOfWeek.values()) {
+            DoctorProfileResponse.CaregiverScheduleDTO schedule = new DoctorProfileResponse.CaregiverScheduleDTO(
+                    UUID.randomUUID(),
+                    day,
+                    LocalTime.of(9, 0),
+                    LocalTime.of(17, 0),
+                    ScheduleStatus.AVAILABLE
+            );
+
+            assertEquals(day, schedule.getDay());
+            assertNotNull(schedule.getId());
+            assertEquals(LocalTime.of(9, 0), schedule.getStartTime());
+            assertEquals(LocalTime.of(17, 0), schedule.getEndTime());
+            assertEquals(ScheduleStatus.AVAILABLE, schedule.getStatus());
+        }
+    }
+
+    @Test
+    void testCaregiverScheduleDTOAllScheduleStatuses() {
+        for (ScheduleStatus status : ScheduleStatus.values()) {
+            DoctorProfileResponse.CaregiverScheduleDTO schedule = new DoctorProfileResponse.CaregiverScheduleDTO(
+                    UUID.randomUUID(),
+                    DayOfWeek.MONDAY,
+                    LocalTime.of(9, 0),
+                    LocalTime.of(17, 0),
+                    status
+            );
+
+            assertEquals(status, schedule.getStatus());
+            assertNotNull(schedule.getId());
+            assertEquals(DayOfWeek.MONDAY, schedule.getDay());
+            assertEquals(LocalTime.of(9, 0), schedule.getStartTime());
+            assertEquals(LocalTime.of(17, 0), schedule.getEndTime());
+        }
+    }
+
+    @Test
+    void testRatingsWithMultipleEntries() {
+        List<RatingResponse> multipleRatings = Arrays.asList(
+                new RatingResponse(),
+                new RatingResponse(),
+                new RatingResponse()
+        );
+
+        DoctorProfileResponse response = new DoctorProfileResponse(
+                UUID.randomUUID(),
+                "Dr. Popular",
+                "popular@test.com",
+                "123456789",
+                "Popular Hospital",
+                Collections.emptyList(),
+                "Popular Specialty",
+                4.9,
+                multipleRatings,
+                100
+        );
+
+        assertEquals(3, response.getRatings().size());
+        assertEquals(4.9, response.getAverageRating());
+        assertEquals(100, response.getTotalRatings());
+    }
+
+    @Test
+    void testEqualsWithSameReference() {
+        assertEquals(response, response);
+        assertEquals(response.hashCode(), response.hashCode());
+    }
+
+    @Test
+    void testEqualsWithNull() {
+        assertNotEquals(response, null);
+    }
+
+    @Test
+    void testEqualsWithDifferentClass() {
+        assertNotEquals(response, new Object());
     }
 }
