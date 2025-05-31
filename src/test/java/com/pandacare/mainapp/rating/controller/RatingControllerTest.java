@@ -50,6 +50,15 @@ class RatingControllerTest {
     private CaregiverSchedule pastSchedule;
     private CaregiverSchedule futureSchedule;
 
+    private CaregiverSchedule todayNotEndedSchedule;
+    private ReservasiKonsultasi todayNotEndedReservasi;
+    
+    private CaregiverSchedule nullDateSchedule;
+    private ReservasiKonsultasi nullDateReservasi;
+    
+    private CaregiverSchedule nullDateTimeSchedule;
+    private ReservasiKonsultasi nullDateTimeReservasi;
+
     private final UUID ID_PASIEN = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private final UUID ID_DOKTER = UUID.fromString("22222222-2222-2222-2222-222222222222");
     private final UUID ID_JADWAL_KONSULTASI = UUID.fromString("33333333-3333-3333-3333-333333333333");
@@ -97,6 +106,45 @@ class RatingControllerTest {
         futureReservasiKonsultasi.setId(ID_JADWAL_KONSULTASI);
         futureReservasiKonsultasi.setIdPacilian(ID_PASIEN);
         futureReservasiKonsultasi.setIdSchedule(futureSchedule);
+
+        // Initialize CaregiverSchedule for today's consultation that hasn't ended yet
+        todayNotEndedSchedule = new CaregiverSchedule();
+        todayNotEndedSchedule.setIdCaregiver(ID_DOKTER);
+        todayNotEndedSchedule.setDate(LocalDate.now()); // Today
+        todayNotEndedSchedule.setStartTime(LocalTime.of(9, 0)); // 09:00
+        todayNotEndedSchedule.setEndTime(LocalTime.now().plusHours(1)); // Current time + 1 hour
+        
+        // Initialize reservasi for today's consultation that hasn't ended
+        todayNotEndedReservasi = new ReservasiKonsultasi();
+        todayNotEndedReservasi.setId(ID_JADWAL_KONSULTASI);
+        todayNotEndedReservasi.setIdPacilian(ID_PASIEN);
+        todayNotEndedReservasi.setIdSchedule(todayNotEndedSchedule);
+        
+        // Initialize CaregiverSchedule with null date but future time
+        nullDateSchedule = new CaregiverSchedule();
+        nullDateSchedule.setIdCaregiver(ID_DOKTER);
+        nullDateSchedule.setDate(null); // Null date
+        nullDateSchedule.setStartTime(LocalTime.of(9, 0)); // 09:00
+        nullDateSchedule.setEndTime(LocalTime.now().plusHours(1)); // Current time + 1 hour
+        
+        // Initialize reservasi for null date schedule
+        nullDateReservasi = new ReservasiKonsultasi();
+        nullDateReservasi.setId(ID_JADWAL_KONSULTASI);
+        nullDateReservasi.setIdPacilian(ID_PASIEN);
+        nullDateReservasi.setIdSchedule(nullDateSchedule);
+        
+        // Initialize CaregiverSchedule with null date and null time (legacy data)
+        nullDateTimeSchedule = new CaregiverSchedule();
+        nullDateTimeSchedule.setIdCaregiver(ID_DOKTER);
+        nullDateTimeSchedule.setDate(null); // Null date
+        nullDateTimeSchedule.setStartTime(null); // Null start time
+        nullDateTimeSchedule.setEndTime(null); // Null end time
+        
+        // Initialize reservasi for null date and time schedule
+        nullDateTimeReservasi = new ReservasiKonsultasi();
+        nullDateTimeReservasi.setId(ID_JADWAL_KONSULTASI);
+        nullDateTimeReservasi.setIdPacilian(ID_PASIEN);
+        nullDateTimeReservasi.setIdSchedule(nullDateTimeSchedule);
     }
 
     @Test
@@ -388,5 +436,78 @@ class RatingControllerTest {
         Map<String, Object> body = (Map<String, Object>) response.getBody();
         assertEquals("error", body.get("status"));
         assertEquals("Rating tidak ditemukan", body.get("message"));
+    }
+    
+    @Test
+    void addRating_TodayConsultationNotEnded() {
+        // Arrange - using today's consultation that hasn't ended yet
+        when(reservasiKonsultasiRepository.findById(ID_JADWAL_KONSULTASI))
+                .thenReturn(Optional.of(todayNotEndedReservasi));
+
+        // Act
+        ResponseEntity<?> response = ratingController.addRating(ID_JADWAL_KONSULTASI, ratingRequest);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("error", body.get("status"));
+        assertEquals("Cannot rate consultation that hasn't ended yet", body.get("message"));
+    }
+    
+    @Test
+    void addRating_NullDateButFutureTime() {
+        // Arrange - using consultation with null date but future time
+        when(reservasiKonsultasiRepository.findById(ID_JADWAL_KONSULTASI))
+                .thenReturn(Optional.of(nullDateReservasi));
+
+        // Act
+        ResponseEntity<?> response = ratingController.addRating(ID_JADWAL_KONSULTASI, ratingRequest);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("error", body.get("status"));
+        assertEquals("Tidak dapat menilai konsultasi yang belum berakhir", body.get("message"));
+    }
+    
+    @Test
+    void addRating_NullDateTimeAllowed() {
+        // Arrange - using legacy consultation with null date and time
+        when(reservasiKonsultasiRepository.findById(ID_JADWAL_KONSULTASI))
+                .thenReturn(Optional.of(nullDateTimeReservasi));
+        when(ratingService.addRating(eq(ID_PASIEN), any(RatingRequest.class))).thenReturn(ratingResponse);
+
+        // Act
+        ResponseEntity<?> response = ratingController.addRating(ID_JADWAL_KONSULTASI, ratingRequest);
+
+        // Assert
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("success", body.get("status"));
+        assertEquals("Rating berhasil ditambahkan", body.get("message"));
+        
+        // Verify service was called with correct parameters
+        verify(ratingService, times(1)).addRating(eq(ID_PASIEN), any(RatingRequest.class));
+    }
+    
+    @Test
+    void addRating_ScheduleNotFound() {
+        // Arrange - reservation exists but has null schedule
+        ReservasiKonsultasi reservasiNoSchedule = new ReservasiKonsultasi();
+        reservasiNoSchedule.setId(ID_JADWAL_KONSULTASI);
+        reservasiNoSchedule.setIdPacilian(ID_PASIEN);
+        reservasiNoSchedule.setIdSchedule(null); // null schedule
+        
+        when(reservasiKonsultasiRepository.findById(ID_JADWAL_KONSULTASI))
+                .thenReturn(Optional.of(reservasiNoSchedule));
+
+        // Act
+        ResponseEntity<?> response = ratingController.addRating(ID_JADWAL_KONSULTASI, ratingRequest);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals("error", body.get("status"));
+        assertEquals("Schedule not found for this consultation", body.get("message"));
     }
 }
