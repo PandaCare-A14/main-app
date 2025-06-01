@@ -9,9 +9,7 @@ import java.time.format.DateTimeParseException;
 
 @Service
 public class DefaultWorkScheduleParser implements WorkScheduleParser {
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-
-    @Override
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");    @Override
     public ParsedWorkSchedule parse(String workSchedule) throws IllegalArgumentException {
         try {
             String[] parts = workSchedule.split(" ");
@@ -21,7 +19,13 @@ public class DefaultWorkScheduleParser implements WorkScheduleParser {
                 );
             }
 
-            DayOfWeek day = DayOfWeek.valueOf(parts[0].toUpperCase());
+            DayOfWeek day;
+            try {
+                day = DayOfWeek.valueOf(parts[0].toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid day. Use full names (e.g., Monday)");
+            }
+            
             String[] timeRange = parts[1].split("-");
             if (timeRange.length != 2) {
                 throw new IllegalArgumentException(
@@ -40,8 +44,6 @@ public class DefaultWorkScheduleParser implements WorkScheduleParser {
 
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Invalid time format. Use HH:mm");
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid day. Use full names (e.g., Monday)");
         }
     }
 }
