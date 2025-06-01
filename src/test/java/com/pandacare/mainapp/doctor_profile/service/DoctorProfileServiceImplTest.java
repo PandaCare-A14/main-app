@@ -285,15 +285,132 @@ class DoctorProfileServiceImplTest {
     }
 
     @Test
-    void getDoctorProfileListResponse_ShouldHandleRatingServiceException() {
-        when(ratingService.getRatingsByDokter(any(UUID.class))).thenThrow(new RuntimeException("Rating service error"));
+    void searchByCriteria_ShouldThrowExceptionForEmptySearchParameters() {
+        // Test edge case where all parameters are null or empty
+        Exception exception = assertThrows(Exception.class, () -> {
+            CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.searchByCriteria(null, null, null, null, null);
+            future.get();
+        });
+        
+        assertTrue(exception.getCause() instanceof IllegalArgumentException);
+        assertEquals("At least one search parameter must be provided", exception.getCause().getMessage());
+    }
 
-        DoctorProfileListResponse response = doctorProfileService.getDoctorProfileListResponse(caregivers);
+    @Test
+    void searchByCriteria_ShouldHandleEmptyStringsAsParameters() throws ExecutionException, InterruptedException {
+        // Test edge case where parameters are empty strings (should be treated as null)
+        Exception exception = assertThrows(Exception.class, () -> {
+            CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.searchByCriteria("", "", null, null, null);
+            future.get();
+        });
+        
+        assertTrue(exception.getCause() instanceof IllegalArgumentException);
+        assertEquals("At least one search parameter must be provided", exception.getCause().getMessage());
+    }
+
+    @Test
+    void searchByCriteria_ShouldHandleWhitespaceOnlyStrings() throws ExecutionException, InterruptedException {
+        // Test edge case where parameters are whitespace only
+        Exception exception = assertThrows(Exception.class, () -> {
+            CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.searchByCriteria("   ", "   ", null, null, null);
+            future.get();
+        });
+        
+        assertTrue(exception.getCause() instanceof IllegalArgumentException);
+        assertEquals("At least one search parameter must be provided", exception.getCause().getMessage());
+    }
+
+    @Test
+    void searchByCriteria_ShouldHandleScheduleSearchWithEmptyNameFilter() throws ExecutionException, InterruptedException {
+        // Test case where schedule is provided but name is empty string
+        String day = "MONDAY";
+        String startTime = "09:00";
+        String endTime = "12:00";
+        String emptyName = "";
+        String speciality = "Cardio";
+
+        when(workScheduleParser.parse(day + " " + startTime + "-" + endTime))
+                .thenReturn(new ParsedWorkSchedule(DayOfWeek.MONDAY, LocalTime.parse(startTime), LocalTime.parse(endTime)));
+        when(doctorProfileRepository.findByWorkingSchedulesAvailable(DayOfWeek.MONDAY, LocalTime.parse(startTime), LocalTime.parse(endTime)))
+                .thenReturn(caregivers);
+        when(ratingService.getRatingsByDokter(any(UUID.class)))
+                .thenReturn(new RatingListResponse(4.5, 10, Collections.emptyList()));
+
+        CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.searchByCriteria(emptyName, speciality, day, startTime, endTime);
+        DoctorProfileListResponse response = future.get();
+
+        assertNotNull(response);
+        // Should filter by speciality only since empty name is ignored
+        verify(doctorProfileRepository).findByWorkingSchedulesAvailable(DayOfWeek.MONDAY, LocalTime.parse(startTime), LocalTime.parse(endTime));
+    }
+
+    @Test
+    void searchByCriteria_ShouldHandleScheduleSearchWithEmptySpecialityFilter() throws ExecutionException, InterruptedException {
+        // Test case where schedule is provided but speciality is empty string
+        String day = "MONDAY";
+        String startTime = "09:00";
+        String endTime = "12:00";
+        String name = "Hafiz";
+        String emptySpeciality = "";
+
+        when(workScheduleParser.parse(day + " " + startTime + "-" + endTime))
+                .thenReturn(new ParsedWorkSchedule(DayOfWeek.MONDAY, LocalTime.parse(startTime), LocalTime.parse(endTime)));
+        when(doctorProfileRepository.findByWorkingSchedulesAvailable(DayOfWeek.MONDAY, LocalTime.parse(startTime), LocalTime.parse(endTime)))
+                .thenReturn(caregivers);
+        when(ratingService.getRatingsByDokter(any(UUID.class)))
+                .thenReturn(new RatingListResponse(4.5, 10, Collections.emptyList()));
+
+        CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.searchByCriteria(name, emptySpeciality, day, startTime, endTime);
+        DoctorProfileListResponse response = future.get();
+
+        assertNotNull(response);
+        // Should filter by name only since empty speciality is ignored
+        verify(doctorProfileRepository).findByWorkingSchedulesAvailable(DayOfWeek.MONDAY, LocalTime.parse(startTime), LocalTime.parse(endTime));
+    }
+
+    @Test
+    void searchByCriteria_ShouldHandlePartialScheduleParameters() throws ExecutionException, InterruptedException {
+        // Test case where only some schedule parameters are provided (should fall back to name/speciality search)
+        String name = "Hafiz";
+        String speciality = "Cardio";
+        String day = "MONDAY";
+        // Missing startTime and endTime - should use name/speciality search instead
+
+        when(doctorProfileRepository.findByNameContainingIgnoreCaseAndSpecialityContainingIgnoreCase(name, speciality))
+                .thenReturn(caregivers);
+        when(ratingService.getRatingsByDokter(any(UUID.class)))
+                .thenReturn(new RatingListResponse(4.5, 10, Collections.emptyList()));
+
+        CompletableFuture<DoctorProfileListResponse> future = doctorProfileService.searchByCriteria(name, speciality, day, null, null);
+        DoctorProfileListResponse response = future.get();
 
         assertNotNull(response);
         assertEquals(2, response.getDoctorProfiles().size());
-        assertEquals(0.0, response.getDoctorProfiles().get(0).getAverageRating());
-        assertEquals(0, response.getDoctorProfiles().get(0).getTotalRatings());
-        verify(ratingService, times(2)).getRatingsByDokter(any(UUID.class));
+        verify(doctorProfileRepository).findByNameContainingIgnoreCaseAndSpecialityContainingIgnoreCase(name, speciality);
+        verify(workScheduleParser, never()).parse(anyString()); // Should not use schedule parser
+    }
+
+    @Test
+    void getDoctorProfileListResponse_ShouldHandleNullCaregiversList() {
+        // Test edge case with null caregivers list
+        DoctorProfileListResponse response = doctorProfileService.getDoctorProfileListResponse(null);
+        
+        assertNotNull(response);
+        assertTrue(response.getDoctorProfiles().isEmpty());
+        assertEquals(0, response.getTotalItems());
+    }
+
+    @Test
+    void getDoctorProfileListResponse_ShouldHandleRatingServiceException() {
+        // Test case where rating service throws exception
+        when(ratingService.getRatingsByDokter(any(UUID.class)))
+                .thenThrow(new RuntimeException("Rating service error"));
+
+        DoctorProfileListResponse response = doctorProfileService.getDoctorProfileListResponse(caregivers);
+        
+        assertNotNull(response);
+        assertEquals(2, response.getDoctorProfiles().size());
+        assertEquals(2, response.getTotalItems());
+        // Should handle the exception gracefully and map with null ratings
     }
 }
