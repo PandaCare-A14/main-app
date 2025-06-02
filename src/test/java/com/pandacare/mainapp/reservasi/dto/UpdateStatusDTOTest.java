@@ -83,4 +83,53 @@ class UpdateStatusDTOTest {
 
         assertEquals(uuid, dto.getNewScheduleId());
     }
+
+    @Test
+    void testEqualsWithDifferentNewScheduleId() {
+        UUID uuid1 = UUID.randomUUID();
+        UUID uuid2 = UUID.randomUUID();
+        UpdateStatusDTO dto1 = new UpdateStatusDTO(StatusReservasiKonsultasi.APPROVED, uuid1);
+        UpdateStatusDTO dto2 = new UpdateStatusDTO(StatusReservasiKonsultasi.APPROVED, uuid2);
+
+        assertNotEquals(dto1, dto2);
+    }
+
+    @Test
+    void testEqualsWithNullFields() {
+        UpdateStatusDTO dto1 = new UpdateStatusDTO(null, null);
+        UpdateStatusDTO dto2 = new UpdateStatusDTO(null, null);
+        UpdateStatusDTO dto3 = new UpdateStatusDTO(StatusReservasiKonsultasi.APPROVED, null);
+        UpdateStatusDTO dto4 = new UpdateStatusDTO(null, UUID.randomUUID());
+
+        assertEquals(dto1, dto2);
+        assertNotEquals(dto1, dto3);
+        assertNotEquals(dto1, dto4);
+        assertNotEquals(dto3, dto4);
+    }
+
+    @Test
+    void testEqualsWithSameInstance() {
+        UpdateStatusDTO dto = new UpdateStatusDTO(StatusReservasiKonsultasi.APPROVED, UUID.randomUUID());
+
+        assertEquals(dto, dto);  // Same instance
+    }
+
+    @Test
+    void testHashCodeWithNullFields() {
+        UpdateStatusDTO dto1 = new UpdateStatusDTO(null, null);
+        UpdateStatusDTO dto2 = new UpdateStatusDTO(null, null);
+        UpdateStatusDTO dto3 = new UpdateStatusDTO(StatusReservasiKonsultasi.APPROVED, null);
+
+        assertEquals(dto1.hashCode(), dto2.hashCode());
+        assertNotEquals(dto1.hashCode(), dto3.hashCode());
+    }
+
+    @Test
+    void testHashCodeConsistency() {
+        UpdateStatusDTO dto = new UpdateStatusDTO(StatusReservasiKonsultasi.APPROVED, UUID.randomUUID());
+        int hashCode1 = dto.hashCode();
+        int hashCode2 = dto.hashCode();
+
+        assertEquals(hashCode1, hashCode2);
+    }
 }
